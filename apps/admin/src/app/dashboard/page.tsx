@@ -122,6 +122,12 @@ export default function AdminDashboardPage() {
                 </button>
               );
             })}
+            <button
+              onClick={() => router.push('/theme')}
+              className="bg-transparent border-0 text-left py-2.5 px-3 md:px-0 text-[14.5px] cursor-pointer whitespace-nowrap transition-colors text-[var(--accent)] hover:underline md:mt-4 md:border-t md:border-[var(--line)] md:pt-4"
+            >
+              🎨 Theme Studio ↗
+            </button>
           </nav>
 
           {/* Tab Panes */}

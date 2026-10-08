@@ -81,6 +81,36 @@ export default function MemberDashboardPage() {
     },
   ];
 
+  const [events, setEvents] = useState<MemberEvent[]>(memberEvents);
+  const [offlineSynced, setOfflineSynced] = useState(false);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('ascend_offline_passes');
+      if (stored) {
+        const parsed: MemberEvent[] = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge unique by bookingCode
+          const combined = [...parsed];
+          memberEvents.forEach((ev) => {
+            if (!combined.some((c) => c.bookingCode === ev.bookingCode)) {
+              combined.push(ev);
+            }
+          });
+          setEvents(combined);
+          localStorage.setItem('ascend_offline_passes', JSON.stringify(combined));
+        } else {
+          localStorage.setItem('ascend_offline_passes', JSON.stringify(memberEvents));
+        }
+      } else {
+        localStorage.setItem('ascend_offline_passes', JSON.stringify(memberEvents));
+      }
+      setOfflineSynced(true);
+    } catch {
+      setOfflineSynced(false);
+    }
+  }, []);
+
   const receipts: MemberReceipt[] = [
     {
       id: 'RCPT-0041',
@@ -183,10 +213,16 @@ export default function MemberDashboardPage() {
             {/* My Event Passes Tab */}
             {activeTab === 'events' && (
               <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h2 className="font-display text-[20px] font-medium text-[var(--fg)]">
                     Upcoming Bookings & Passes
                   </h2>
+                  {offlineSynced && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-mono bg-[rgba(184,255,44,0.1)] text-[var(--lime)] border border-[rgba(184,255,44,0.25)]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--lime)] animate-pulse" />
+                      Offline Pass Storage Synced ({events.length} passes cached)
+                    </span>
+                  )}
                 </div>
 
                 <Table>
@@ -200,7 +236,7 @@ export default function MemberDashboardPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {memberEvents.map((ev) => (
+                    {events.map((ev) => (
                       <TableRow key={ev.id}>
                         <TableCell className="font-medium text-[var(--fg)]">
                           {ev.title}

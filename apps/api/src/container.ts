@@ -47,6 +47,12 @@ import { MembersController } from './modules/members/members.controller';
 import { createMembersRouter } from './modules/members/members.routes';
 import { createAdminMembersRouter } from './modules/members/admin-members.routes';
 
+import { ThemeRepository } from './modules/theme/theme.repository';
+import { ThemeService } from './modules/theme/theme.service';
+import { ThemeController } from './modules/theme/theme.controller';
+import { createThemeRouter } from './modules/theme/theme.routes';
+import { createAdminThemeRouter } from './modules/theme/admin-theme.routes';
+
 export interface AppContainer {
   prisma: PrismaClient;
   cacheStore: ICacheStore;
@@ -64,6 +70,7 @@ export interface AppContainer {
   paymentsService: PaymentsService;
   resourcesService: ResourcesService;
   membersService: MembersService;
+  themeService: ThemeService;
 
   // Controllers
   authController: AuthController;
@@ -72,6 +79,7 @@ export interface AppContainer {
   paymentsController: PaymentsController;
   resourcesController: ResourcesController;
   membersController: MembersController;
+  themeController: ThemeController;
 
   // Routers
   authRouter: ReturnType<typeof createAuthRouter>;
@@ -86,6 +94,8 @@ export interface AppContainer {
   adminResourcesRouter: ReturnType<typeof createAdminResourcesRouter>;
   membersRouter: ReturnType<typeof createMembersRouter>;
   adminMembersRouter: ReturnType<typeof createAdminMembersRouter>;
+  themeRouter: ReturnType<typeof createThemeRouter>;
+  adminThemeRouter: ReturnType<typeof createAdminThemeRouter>;
 }
 
 export function createContainer(): AppContainer {
@@ -105,6 +115,7 @@ export function createContainer(): AppContainer {
   const paymentsRepository = new PaymentsRepository(prisma);
   const resourcesRepository = new ResourcesRepository(prisma);
   const membersRepository = new MembersRepository(prisma);
+  const themeRepository = new ThemeRepository(prisma);
 
   // Providers
   const paymentProvider = new RazorpayProvider();
@@ -122,6 +133,7 @@ export function createContainer(): AppContainer {
   );
   const resourcesService = new ResourcesService(resourcesRepository, auditService);
   const membersService = new MembersService(membersRepository, auditService);
+  const themeService = new ThemeService(themeRepository, auditService);
 
   // Controllers
   const authController = new AuthController(authService);
@@ -130,6 +142,7 @@ export function createContainer(): AppContainer {
   const paymentsController = new PaymentsController(paymentsService);
   const resourcesController = new ResourcesController(resourcesService);
   const membersController = new MembersController(membersService);
+  const themeController = new ThemeController(themeService);
 
   // Routers
   const authRouter = createAuthRouter(authController);
@@ -144,6 +157,8 @@ export function createContainer(): AppContainer {
   const adminResourcesRouter = createAdminResourcesRouter(resourcesController, adminAuthenticate);
   const membersRouter = createMembersRouter(membersController, authenticate);
   const adminMembersRouter = createAdminMembersRouter(membersController, adminAuthenticate);
+  const themeRouter = createThemeRouter(themeController);
+  const adminThemeRouter = createAdminThemeRouter(themeController, adminAuthenticate);
 
   return {
     prisma,
@@ -158,12 +173,14 @@ export function createContainer(): AppContainer {
     paymentsService,
     resourcesService,
     membersService,
+    themeService,
     authController,
     contentController,
     eventsController,
     paymentsController,
     resourcesController,
     membersController,
+    themeController,
     authRouter,
     adminAuthRouter,
     contentRouter,
@@ -176,5 +193,7 @@ export function createContainer(): AppContainer {
     adminResourcesRouter,
     membersRouter,
     adminMembersRouter,
+    themeRouter,
+    adminThemeRouter,
   };
 }

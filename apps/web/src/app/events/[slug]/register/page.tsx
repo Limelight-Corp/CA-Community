@@ -67,7 +67,25 @@ export default function EventRegisterPage() {
 
       setBookingCode(code);
       setStep(3);
-      toast('Registration confirmed! Pass issued successfully.');
+
+      // Persist to local offline storage for PWA access without internet
+      try {
+        const storedPass = {
+          id: event.slug,
+          title: event.title,
+          date: event.date,
+          venue: event.venue,
+          bookingCode: code,
+          status: 'Confirmed',
+        };
+        const existing = JSON.parse(localStorage.getItem('ascend_offline_passes') || '[]');
+        const updated = [storedPass, ...(Array.isArray(existing) ? existing.filter((p: any) => p.bookingCode !== code) : [])];
+        localStorage.setItem('ascend_offline_passes', JSON.stringify(updated));
+      } catch (err) {
+        console.warn('Could not cache pass offline:', err);
+      }
+
+      toast('Registration confirmed! Pass issued and cached offline.');
     }, 1200);
   };
 
@@ -363,6 +381,10 @@ export default function EventRegisterPage() {
                   <span className="text-[11px] font-mono text-[var(--faint)] block">SCAN AT RECEPTION</span>
                   <span className="text-[12px] font-mono text-[var(--muted)] block">SECURE TOKEN VALID</span>
                 </div>
+              </div>
+
+              <div className="p-2.5 rounded bg-[rgba(184,255,44,0.08)] border border-[rgba(184,255,44,0.2)] text-[12px] font-mono text-[var(--lime)] text-center flex items-center justify-center gap-2">
+                <span>📱 Pass cached for offline access · Available without network</span>
               </div>
             </div>
 

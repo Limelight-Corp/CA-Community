@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#142C85" />
+      <stop offset="60%" stop-color="#070D28" />
+      <stop offset="100%" stop-color="#03050F" />
+    </radialGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B8FF2C" />
+      <stop offset="100%" stop-color="#2F6FE4" />
+    </linearGradient>
+    <linearGradient id="lineGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2F6FE4" />
+      <stop offset="100%" stop-color="#8898C8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base background with rounded squircle for PWA icon -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" stroke="#1E2756" stroke-width="4" />
+
+  <!-- Inner ambient glow -->
+  <circle cx="256" cy="180" r="140" fill="#0F38C0" opacity="0.35" filter="blur(40px)" />
+
+  <!-- Ascend Geometric Monogram 'A' -->
+  <!-- Left leg -->
+  <path d="M140 380 L236 120 C242 104 270 104 276 120 L372 380 C376 392 366 404 354 404 L318 404 C308 404 300 398 296 388 L276 332 L236 332 L216 388 C212 398 204 404 194 404 L158 404 C146 404 136 392 140 380 Z" fill="url(#accentGrad)" />
+
+  <!-- Inner A cutout -->
+  <polygon points="256,192 226,284 286,284" fill="#070D28" />
+
+  <!-- Dynamic Chevron Accent (Rising Ascend Surge) -->
+  <path d="M190 284 L256 220 L322 284" stroke="#B8FF2C" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- ICAI / CA badge indicator dot -->
+  <circle cx="360" cy="150" r="14" fill="#B8FF2C" />
+</svg>

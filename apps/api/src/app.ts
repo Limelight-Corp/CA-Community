@@ -66,6 +66,7 @@ export function createApp(container: AppContainer): Express {
   app.use('/api/v1/payments', container.paymentsRouter);
   app.use('/api/v1/resources', container.resourcesRouter);
   app.use('/api/v1/members', container.membersRouter);
+  app.use('/api/v1/theme', container.themeRouter);
 
   // 7. Isolated Admin API Router (Mounted ONLY when ADMIN_API_ENABLED=true)
   if (env.ADMIN_API_ENABLED) {
@@ -75,6 +76,7 @@ export function createApp(container: AppContainer): Express {
     app.use('/admin-api/v1/payments', container.adminPaymentsRouter);
     app.use('/admin-api/v1/resources', container.adminResourcesRouter);
     app.use('/admin-api/v1/members', container.adminMembersRouter);
+    app.use('/admin-api/v1/theme', container.adminThemeRouter);
   }
 
   // 8. Central Error Handler

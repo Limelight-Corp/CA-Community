@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Navbar, BottomNav, Drawer, ToastProvider, Button } from '@ascend/ui';
+import { PwaRegister } from './PwaRegister';
 
 export interface WebShellProps {
   children: React.ReactNode;
@@ -158,6 +159,9 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
           currentTab={currentNav}
           onTabChange={(tabId) => handleNavigate(tabId)}
         />
+
+        {/* PWA Service Worker & Install Banner */}
+        <PwaRegister />
       </div>
     </ToastProvider>
   );

@@ -28,10 +28,23 @@ export const metadata: Metadata = {
   title: 'ASCEND CA Community — Where young CAs rise together',
   description:
     'A Pan-India community for Chartered Accountants, corporate finance leaders and students. Ten professional wings, events, and a network that grows with your career.',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ASCEND CA',
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: '#03050F',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({

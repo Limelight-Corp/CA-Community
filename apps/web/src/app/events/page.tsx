@@ -1,171 +1,227 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { WebShell } from '../../components/WebShell';
-import { Heading, Eyebrow, EventCard, Input, Select } from '@ascend/ui';
-import { PROTOTYPE_EVENTS, PROTOTYPE_WINGS } from '@ascend/shared';
+import { PROTOTYPE_EVENTS, PROTOTYPE_WINGS, PROTOTYPE_SPEAKERS } from '@ascend/shared';
 
 export default function EventsPage() {
-  const router = useRouter();
-  const [modeFilter, setModeFilter] = useState<'All' | 'Online' | 'Offline'>('All');
+  const [formatFilter, setFormatFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const [wingFilter, setWingFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   const categories = ['All', 'Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Career'];
 
-  const filteredEvents = PROTOTYPE_EVENTS.filter((event) => {
-    const matchesMode = modeFilter === 'All' || event.mode === modeFilter;
-    const matchesCategory = categoryFilter === 'All' || event.category === categoryFilter;
-    const matchesWing = wingFilter === 'All' || String(event.wingNumber) === wingFilter;
+  const filteredEvents = PROTOTYPE_EVENTS.filter((e) => {
+    const wing = PROTOTYPE_WINGS.find((w) => w.number === e.wingNumber);
+    const wingName = wing ? wing.name : '';
     const matchesSearch =
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchQuery ||
+      (e.title + ' ' + e.city + ' ' + wingName).toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = categoryFilter === 'All' || e.category === categoryFilter;
+    const matchesFormat = !formatFilter || e.mode === formatFilter;
 
-    return matchesMode && matchesCategory && matchesWing && matchesSearch;
+    return matchesSearch && matchesCat && matchesFormat;
   });
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setCategoryFilter('All');
+    setFormatFilter('');
+  };
 
   return (
     <WebShell>
-      {/* Header */}
-      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgba(15,56,192,0.38),transparent_70%)]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-8">
-          <Eyebrow pill>Calendar 2027</Eyebrow>
-          <Heading level="h1" className="text-[clamp(40px,5.5cqi,72px)] mt-6 max-w-[16ch]">
-            Upcoming{' '}
-            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#9DB6FF] to-[#DBE7F0]">
-              events.
-            </em>
-          </Heading>
-          <p className="text-[17px] text-[var(--muted)] font-light mt-4 max-w-[56ch] leading-relaxed">
-            Pan-India summits, technical clinics, speed networking evenings, and hands-on automation labs.
-          </p>
+      {/* Page Header (Prototype Exact ph) */}
+      <section className="ph">
+        <div className="wrap ph-row">
+          <div>
+            <span className="eyebrow">Events</span>
+            <h1>
+              Learn something. <em className="s">Meet someone.</em>
+            </h1>
+            <p>Register in under two minutes. Pay by UPI, card or net banking.</p>
+          </div>
         </div>
       </section>
 
-      {/* Filter and Search Controls */}
-      <section className="py-8 border-b border-[var(--line)] bg-[var(--surface)]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-8 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6">
-          {/* Format Mode Chips */}
-          <div className="flex flex-wrap items-center gap-2">
-            {(['All', 'Online', 'Offline'] as const).map((mode) => (
+      {/* Filter and Search Bar (Prototype Exact .filters) */}
+      <section className="wrap">
+        <div className="filters">
+          <div className="search">
+            <svg
+              className="ico"
+              viewBox="0 0 24 24"
+              style={{
+                width: 18,
+                height: 18,
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--muted)',
+                pointerEvents: 'none',
+              }}
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" stroke="currentColor" fill="none" strokeWidth="1.6" />
+              <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            <input
+              id="fq"
+              className="inp"
+              placeholder="Search events or cities"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search events"
+            />
+          </div>
+
+          <select
+            id="fmode"
+            className="inp"
+            value={formatFilter}
+            onChange={(e) => setFormatFilter(e.target.value)}
+            aria-label="Format"
+          >
+            <option value="">Online &amp; offline</option>
+            <option value="Online">Online</option>
+            <option value="Offline">Offline</option>
+          </select>
+
+          <div className="chips">
+            {categories.map((c) => (
               <button
-                key={mode}
-                onClick={() => setModeFilter(mode)}
-                className={`px-4 py-1.5 rounded-[var(--r-full)] text-[13px] font-medium transition-all ${
-                  modeFilter === mode
-                    ? 'bg-[var(--accent)] text-white shadow-sm'
-                    : 'bg-[var(--surface-muted)] text-[var(--muted)] hover:text-[var(--fg)] border border-[var(--line)]'
-                }`}
+                key={c}
+                type="button"
+                className={`chip ${categoryFilter === c ? 'active' : ''}`}
+                aria-pressed={categoryFilter === c}
+                onClick={() => setCategoryFilter(c)}
               >
-                {mode === 'All' ? 'All Formats' : mode}
+                {c}
               </button>
             ))}
           </div>
-
-          {/* Wing & Category & Search inputs */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="w-full sm:w-48">
-              <Select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                options={categories.map((c) => ({ value: c, label: c === 'All' ? 'All Categories' : c }))}
-              />
-            </div>
-
-            <div className="w-full sm:w-48">
-              <Select
-                value={wingFilter}
-                onChange={(e) => setWingFilter(e.target.value)}
-                options={[
-                  { value: 'All', label: 'All Ten Wings' },
-                  ...PROTOTYPE_WINGS.map((w) => ({
-                    value: String(w.number),
-                    label: `Wing ${w.number}: ${w.name.split('&')[0]}`,
-                  })),
-                ]}
-              />
-            </div>
-
-            <div className="w-full sm:w-56">
-              <Input
-                placeholder="Search events or cities..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
         </div>
-      </section>
 
-      {/* Events Grid */}
-      <section className="py-16 md:py-24 max-w-[1200px] mx-auto px-5 md:px-8">
-        {filteredEvents.length === 0 ? (
-          <div className="text-center py-20 bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r)] p-8">
-            <h3 className="font-display text-[20px] font-medium text-[var(--fg)] mb-2">
-              No matching events found
-            </h3>
-            <p className="text-[14.5px] text-[var(--muted)] mb-6">
-              Try adjusting your format or category filters to discover other scheduled sessions.
-            </p>
-            <button
-              onClick={() => {
-                setModeFilter('All');
-                setCategoryFilter('All');
-                setWingFilter('All');
-                setSearchQuery('');
-              }}
-              className="text-[13px] font-mono text-[var(--accent)] hover:underline"
-            >
-              Reset all filters
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((evt) => {
-              const wing = PROTOTYPE_WINGS.find((w) => w.number === evt.wingNumber);
-              const isSoldOut = evt.seatsTaken >= evt.seatsTotal;
+        {/* Events Grid */}
+        {filteredEvents.length > 0 ? (
+          <div className="grid g3">
+            {filteredEvents.map((e) => {
+              const wing = PROTOTYPE_WINGS.find((w) => w.number === e.wingNumber) || PROTOTYPE_WINGS[0]!;
+              const leftSeats = Math.max(0, e.seatsTotal - e.seatsTaken);
+              const isSoldOut = leftSeats <= 0;
+              const isFillingFast = !isSoldOut && leftSeats / e.seatsTotal < 0.15;
+              const statusText = isSoldOut ? 'Sold out' : isFillingFast ? 'Filling fast' : 'Open';
+              const dotColor = isSoldOut ? '#FF9AA3' : isFillingFast ? '#FFD27A' : '#86EBB0';
+              const fillPercent = Math.min(100, (e.seatsTaken / e.seatsTotal) * 100);
 
-              const eventCardData = {
-                id: evt.slug,
-                slug: evt.slug,
-                title: evt.title,
-                category: evt.category,
-                date: evt.date,
-                time: evt.time,
-                venue: evt.venue,
-                city: evt.city,
-                mode: evt.mode,
-                fee: evt.fee,
-                memberFee: evt.memberFee,
-                seatsTotal: evt.seatsTotal,
-                seatsTaken: evt.seatsTaken,
-                wingNumber: evt.wingNumber,
-                wingName: wing?.name || 'General',
-                wingColor: wing?.color || '#2F6FE4',
-              };
+              const dateParts = e.date.split(' ');
+              const day = dateParts[0] || '01';
+              const month = dateParts[1] || 'Jan';
+              const year = dateParts[2] || '2027';
+
+              const firstSpeakerSlug = e.speakerSlugs[0];
+              const firstSpeaker = firstSpeakerSlug ? PROTOTYPE_SPEAKERS[firstSpeakerSlug] : undefined;
 
               return (
-                <div key={evt.slug} className="flex flex-col">
-                  <EventCard
-                    event={eventCardData}
-                    onSelect={() => router.push(`/events/${evt.slug}`)}
-                    onRegister={() => router.push(`/events/${evt.slug}/register`)}
-                  />
-                  {isSoldOut && (
-                    <div className="mt-2 text-center text-[12px] font-mono text-[var(--danger)]">
-                      Event Fully Booked · Waitlist Open
+                <Link
+                  key={e.slug}
+                  href={`/events/${e.slug}`}
+                  className="ev"
+                  style={{ '--wc': wing.color } as React.CSSProperties}
+                  aria-label={e.title}
+                >
+                  <div className="ev-tile">
+                    <div className="ev-row">
+                      <span className="glass">{e.mode === 'Online' ? 'Online' : e.city}</span>
+                      <span className="glass" style={{ '--dot': dotColor } as React.CSSProperties}>
+                        <i />
+                        {statusText}
+                      </span>
                     </div>
-                  )}
-                </div>
+                    <div className="ev-date">
+                      <b>{day}</b>
+                      <span>
+                        {month} {year}
+                        <br />
+                        {e.time}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="ev-body">
+                    <span className="ev-kicker">
+                      <i />
+                      {e.category} · {wing.name}
+                    </span>
+                    <h3>{e.title}</h3>
+                    <div className="ev-meta">
+                      <span>
+                        <svg className="ico" viewBox="0 0 24 24">
+                          {e.mode === 'Online' ? (
+                            <rect x="3" y="4.5" width="18" height="16" rx="3" />
+                          ) : (
+                            <path d="M3 11l9-7 9 7M5.5 9.5V20h13V9.5" />
+                          )}
+                        </svg>
+                        {e.venue}
+                      </span>
+                      {firstSpeaker && (
+                        <span>
+                          <svg className="ico" viewBox="0 0 24 24">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+                          </svg>
+                          {firstSpeaker.name}
+                          {e.speakerSlugs.length > 1 && ` +${e.speakerSlugs.length - 1}`}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="ev-cap">
+                      <div className={`bar ${isSoldOut ? 'full' : ''}`}>
+                        <i style={{ width: `${fillPercent}%` }} />
+                      </div>
+                      <div>
+                        <span>{Math.min(e.seatsTaken, e.seatsTotal)} registered</span>
+                        <span>{isSoldOut ? 'Waitlist open' : `${leftSeats} left`}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="ev-foot">
+                    <div className="fee">
+                      {e.fee === 0 ? 'Free' : `₹${e.fee.toLocaleString('en-IN')}`}
+                      <small>
+                        {e.fee && e.memberFee < e.fee
+                          ? `Members ₹${e.memberFee.toLocaleString('en-IN')}`
+                          : e.fee
+                          ? 'Incl. certificate'
+                          : 'For all members'}
+                      </small>
+                    </div>
+                    <button className="arrow" aria-label={`Register for ${e.title}`} type="button">
+                      <svg className="ico" viewBox="0 0 24 24">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </button>
+                  </div>
+                </Link>
               );
             })}
           </div>
+        ) : (
+          <div className="empty">
+            No events match.{' '}
+            <button className="link" onClick={clearFilters} type="button">
+              Clear filters
+            </button>
+          </div>
         )}
       </section>
+
+      <div style={{ height: 'var(--sec)' }} />
     </WebShell>
   );
 }

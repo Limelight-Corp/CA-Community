@@ -3,16 +3,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Heading,
-  Eyebrow,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-  Badge,
-  Button,
   AscendLogoMark,
   ExportIcon,
   PlusIcon,
@@ -46,17 +36,17 @@ export default function AdminDashboardPage() {
     { name: 'Rahul Nair', plan: 'Student', city: 'Bengaluru', joined: '06 Nov' },
   ];
 
-  const statusVariant = (status: string) => {
+  const pillClass = (status: string) => {
     switch (status) {
       case 'Paid':
-        return 'ok';
+        return 'p-ok';
       case 'Pending':
-        return 'warn';
+        return 'p-warn';
       case 'Failed':
-        return 'bad';
+        return 'p-bad';
       case 'Refunded':
       default:
-        return 'mute';
+        return 'p-mute';
     }
   };
 
@@ -65,29 +55,33 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)] flex flex-col">
       {/* Admin Header */}
-      <header className="border-b border-[var(--line)] bg-[rgba(6,10,31,0.8)] backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A72FF] to-[#1F45D6] grid place-items-center text-white">
+      <header className="hdr">
+        <div className="wrap">
+          <div className="logo">
+            <span className="logo-mark">
               <AscendLogoMark size={18} />
             </span>
-            <div className="flex items-center gap-2">
-              <b className="font-display font-semibold text-[15px] tracking-wider text-white">
-                ASCEND
-              </b>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[var(--card)] text-[var(--muted)] border border-[var(--line)]">
-                Admin Console
-              </span>
-            </div>
+            <b>ASCEND</b>
+            <span className="pill p-mute" style={{ marginLeft: 8, fontSize: 10 }}>
+              Admin Console
+            </span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[12px] text-[var(--muted)] hidden sm:inline">
+          <div className="hdr-r">
+            <span className="mono" style={{ fontSize: 12, color: 'var(--muted)' }}>
               Super Admin · admin@ascend-ca.in
             </span>
             <button
+              onClick={() => router.push('/theme')}
+              className="btn btn-line btn-sm"
+              style={{ fontSize: 13 }}
+            >
+              Theme Studio
+            </button>
+            <button
               onClick={() => router.push('/login')}
-              className="text-[13px] text-[var(--muted)] hover:text-white bg-transparent border-0 cursor-pointer"
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: 13 }}
             >
               Sign out
             </button>
@@ -95,244 +89,202 @@ export default function AdminDashboardPage() {
         </div>
       </header>
 
-      {/* Main Admin Content */}
-      <main className="max-w-[1400px] mx-auto w-full px-6 py-10 flex-1">
-        <div className="grid grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)] gap-8 md:gap-14 items-start">
-          {/* Side Navigation */}
-          <nav className="flex md:flex-col gap-1 border-b md:border-b-0 md:sticky md:top-24 border-[var(--line)] overflow-x-auto pb-2 md:pb-0">
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'events', label: 'Events' },
-              { id: 'payments', label: 'Payments' },
-              { id: 'members', label: 'Members' },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  aria-current={isActive ? 'true' : undefined}
-                  className={`bg-transparent border-0 text-left py-2.5 px-3 md:px-0 text-[14.5px] cursor-pointer whitespace-nowrap transition-colors ${
-                    isActive
-                      ? 'text-[var(--fg)] font-medium md:border-l-2 md:border-[var(--lime)] md:pl-3'
-                      : 'text-[var(--muted)] hover:text-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+      {/* Main Admin Section - Exact Prototype V.admin Structure */}
+      <section className="wrap dash">
+        {/* Side Navigation */}
+        <nav className="snav">
+          {[
+            { id: 'overview', label: 'Overview' },
+            { id: 'events', label: 'Events' },
+            { id: 'payments', label: 'Payments' },
+            { id: 'members', label: 'Members' },
+          ].map((tab) => (
             <button
-              onClick={() => router.push('/theme')}
-              className="bg-transparent border-0 text-left py-2.5 px-3 md:px-0 text-[14.5px] cursor-pointer whitespace-nowrap transition-colors text-[var(--accent)] hover:underline md:mt-4 md:border-t md:border-[var(--line)] md:pt-4"
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              aria-current={activeTab === tab.id ? 'true' : undefined}
             >
-              🎨 Theme Studio ↗
+              {tab.label}
             </button>
-          </nav>
+          ))}
+        </nav>
 
-          {/* Tab Panes */}
-          <div className="flex flex-col gap-10 min-w-0">
-            {/* Header Title & Actions */}
-            <div className="flex justify-between items-end gap-4 flex-wrap">
-              <div>
-                <Eyebrow>Admin</Eyebrow>
-                <Heading level="h1" className="text-[34px] md:text-[40px] mt-2 capitalize">
-                  {activeTab}
-                </Heading>
-              </div>
-              <div className="flex gap-2.5">
-                <Button variant="line" size="sm">
-                  <ExportIcon size={16} /> Export
-                </Button>
-                <Button variant="dark" size="sm">
-                  <PlusIcon size={16} /> Add event
-                </Button>
-              </div>
+        {/* Content Pane */}
+        <div style={{ display: 'grid', gap: '48px', minWidth: 0 }}>
+          {/* Header Title & Actions */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
+            <div>
+              <span className="eyebrow">Admin</span>
+              <h1 style={{ fontSize: 'clamp(30px, 3.6cqi, 44px)', fontWeight: 500, letterSpacing: '-0.04em', marginTop: '10px', textTransform: 'capitalize' }}>
+                {activeTab}
+              </h1>
             </div>
-
-            {/* Overview Tab */}
-            {activeTab === 'overview' && (
-              <>
-                {/* 4 KPIs */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 border border-[var(--line)] rounded-[var(--r)] bg-[linear-gradient(180deg,rgba(219,231,240,0.05),rgba(219,231,240,0.015)),var(--card)] overflow-hidden">
-                  <div className="p-6 border-r border-b lg:border-b-0 border-[var(--line)]">
-                    <span className="text-[13px] text-[var(--muted)]">Registrations</span>
-                    <b className="block font-display text-[32px] md:text-[38px] font-normal tracking-[-0.04em] mt-1.5 font-mono tabular-nums">
-                      2,191
-                    </b>
-                    <em className="font-mono text-[12px] not-italic text-[var(--ok)]">+212 this week</em>
-                  </div>
-                  <div className="p-6 border-b lg:border-b-0 lg:border-r border-[var(--line)]">
-                    <span className="text-[13px] text-[var(--muted)]">Pending payment</span>
-                    <b className="block font-display text-[32px] md:text-[38px] font-normal tracking-[-0.04em] mt-1.5 font-mono tabular-nums">
-                      198
-                    </b>
-                    <em className="font-mono text-[12px] not-italic text-[var(--warn)]">reminded</em>
-                  </div>
-                  <div className="p-6 border-r border-[var(--line)]">
-                    <span className="text-[13px] text-[var(--muted)]">Seats left</span>
-                    <b className="block font-display text-[32px] md:text-[38px] font-normal tracking-[-0.04em] mt-1.5 font-mono tabular-nums">
-                      889
-                    </b>
-                    <em className="font-mono text-[12px] not-italic text-[var(--muted)]">6 events</em>
-                  </div>
-                  <div className="p-6">
-                    <span className="text-[13px] text-[var(--muted)]">Revenue</span>
-                    <b className="block font-display text-[32px] md:text-[38px] font-normal tracking-[-0.04em] mt-1.5 font-mono tabular-nums">
-                      ₹16.4L
-                    </b>
-                    <em className="font-mono text-[12px] not-italic text-[var(--ok)]">before GST</em>
-                  </div>
-                </div>
-
-                {/* Weekly Bars Chart */}
-                <div className="p-6 rounded-[var(--r)] border border-[var(--line)] bg-[var(--card)]">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-mono text-[12px] uppercase text-[var(--muted)]">
-                      Registrations / week
-                    </span>
-                    <span className="font-mono text-[12px] uppercase text-[var(--muted)]">
-                      6 weeks
-                    </span>
-                  </div>
-                  <div className="flex items-end gap-1.5 h-36">
-                    {weeklyBars.map((v, i) => (
-                      <i
-                        key={i}
-                        className={`flex-1 rounded-[1px] transition-all duration-300 ${
-                          i === weeklyBars.length - 1
-                            ? 'bg-[repeating-linear-gradient(90deg,#6F95FF_0_2px,transparent_2px_4px)]'
-                            : 'bg-[repeating-linear-gradient(90deg,rgba(219,231,240,0.16)_0_2px,transparent_2px_4px)]'
-                        }`}
-                        style={{ height: `${(v / 512) * 100}%` }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Recent Payments Table */}
-                <div className="flex flex-col gap-3">
-                  <span className="font-mono text-[12px] uppercase text-[var(--muted)]">
-                    Recent Bookings
-                  </span>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Booking</TableHead>
-                        <TableHead>Attendee</TableHead>
-                        <TableHead>Event</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead align="right">Amount</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {payments.map((p) => (
-                        <TableRow key={p.booking}>
-                          <TableCell className="font-mono text-[13px]">{p.booking}</TableCell>
-                          <TableCell className="font-medium">{p.attendee}</TableCell>
-                          <TableCell className="text-[var(--muted)]">{p.event}</TableCell>
-                          <TableCell>
-                            <Badge variant={statusVariant(p.status) as any}>{p.status}</Badge>
-                          </TableCell>
-                          <TableCell align="right" className="font-mono">
-                            ₹{p.amount.toLocaleString('en-IN')}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </>
-            )}
-
-            {/* Events Tab */}
-            {activeTab === 'events' && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Fee</TableHead>
-                    <TableHead align="right">Seats</TableHead>
-                    <TableHead align="right"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map((e, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-medium">{e.title}</TableCell>
-                      <TableCell className="text-[var(--muted)]">{e.date}</TableCell>
-                      <TableCell className="font-mono">{e.fee}</TableCell>
-                      <TableCell align="right" className="font-mono">
-                        {e.taken}/{e.seats}
-                      </TableCell>
-                      <TableCell align="right">
-                        <Button variant="line" size="sm">
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-
-            {/* Payments Tab */}
-            {activeTab === 'payments' && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Booking</TableHead>
-                    <TableHead>Attendee</TableHead>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead align="right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((p) => (
-                    <TableRow key={p.booking}>
-                      <TableCell className="font-mono text-[13px]">{p.booking}</TableCell>
-                      <TableCell className="font-medium">{p.attendee}</TableCell>
-                      <TableCell className="text-[var(--muted)]">{p.event}</TableCell>
-                      <TableCell>
-                        <Badge variant={statusVariant(p.status) as any}>{p.status}</Badge>
-                      </TableCell>
-                      <TableCell align="right" className="font-mono">
-                        ₹{p.amount.toLocaleString('en-IN')}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-
-            {/* Members Tab */}
-            {activeTab === 'members' && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>Joined</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {members.map((m, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-medium">{m.name}</TableCell>
-                      <TableCell className="font-mono">{m.plan}</TableCell>
-                      <TableCell className="text-[var(--muted)]">{m.city}</TableCell>
-                      <TableCell className="text-[var(--muted)]">{m.joined}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-line btn-sm" onClick={() => alert('Exporting CSV...')}>
+                <ExportIcon size={15} /> Export
+              </button>
+              <button className="btn btn-dark btn-sm" onClick={() => alert('Add event modal opens')}>
+                <PlusIcon size={15} /> Add event
+              </button>
+            </div>
           </div>
+
+          {/* Overview Tab: KPIs + Weekly Bars + Payments Table */}
+          {activeTab === 'overview' && (
+            <>
+              <div className="kpis">
+                <div>
+                  <span>Registrations</span>
+                  <b>2,191</b>
+                  <em>+212 this week</em>
+                </div>
+                <div>
+                  <span>Pending payment</span>
+                  <b>198</b>
+                  <em style={{ color: 'var(--warn)' }}>reminded</em>
+                </div>
+                <div>
+                  <span>Seats left</span>
+                  <b>889</b>
+                  <em style={{ color: 'var(--muted)' }}>6 events</em>
+                </div>
+                <div>
+                  <span>Revenue</span>
+                  <b>₹16.4L</b>
+                  <em>before GST</em>
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <span className="eyebrow">Registrations / week</span>
+                  <span className="eyebrow">6 weeks</span>
+                </div>
+                <div className="bars">
+                  {weeklyBars.map((v, i) => (
+                    <i key={i} style={{ height: `${(v / 512) * 100}%` }} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="tbl">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Booking</th>
+                      <th>Attendee</th>
+                      <th>Event</th>
+                      <th>Status</th>
+                      <th className="r">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((p) => (
+                      <tr key={p.booking}>
+                        <td className="mono">{p.booking}</td>
+                        <td style={{ fontWeight: 500 }}>{p.attendee}</td>
+                        <td style={{ color: 'var(--muted)' }}>{p.event}</td>
+                        <td>
+                          <span className={`pill ${pillClass(p.status)}`}>{p.status}</span>
+                        </td>
+                        <td className="r mono">₹{p.amount.toLocaleString('en-IN')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {/* Events Tab */}
+          {activeTab === 'events' && (
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Event</th>
+                    <th>Date</th>
+                    <th>Fee</th>
+                    <th className="r">Seats</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {events.map((e, idx) => (
+                    <tr key={idx}>
+                      <td style={{ fontWeight: 500 }}>{e.title}</td>
+                      <td style={{ color: 'var(--muted)' }}>{e.date}</td>
+                      <td className="mono">{e.fee}</td>
+                      <td className="r mono">{e.taken}/{e.seats}</td>
+                      <td className="r">
+                        <button className="btn btn-line btn-sm" onClick={() => alert(`Edit event: ${e.title}`)}>
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Payments Tab */}
+          {activeTab === 'payments' && (
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Booking</th>
+                    <th>Attendee</th>
+                    <th>Event</th>
+                    <th>Status</th>
+                    <th className="r">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p) => (
+                    <tr key={p.booking}>
+                      <td className="mono">{p.booking}</td>
+                      <td style={{ fontWeight: 500 }}>{p.attendee}</td>
+                      <td style={{ color: 'var(--muted)' }}>{p.event}</td>
+                      <td>
+                        <span className={`pill ${pillClass(p.status)}`}>{p.status}</span>
+                      </td>
+                      <td className="r mono">₹{p.amount.toLocaleString('en-IN')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Members Tab */}
+          {activeTab === 'members' && (
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Plan</th>
+                    <th>City</th>
+                    <th>Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((m, idx) => (
+                    <tr key={idx}>
+                      <td style={{ fontWeight: 500 }}>{m.name}</td>
+                      <td className="mono">{m.plan}</td>
+                      <td style={{ color: 'var(--muted)' }}>{m.city}</td>
+                      <td style={{ color: 'var(--muted)' }}>{m.joined}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      </main>
+      </section>
     </div>
   );
 }

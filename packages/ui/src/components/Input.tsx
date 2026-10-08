@@ -13,15 +13,15 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
-      <div className="flex flex-col gap-2 min-w-0 w-full">
+      <div className="field">
         {label && (
-          <label htmlFor={inputId} className="text-[13px] text-[var(--muted)] select-none">
+          <label htmlFor={inputId}>
             {label}
           </label>
         )}
-        <div className="relative flex items-center w-full">
+        <div className={cn('relative w-full', icon && 'search')}>
           {icon && (
-            <span className="absolute left-3.5 text-[var(--muted)] pointer-events-none flex items-center">
+            <span className="ico">
               {icon}
             </span>
           )}
@@ -29,12 +29,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full py-3.2 px-4 rounded-[14px] border border-[rgba(219,231,240,0.12)] bg-[var(--card)] text-[var(--fg)] text-[14.5px] transition-all outline-none min-w-0',
-              'focus:border-[var(--lime)] focus:ring-2 focus:ring-[rgba(47,91,255,0.25)]',
-              'placeholder:text-[var(--faint)]',
-              icon && 'pl-11',
-              mono && 'font-mono tabular-nums',
-              error && 'border-[var(--bad)] focus:border-[var(--bad)] focus:ring-[rgba(255,154,163,0.2)]',
+              'inp',
+              icon && '!pl-[42px]',
+              mono && 'mono',
+              error && '!border-[var(--bad)] !shadow-[0_0_0_3px_rgba(255,154,163,0.2)]',
               className
             )}
             {...props}

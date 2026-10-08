@@ -1,0 +1,99 @@
+:root {
+  /* Colors - Prototype Exact Values */
+  --bg: #03050F;
+  --card: #0A1130;
+  --fg: #E8EFF8;
+  --muted: #7F95C4;
+  --faint: #4F6192;
+  --line: rgba(219, 231, 240, 0.09);
+  --soft: #0C1640;
+  --ink: #060A1F;
+  --ink-2: #0C1A58;
+
+  /* Accent & Gradients */
+  --lime: #2F5BFF;
+  --lime-ink: #FFFFFF;
+  --lime-deep: #9DB6FF;
+  --sky: #9DB6FF;
+  --cobalt: #0F38C0;
+  --navy: #0C1A58;
+  --mist: #DBE7F0;
+
+  /* Status Colors */
+  --ok: #86EBB0;
+  --ok-bg: rgba(134, 235, 176, 0.12);
+  --warn: #FFD27A;
+  --warn-bg: rgba(255, 210, 122, 0.12);
+  --bad: #FF9AA3;
+  --bad-bg: rgba(255, 154, 163, 0.14);
+  --yellow: #E6C11E;
+
+  /* Contrast / On-Ink */
+  --on-ink: #E8EFF8;
+  --on-ink-muted: #7F95C4;
+
+  /* Typography */
+  --f-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --f-display: "Inter Tight", "Inter", sans-serif;
+  --f-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --f-mono: "Geist Mono", ui-monospace, Consolas, monospace;
+
+  /* Sizing & Geometry */
+  --r: 20px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 24px;
+  --r-full: 9999px;
+  --sec: clamp(88px, 11cqi, 144px);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #F8FAFC;
+  --card: #FFFFFF;
+  --fg: #060A1F;
+  --muted: #475569;
+  --faint: #94A3B8;
+  --line: rgba(15, 23, 42, 0.09);
+  --soft: #F1F5F9;
+  --ink: #FFFFFF;
+  --ink-2: #F1F5F9;
+
+  --lime: #2563EB;
+  --lime-ink: #FFFFFF;
+  --lime-deep: #1D4ED8;
+  --sky: #60A5FA;
+  --cobalt: #1D4ED8;
+  --navy: #1E293B;
+  --mist: #E2E8F0;
+
+  --ok: #16A34A;
+  --ok-bg: rgba(22, 163, 74, 0.12);
+  --warn: #D97706;
+  --warn-bg: rgba(217, 119, 6, 0.12);
+  --bad: #DC2626;
+  --bad-bg: rgba(220, 38, 38, 0.14);
+  --yellow: #CA8A04;
+
+  --on-ink: #060A1F;
+  --on-ink-muted: #475569;
+
+  color-scheme: light;
+}
+
+/* Serif accent styling */
+em.s {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  padding-right: 0.04em;
+}
+
+/* Focus visible styling */
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+  border-radius: 4px;
+}

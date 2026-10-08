@@ -73,4 +73,14 @@ export class ContentController {
     };
     res.status(201).json(response);
   };
+
+  listWings = async (_req: Request, res: Response) => {
+    const wings = await this.contentService.listWings();
+    res.status(200).json({ success: true, data: wings });
+  };
+
+  listSpeakers = async (_req: Request, res: Response) => {
+    const speakers = await this.contentService.listSpeakers();
+    res.status(200).json({ success: true, data: speakers });
+  };
 }

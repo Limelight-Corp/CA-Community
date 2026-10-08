@@ -106,7 +106,12 @@ export class ThemeService {
   }
 
   async getActiveTheme(platform: any, mode: any) {
-    return this.themeRepository.getActiveTheme(platform, mode);
+    const theme = await this.themeRepository.getActiveTheme(platform, mode);
+    const audit = this.auditTokens(theme?.tokens || DEFAULT_DARK_TOKENS);
+    return {
+      ...theme,
+      contrastAudit: audit,
+    };
   }
 
   async getDraftTheme(platform: any, mode: any) {

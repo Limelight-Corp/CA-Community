@@ -49,8 +49,8 @@ export function createApp(container: AppContainer): Express {
     res.json(openApiDoc);
   });
 
-  // 5. Health Check
-  app.get('/health', (_req, res) => {
+  // 5. Health Check & Readiness Probes
+  app.get(['/health', '/healthz', '/readyz'], (_req, res) => {
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),

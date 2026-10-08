@@ -1,0 +1,44 @@
+name: CI / Production Quality Gate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate:
+    name: Lint, Test & Build Monorepo
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: test
+      JWT_ACCESS_SECRET: test_jwt_access_secret_for_ci_pipeline_32chars
+      JWT_REFRESH_SECRET: test_jwt_refresh_secret_for_ci_pipeline_32chars
+      JWT_ADMIN_SECRET: test_jwt_admin_secret_for_ci_pipeline_32chars
+      DATA_ENCRYPTION_KEY: 01234567890123456789012345678901
+      RAZORPAY_KEY_ID: rzp_test_placeholder_key
+      RAZORPAY_KEY_SECRET: placeholder_secret_key
+      RAZORPAY_WEBHOOK_SECRET: placeholder_webhook_secret
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Build Core Libraries (@ascend/shared & @ascend/ui)
+        run: npm run build:packages
+
+      - name: Run Test Suites
+        run: npm run test
+
+      - name: Build All Workspaces (@ascend/api, @ascend/web, @ascend/admin)
+        run: npm run build

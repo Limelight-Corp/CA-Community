@@ -74,4 +74,14 @@ export class ContentService {
 
     return item;
   }
+
+  async listWings() {
+    const { PROTOTYPE_WINGS } = await import('@ascend/shared');
+    return PROTOTYPE_WINGS;
+  }
+
+  async listSpeakers() {
+    const { PROTOTYPE_SPEAKERS } = await import('@ascend/shared');
+    return Object.values(PROTOTYPE_SPEAKERS);
+  }
 }

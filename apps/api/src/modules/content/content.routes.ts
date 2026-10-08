@@ -9,6 +9,8 @@ export function createContentRouter(controller: ContentController): Router {
   router.get('/sections/:section', asyncHandler(controller.getSection));
   router.get('/news', asyncHandler(controller.listNews));
   router.get('/news/:slug', asyncHandler(controller.getNewsDetail));
+  router.get('/wings', asyncHandler(controller.listWings));
+  router.get('/speakers', asyncHandler(controller.listSpeakers));
 
   return router;
 }

@@ -1,0 +1,516 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+  MEMBER
+  GUEST
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum MembershipType {
+  CORE
+  ASSOCIATE
+  STUDENT
+}
+
+enum MemberStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum EventMode {
+  Online
+  Offline
+}
+
+enum EventCategory {
+  Conference
+  Workshop
+  Seminar
+  Networking
+  Training
+  Career
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+}
+
+enum OrderItemType {
+  EVENT_TICKET
+  MEMBERSHIP
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  NETBANKING
+  WALLET
+}
+
+enum ThemePlatform {
+  WEB
+  MOBILE
+}
+
+enum ThemeMode {
+  DARK
+  LIGHT
+}
+
+enum ThemeStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model User {
+  id                  String             @id @default(uuid())
+  email               String             @unique
+  mobile              String?            @unique
+  passwordHash        String?
+  role                Role               @default(GUEST)
+  status              UserStatus         @default(ACTIVE)
+  isEmailVerified     Boolean            @default(false)
+  isMobileVerified    Boolean            @default(false)
+  twoFactorSecret     String?
+  twoFactorEnabled    Boolean            @default(false)
+  failedLoginAttempts Int                @default(0)
+  lockoutUntil        DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  deletedAt           DateTime?
+
+  memberProfile       MemberProfile?
+  refreshTokens       RefreshToken[]
+  registrations       EventRegistration[]
+  orders              Order[]
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+
+  @@index([email])
+  @@index([mobile])
+  @@index([role])
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  userId     String
+  tokenHash  String   @unique
+  family     String
+  isRevoked  Boolean  @default(false)
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([family])
+}
+
+model MemberProfile {
+  id                       String         @id @default(uuid())
+  userId                   String         @unique
+  membershipNumberEncrypted String?
+  membershipType           MembershipType @default(CORE)
+  qualificationYear        Int?
+  firmName                 String?
+  city                     String
+  bio                      String?
+  specialization           String?
+  avatarUrl                String?
+  linkedinUrl              String?
+  status                   MemberStatus   @default(PENDING_VERIFICATION)
+  validUntil               DateTime?
+  approvedBy               String?
+  approvedAt               DateTime?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  user                     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wings                    MemberWing[]
+
+  @@index([city])
+  @@index([status])
+  @@index([membershipType])
+}
+
+model Wing {
+  id         String       @id @default(uuid())
+  number     Int          @unique
+  name       String       @unique
+  color      String
+  tags       String
+  activities Json
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  members    MemberWing[]
+  events     Event[]
+  resources  Resource[]
+
+  @@index([number])
+}
+
+model MemberWing {
+  id              String        @id @default(uuid())
+  memberProfileId String
+  wingId          String
+  joinedAt        DateTime      @default(now())
+
+  memberProfile   MemberProfile @relation(fields: [memberProfileId], references: [id], onDelete: Cascade)
+  wing            Wing          @relation(fields: [wingId], references: [id], onDelete: Cascade)
+
+  @@unique([memberProfileId, wingId])
+}
+
+model Speaker {
+  id          String         @id @default(uuid())
+  slug        String         @unique
+  name        String
+  title       String
+  bio         String
+  avatarUrl   String?
+  linkedinUrl String?
+  expertise   Json
+  order       Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  events      EventSpeaker[]
+
+  @@index([slug])
+}
+
+model Event {
+  id          String              @id @default(uuid())
+  slug        String              @unique
+  title       String
+  wingId      String
+  category    EventCategory
+  date        String              // YYYY-MM-DD
+  time        String              // e.g., 10:00 AM
+  venue       String
+  city        String
+  mode        EventMode
+  fee         Int                 @default(0) // in INR paisa or rupees (handled uniformly)
+  memberFee   Int                 @default(0)
+  seatsTotal  Int
+  seatsTaken  Int                 @default(0)
+  status      EventStatus         @default(UPCOMING)
+  description String
+  agenda      Json?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  wing        Wing                @relation(fields: [wingId], references: [id], onDelete: Restrict)
+  speakers    EventSpeaker[]
+  registrations EventRegistration[]
+
+  @@index([slug])
+  @@index([wingId])
+  @@index([date])
+  @@index([city])
+  @@index([status])
+}
+
+model EventSpeaker {
+  id        String   @id @default(uuid())
+  eventId   String
+  speakerId String
+  order     Int      @default(0)
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  speaker   Speaker  @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, speakerId])
+}
+
+model EventRegistration {
+  id            String             @id @default(uuid())
+  bookingCode   String             @unique // e.g., ASC27-LAU-0613
+  eventId       String
+  userId        String?
+  orderId       String?            @unique
+  attendeeName  String
+  attendeeEmail String
+  attendeeMobile String
+  attendeeMno   String?
+  attendeeCity  String
+  attendeeOrg   String?
+  status        RegistrationStatus @default(CONFIRMED)
+  feePaid       Int                @default(0)
+  qrCode        String?
+  checkedInAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  event         Event              @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  user          User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order         Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([bookingCode])
+  @@index([attendeeEmail])
+}
+
+model Resource {
+  id            String   @id @default(uuid())
+  title         String
+  category      String
+  format        String   // e.g. PDF · 18 pages, XLSX
+  fileUrl       String?
+  wingId        String?
+  isMembersOnly Boolean  @default(false)
+  downloads     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  wing          Wing?    @relation(fields: [wingId], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([wingId])
+}
+
+model News {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  title         String
+  category      String
+  date          String   // formatted display date or ISO
+  summary       String
+  content       String
+  author        String   @default("ASCEND Secretariat")
+  coverImageUrl String?
+  publishedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+}
+
+model ContentBlock {
+  id        String   @id @default(uuid())
+  key       String   @unique // e.g. "home.hero", "about.vision", "home.stats"
+  section   String   // e.g. "home", "about", "legal"
+  title     String?
+  subtitle  String?
+  content   Json
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([section])
+}
+
+model Order {
+  id               String            @id @default(uuid())
+  orderNumber      String            @unique
+  userId           String?
+  itemType         OrderItemType
+  itemId           String            // eventId or membership plan name
+  amount           Int               // Total amount in rupees
+  currency         String            @default("INR")
+  status           OrderStatus       @default(PENDING)
+  razorpayOrderId  String?           @unique
+  gstin            String?
+  billingAddress   Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  payments         Payment[]
+  invoice          Invoice?
+  registration     EventRegistration?
+
+  @@index([userId])
+  @@index([razorpayOrderId])
+  @@index([status])
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String
+  razorpayPaymentId String        @unique
+  amount            Int
+  currency          String        @default("INR")
+  method            PaymentMethod @default(UPI)
+  status            PaymentStatus @default(CAPTURED)
+  errorDescription  String?
+  razorpaySignature String?
+  capturedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  refunds           Refund[]
+
+  @@index([orderId])
+  @@index([razorpayPaymentId])
+}
+
+model Refund {
+  id               String   @id @default(uuid())
+  paymentId        String
+  razorpayRefundId String   @unique
+  amount           Int
+  reason           String
+  initiatedBy      String
+  status           String   @default("PROCESSED")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  payment          Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  invoiceNumber String   @unique // e.g., ASC/26-27/0001
+  orderId       String   @unique
+  hsnSacCode    String   @default("998399")
+  taxableAmount Int
+  cgstAmount    Int
+  sgstAmount    Int
+  igstAmount    Int      @default(0)
+  totalAmount   Int
+  pdfUrl        String?
+  issuedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceNumber])
+}
+
+model WebhookEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique // Razorpay event ID (x-razorpay-event-id)
+  provider    String   @default("RAZORPAY")
+  eventType   String
+  payload     Json
+  status      String   @default("PROCESSED") // PROCESSED, FAILED, DUPLICATE
+  processedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([eventId])
+  @@index([provider])
+}
+
+model ThemeSettings {
+  id         String        @id @default(uuid())
+  platform   ThemePlatform @default(WEB)
+  mode       ThemeMode     @default(DARK)
+  tokens     Json
+  fonts      Json?
+  logoUrl    String?
+  faviconUrl String?
+  version    Int           @default(1)
+  status     ThemeStatus   @default(PUBLISHED)
+  updatedBy  String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([platform, mode, status])
+}
+
+model ThemeHistory {
+  id          String        @id @default(uuid())
+  version     Int
+  platform    ThemePlatform
+  mode        ThemeMode
+  tokens      Json
+  fonts       Json?
+  publishedBy String?
+  publishedAt DateTime      @default(now())
+
+  @@index([platform, version])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String   // e.g. "member:approve", "payment:refund", "theme:publish"
+  resource   String   // e.g. "MemberProfile", "Payment", "ThemeSettings"
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  oldValues  Json?
+  newValues  Json?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([resource])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  link      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+}

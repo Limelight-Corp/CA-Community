@@ -1062,3 +1062,98 @@ td.r, th.r {
 .bars i:last-child {
   background: repeating-linear-gradient(90deg, #6F95FF 0 2px, transparent 2px 4px);
 }
+
+/* Footer (Prototype Exact) */
+footer {
+  background: radial-gradient(70% 120% at 50% 0%, rgba(15, 56, 192, 0.28), transparent 70%), var(--ink);
+  color: var(--on-ink-muted);
+  margin-top: var(--sec);
+  border-top: 1px solid var(--line);
+}
+
+footer .wrap {
+  padding-block: 72px 32px;
+}
+
+.f-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.f-top h2 {
+  font-size: clamp(28px, 3.2cqi, 40px);
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  max-width: 16ch;
+}
+
+.f-links {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 10px 48px;
+  font-size: 14px;
+}
+
+@media (max-width: 560px) {
+  .f-links {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+  }
+}
+
+.f-links button, .f-links a {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.15s;
+  display: block;
+}
+
+.f-links button:hover, .f-links a:hover {
+  color: #fff;
+}
+
+.f-bot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-top: 1px solid #1E2756;
+  margin-top: 64px;
+  padding-top: 24px;
+  font: 400 12px var(--f-mono);
+}
+
+.f-bot button, .f-bot a {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.f-bot button:hover, .f-bot a:hover {
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .f-top {
+    gap: 32px;
+  }
+  footer .wrap {
+    padding-bottom: 120px;
+  }
+}
+

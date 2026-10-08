@@ -19,4 +19,5 @@ export * from './components/MetricCard';
 export * from './components/GrowthChart';
 export * from './components/CalendarPreview';
 export * from './theme/ThemeProvider';
+export * from './theme/theme-utils';
 export * from './utils';

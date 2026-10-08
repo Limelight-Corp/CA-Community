@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "docs:openapi": "tsx src/scripts/generate-openapi.ts"
+    "docs:openapi": "tsx src/scripts/generate-openapi.ts",
+    "test": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@ascend/shared": "*",

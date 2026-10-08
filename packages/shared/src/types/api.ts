@@ -1,6 +1,7 @@
 export interface ApiResponse<T = unknown> {
   success: true;
   data: T;
+  message?: string;
   meta?: {
     page?: number;
     limit?: number;

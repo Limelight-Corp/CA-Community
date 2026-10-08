@@ -41,3 +41,41 @@ export function createAuthenticateMiddleware(cacheStore: ICacheStore) {
     }
   };
 }
+
+export function createOptionalAuthenticateMiddleware(cacheStore: ICacheStore) {
+  return async (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      let token: string | undefined;
+
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      } else if (req.headers.cookie) {
+        const match = req.headers.cookie.match(/__Host-ascend_member_sess=([^;]+)/);
+        if (match) token = match[1];
+      }
+
+      if (!token) {
+        return next();
+      }
+
+      const isRevoked = await cacheStore.get(`revoked_token:${token}`);
+      if (isRevoked) {
+        return next();
+      }
+
+      const payload = await verifyMemberAccessToken(token);
+
+      req.user = {
+        id: payload.sub,
+        email: payload.email,
+        role: payload.role,
+      };
+
+      next();
+    } catch (_error) {
+      next();
+    }
+  };
+}
+

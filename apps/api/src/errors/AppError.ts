@@ -13,6 +13,11 @@ export abstract class AppError extends Error {
   }
 }
 
+export class BadRequestError extends AppError {
+  readonly statusCode = 400;
+  readonly errorCode = 'BAD_REQUEST';
+}
+
 export class NotFoundError extends AppError {
   readonly statusCode = 404;
   readonly errorCode = 'NOT_FOUND';

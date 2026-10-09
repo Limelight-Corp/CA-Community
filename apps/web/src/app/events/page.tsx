@@ -1,244 +1,131 @@
-'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { WebShell } from '../../components/WebShell';
-import { useCommunityData } from '../../lib/useCommunityData';
-import { PROTOTYPE_WINGS, PROTOTYPE_SPEAKERS } from '@ascend/shared';
+import { ArrowUpRight } from 'lucide-react';
+import type { CommunityEvent, CommunitySpeaker, CommunityWing } from '@ascend/shared';
+import { AccentText, Container, Kicker } from '@ascend/ui';
+import { Countdown, Marquee } from '../../components/ui-client';
+import { getItems, getSettings } from '../../lib/community-store';
+import { canRegister, formatEventDate, isUpcoming, locationLabel, sortByDate } from '../../lib/events';
+import { EventsExplorer } from '../../components/events/EventsExplorer';
+import { eventInstants, toIstIso } from '../../components/events/event-time';
 
-export default function EventsPage() {
-  const { data } = useCommunityData(true);
-  const events = data.events || [];
-  const wings = data.wings || PROTOTYPE_WINGS;
-  const speakers = data.speakers || [];
-
-  const [formatFilter, setFormatFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const categories = ['All', 'Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Career'];
-
-  const filteredEvents = events.filter((e) => {
-    if (e.isPublished === false) return false;
-    const wing = wings.find((w) => w.number === e.wingNumber);
-    const wingName = wing ? wing.name : '';
-    const matchesSearch =
-      !searchQuery ||
-      (e.title + ' ' + e.city + ' ' + wingName).toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCat = categoryFilter === 'All' || e.category === categoryFilter;
-    const matchesFormat = !formatFilter || e.mode === formatFilter;
-
-    return matchesSearch && matchesCat && matchesFormat;
-  });
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setCategoryFilter('All');
-    setFormatFilter('');
+export async function generateMetadata(): Promise<Metadata> {
+  const { siteName } = getSettings();
+  const description = `Summits, masterclasses, clinics and meetups from ${siteName} — find an event by date, city, type or price and register in a couple of minutes.`;
+  return {
+    title: 'Events',
+    description,
+    alternates: { canonical: '/events' },
+    openGraph: { title: `Events · ${siteName}`, description, url: '/events' },
   };
+}
+
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string | string[]; q?: string | string[] }>;
+}) {
+  const sp = await searchParams;
+  const events = getItems<CommunityEvent>('events', true);
+  const wings = getItems<CommunityWing>('wings', true);
+  const speakers = getItems<CommunitySpeaker>('speakers', true);
+
+  const upcoming = sortByDate(events.filter((e) => isUpcoming(e)));
+  const next = upcoming.find((e) => canRegister(e)) ?? upcoming[0];
+  const cityCount = new Set(events.filter((e) => e.mode === 'Offline' && e.city).map((e) => e.city.trim().toLowerCase())).size;
+  const freeCount = upcoming.filter((e) => !(e.fee > 0)).length;
+  const pick = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
 
   return (
-    <WebShell>
-      {/* Page Header (Prototype Exact ph) */}
-      <section className="ph">
-        <div className="wrap ph-row">
-          <div>
-            <span className="eyebrow">Events</span>
-            <h1>
-              Learn something. <em className="s">Meet someone.</em>
-            </h1>
-            <p>Register in under two minutes. Pay by UPI, card or net banking.</p>
-          </div>
+    <>
+      {/* Hero */}
+      <section className="grain relative overflow-hidden border-b border-mist/[0.08]">
+        <div className="aurora" aria-hidden>
+          <i />
         </div>
-      </section>
+        <div className="grid-lines pointer-events-none absolute inset-0" aria-hidden />
+        <Container size="wide" className="relative z-10 pb-14 pt-14 md:pb-20 md:pt-20">
+          <Kicker tone="gold">
+            <span className="live-dot !bg-gold" aria-hidden /> Events calendar
+          </Kicker>
+          <h1 className="mt-7 font-display text-[clamp(52px,10.5vw,148px)] font-medium leading-[0.86] tracking-[-0.06em] text-[var(--fg)]">
+            Learn <span className="text-outline">something.</span>
+            <br />
+            <AccentText tone="hero">Meet someone.</AccentText>
+          </h1>
 
-      {/* Filter and Search Bar (Prototype Exact .filters) */}
-      <section className="wrap">
-        <div className="filters">
-          <div className="search">
-            <svg
-              className="ico"
-              viewBox="0 0 24 24"
-              style={{
-                width: 18,
-                height: 18,
-                position: 'absolute',
-                left: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--muted)',
-                pointerEvents: 'none',
-              }}
-              aria-hidden="true"
+          <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <p className="max-w-[52ch] text-[clamp(16px,1.5vw,19px)] leading-relaxed text-[var(--muted)]">
+              Summits, masterclasses, clinics and meetups across all ten wings. Filter by date, city or type and lock your
+              seat in a couple of minutes.
+            </p>
+            <dl className="flex flex-wrap gap-x-10 gap-y-4">
+              {[
+                { v: upcoming.length, l: 'Upcoming' },
+                { v: cityCount, l: cityCount === 1 ? 'City' : 'Cities' },
+                { v: freeCount, l: 'Free to attend' },
+              ].map((s) => (
+                <div key={s.l}>
+                  <dt className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--muted)]">{s.l}</dt>
+                  <dd className="font-display text-[44px] font-medium leading-none tracking-[-0.04em] text-[var(--fg)] tabular-nums">
+                    {String(s.v).padStart(2, '0')}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {next && (
+            <Link
+              href={`/events/${next.slug}`}
+              className="shine group mt-12 flex flex-col gap-5 rounded-[28px] border border-mist/[0.12] bg-grad-surface p-5 transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 md:flex-row md:items-center md:justify-between md:p-6"
             >
-              <circle cx="11" cy="11" r="7" stroke="currentColor" fill="none" strokeWidth="1.6" />
-              <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-            <input
-              id="fq"
-              className="inp"
-              placeholder="Search events or cities"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search events"
-            />
-          </div>
-
-          <select
-            id="fmode"
-            className="inp"
-            value={formatFilter}
-            onChange={(e) => setFormatFilter(e.target.value)}
-            aria-label="Format"
-          >
-            <option value="">Online &amp; offline</option>
-            <option value="Online">Online</option>
-            <option value="Offline">Offline</option>
-          </select>
-
-          <div className="chips">
-            {categories.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`chip ${categoryFilter === c ? 'active' : ''}`}
-                aria-pressed={categoryFilter === c}
-                onClick={() => setCategoryFilter(c)}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Events Grid */}
-        {filteredEvents.length > 0 ? (
-          <div className="grid g3">
-            {filteredEvents.map((e) => {
-              const wing = PROTOTYPE_WINGS.find((w) => w.number === e.wingNumber) || PROTOTYPE_WINGS[0]!;
-              const leftSeats = Math.max(0, e.seatsTotal - e.seatsTaken);
-              const isSoldOut = leftSeats <= 0;
-              const isFillingFast = !isSoldOut && leftSeats / e.seatsTotal < 0.15;
-              const statusText = isSoldOut ? 'Sold out' : isFillingFast ? 'Filling fast' : 'Open';
-              const dotColor = isSoldOut ? 'var(--bad)' : isFillingFast ? 'var(--warn)' : 'var(--ok)';
-              const fillPercent = Math.min(100, (e.seatsTaken / e.seatsTotal) * 100);
-
-              const d = new Date(e.date + 'T00:00:00');
-              const day = String(d.getDate()).padStart(2, '0');
-              const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-              const year = d.getFullYear();
-              const weekday = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-
-              const firstSpeakerSlug = e.speakerSlugs[0];
-              const firstSpeaker = firstSpeakerSlug
-                ? speakers.find((s) => s.slug === firstSpeakerSlug) || PROTOTYPE_SPEAKERS[firstSpeakerSlug]
-                : undefined;
-
-              return (
-                <Link
-                  key={e.slug}
-                  href={`/events/${e.slug}`}
-                  className="ev"
-                  style={{ '--wc': wing.color } as React.CSSProperties}
-                  aria-label={e.title}
-                >
-                  <div className="ev-tile relative overflow-hidden">
-                    {e.imageUrl && (
-                      <img
-                        src={e.imageUrl}
-                        alt={e.title}
-                        className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-luminosity pointer-events-none"
-                      />
-                    )}
-                    <div className="ev-row relative z-10">
-                      <span className="glass">{e.mode === 'Online' ? 'Online' : e.city}</span>
-                      <span className="glass" style={{ '--dot': dotColor } as React.CSSProperties}>
-                        <i />
-                        {statusText}
-                      </span>
-                    </div>
-                    <div className="ev-date relative z-10">
-                      <b>{day}</b>
-                      <span>
-                        {month} {year}
-                        <br />
-                        {weekday} · {e.time}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="ev-body">
-                    <span className="ev-kicker">
-                      <i />
-                      {e.category} · {wing.name}
-                    </span>
-                    <h3>{e.title}</h3>
-                    <div className="ev-meta">
-                      <span>
-                        <svg className="ico" viewBox="0 0 24 24">
-                          {e.mode === 'Online' ? (
-                            <rect x="3" y="4.5" width="18" height="16" rx="3" />
-                          ) : (
-                            <path d="M3 11l9-7 9 7M5.5 9.5V20h13V9.5" />
-                          )}
-                        </svg>
-                        {e.venue}
-                      </span>
-                      {firstSpeaker && (
-                        <span>
-                          <svg className="ico" viewBox="0 0 24 24">
-                            <circle cx="12" cy="8" r="4" />
-                            <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
-                          </svg>
-                          {firstSpeaker.name}
-                          {e.speakerSlugs.length > 1 && ` +${e.speakerSlugs.length - 1}`}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="ev-cap">
-                      <div className={`bar ${isSoldOut ? 'full' : ''}`}>
-                        <i style={{ width: `${fillPercent}%` }} />
-                      </div>
-                      <div>
-                        <span>{Math.min(e.seatsTaken, e.seatsTotal)} registered</span>
-                        <span>{isSoldOut ? 'Waitlist open' : `${leftSeats} left`}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="ev-foot">
-                    <div className="fee">
-                      {e.fee === 0 ? 'Free' : `₹${e.fee.toLocaleString('en-IN')}`}
-                      <small>
-                        {e.fee === 0
-                          ? 'For all members'
-                          : e.memberFee < e.fee
-                          ? `Members ₹${e.memberFee.toLocaleString('en-IN')}`
-                          : 'Incl. certificate'}
-                      </small>
-                    </div>
-                    <button className="arrow" aria-label={`Register for ${e.title}`} type="button">
-                      <svg className="ico" viewBox="0 0 24 24">
-                        <path d="M5 12h14M13 6l6 6-6 6" />
-                      </svg>
-                    </button>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="empty">
-            No events match.{' '}
-            <button className="link" onClick={clearFilters} type="button">
-              Clear filters
-            </button>
-          </div>
-        )}
+              <div className="min-w-0">
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">Next up</span>
+                <p className="mt-2 truncate font-display text-[clamp(22px,2.6vw,32px)] font-medium tracking-[-0.03em] text-[var(--fg)]">
+                  {next.title}
+                </p>
+                <p className="mt-1 text-[14px] text-[var(--muted)]">
+                  {formatEventDate(next, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} · {next.time} ·{' '}
+                  {locationLabel(next)}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <Countdown to={toIstIso(eventInstants(next).start)} className="[&>div]:min-w-[56px]" />
+                <span className="hidden h-12 w-12 shrink-0 place-items-center rounded-full bg-grad-primary text-white transition-transform duration-300 group-hover:rotate-45 sm:grid">
+                  <ArrowUpRight className="h-5 w-5" aria-hidden />
+                </span>
+              </div>
+            </Link>
+          )}
+        </Container>
       </section>
 
-      <div style={{ height: 'var(--sec)' }} />
-    </WebShell>
+      {wings.length > 0 && (
+        <div className="border-b border-mist/[0.08] py-4">
+          <Marquee ariaLabel="Our ten wings" duration={50}>
+            {wings.map((w) => (
+              <span key={w.id} className="inline-flex items-center gap-3 font-display text-[22px] font-medium tracking-[-0.02em] text-[var(--muted)]">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: w.color }} aria-hidden />
+                {w.name}
+              </span>
+            ))}
+          </Marquee>
+        </div>
+      )}
+
+      <section className="py-14 md:py-20">
+        <Container size="wide">
+          <EventsExplorer
+            events={events}
+            wings={wings}
+            speakers={speakers}
+            initialCategory={pick(sp.category)}
+            initialQuery={pick(sp.q)}
+          />
+        </Container>
+      </section>
+    </>
   );
 }

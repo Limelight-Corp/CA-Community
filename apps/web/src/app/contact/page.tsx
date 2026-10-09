@@ -1,237 +1,143 @@
-'use client';
+import React from 'react';
+import type { Metadata } from 'next';
+import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react';
+import { AccentText, Container, Kicker } from '@ascend/ui';
+import { getSettings } from '../../lib/community-store';
+import { googleMapsEmbedUrl, safeUrl } from '../../lib/content';
+import { PageHero, Section } from '../../components/content/ui';
+import { ContactForm } from '../../components/content/ContactForm';
+import { SOCIAL_LABELS, SocialIcon, type SocialKey } from '../../components/site/SocialIcon';
 
-import React, { useState } from 'react';
-import { WebShell } from '../../components/WebShell';
-import { Heading, Eyebrow, Button, Input, Select, useToast } from '@ascend/ui';
+export async function generateMetadata(): Promise<Metadata> {
+  const { siteName } = getSettings();
+  return {
+    title: 'Contact Us',
+    description: `Get in touch with ${siteName} — questions about membership, events, partnerships or speaking. Send us a message and our team will respond.`,
+    alternates: { canonical: '/contact' },
+  };
+}
 
 export default function ContactPage() {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: 'Membership Inquiry',
-    message: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const settings = getSettings();
+  const { contact } = settings;
+  const mapLink = safeUrl(contact.mapUrl);
+  const mapEmbed = googleMapsEmbedUrl(contact.mapUrl, contact.address);
+  const socials = (Object.entries(settings.social) as [SocialKey, string | undefined][])
+    .map(([k, url]) => [k, safeUrl(url)] as const)
+    .filter((entry): entry is readonly [SocialKey, string] => !!entry[1]);
 
-  const offices = [
-    {
-      city: 'National Secretariat · New Delhi',
-      address: 'Core 4B, 4th Floor, India Habitat Centre, Lodhi Road, New Delhi 110003',
-      email: 'secretariat@ascendca.in',
-      phone: '+91 11 4987 6500',
-    },
-    {
-      city: 'Western Chapter · Mumbai',
-      address: 'Level 14, Platina, Bandra Kurla Complex (BKC), Bandra East, Mumbai 400051',
-      email: 'mumbai@ascendca.in',
-      phone: '+91 22 6123 4500',
-    },
-    {
-      city: 'Southern Chapter · Bengaluru',
-      address: 'Prestige Meridian, 29 M.G. Road, Bengaluru 560001',
-      email: 'bengaluru@ascendca.in',
-      phone: '+91 80 4112 8900',
-    },
-    {
-      city: 'Pune Chapter · Pune',
-      address: 'ICC Trade Tower, Senapati Bapat Road, Pune 411016',
-      email: 'pune@ascendca.in',
-      phone: '+91 20 2567 1100',
-    },
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) {
-      toast('Please fill in all required fields');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitted(true);
-      toast('Thank you! Your message has been routed to the Secretariat.');
-    }, 800);
-  };
+  const channels = [
+    contact.email && { icon: Mail, label: 'Email', value: contact.email, href: `mailto:${contact.email}` },
+    contact.phone && { icon: Phone, label: 'Phone', value: contact.phone, href: `tel:${contact.phone.replace(/[^\d+]/g, '')}` },
+    contact.address && { icon: MapPin, label: 'Address', value: contact.address, href: mapLink },
+  ].filter(Boolean) as { icon: typeof Mail; label: string; value: string; href?: string }[];
 
   return (
-    <WebShell>
-      {/* Header */}
-      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgb(var(--cobalt-rgb)/0.38),transparent_70%)]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-8">
-          <Eyebrow pill>Contact & Chapters</Eyebrow>
-          <Heading level="h1" className="text-[clamp(40px,5.5cqi,72px)] mt-6 max-w-[16ch]">
-            Connect with the{' '}
-            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-brand-200 to-mist">
-              community.
-            </em>
-          </Heading>
-          <p className="text-[17px] text-[var(--muted)] font-light mt-4 max-w-[56ch] leading-relaxed">
-            Reach out for membership queries, wing participation, event partnerships, or speaker nominations.
-          </p>
-        </div>
-      </section>
+    <>
+      <PageHero
+        eyebrow="Contact"
+        title="Say"
+        accent="hello."
+        lead="Questions about membership, events, partnerships or speaking at a wing session? Drop us a line — a real person will reply."
+        ghost="HELLO"
+      />
 
-      {/* Main Grid: Form + Office Locations */}
-      <section className="py-16 md:py-24 max-w-[1200px] mx-auto px-5 md:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-          {/* Contact Form */}
-          <div className="lg:col-span-7 bg-[var(--surface)] border border-[var(--line)] rounded-[var(--r)] p-8 md:p-10 backdrop-blur-md">
-            <h2 className="font-display text-[26px] font-medium tracking-tight text-[var(--fg)] mb-2">
-              Send an inquiry
-            </h2>
-            <p className="text-[14.5px] text-[var(--muted)] mb-8">
-              The national desk responds within one business day.
-            </p>
+      <Section labelledBy="contact-form-heading">
+        <Container size="wide" className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+          {/* Details */}
+          <div className="flex flex-col gap-6">
+            {channels.length > 0 && (
+              <ul className="flex flex-col gap-3">
+                {channels.map(({ icon: Icon, label, value, href }) => {
+                  const body = (
+                    <>
+                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-500/15 text-brand-200">
+                        <Icon className="h-5 w-5" aria-hidden />
+                      </span>
+                      <span className="flex min-w-0 flex-col">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">{label}</span>
+                        <span className="break-words font-display text-[clamp(18px,2vw,24px)] font-medium tracking-[-0.03em] text-[var(--fg)]">{value}</span>
+                      </span>
+                      {href && <ArrowUpRight className="ml-auto h-5 w-5 shrink-0 text-[var(--muted)] transition-transform duration-300 group-hover:rotate-45 group-hover:text-gold" aria-hidden />}
+                    </>
+                  );
+                  const cls = 'group flex items-center gap-4 rounded-[24px] border border-mist/[0.1] bg-grad-surface p-5 transition hover:border-gold/40';
+                  return (
+                    <li key={label}>
+                      {href ? (
+                        <a href={href} className={cls} {...(href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                          {body}
+                        </a>
+                      ) : (
+                        <div className={cls}>{body}</div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
 
-            {submitted ? (
-              <div className="py-12 text-center flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-[var(--glow)] text-[var(--accent)] border border-[var(--line-strong)] grid place-items-center text-[28px] mb-4">
-                  ✓
-                </div>
-                <h3 className="font-display text-[22px] font-medium text-[var(--fg)] mb-2">
-                  Inquiry Received
-                </h3>
-                <p className="text-[14.5px] text-[var(--muted)] max-w-[42ch] mb-6">
-                  We have logged your query. A confirmation reference has been sent to{' '}
-                  <span className="text-[var(--fg)] font-mono">{formData.email}</span>.
-                </p>
-                <Button variant="secondary" onClick={() => setSubmitted(false)}>
-                  Send another inquiry
-                </Button>
+            {mapEmbed ? (
+              <div className="overflow-hidden rounded-[24px] border border-mist/[0.1]">
+                <iframe
+                  title={`Map${contact.address ? ` of ${contact.address}` : ''}`}
+                  src={mapEmbed}
+                  className="aspect-[4/3] w-full grayscale-[0.4] invert-[0.9] hue-rotate-180"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <div>
-                  <label className="block text-[13px] font-medium text-[var(--fg)] mb-2">
-                    Full Name *
-                  </label>
-                  <Input
-                    placeholder="CA Rohan Mehta"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[13px] font-medium text-[var(--fg)] mb-2">
-                      Email Address *
-                    </label>
-                    <Input
-                      type="email"
-                      placeholder="rohan@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[13px] font-medium text-[var(--fg)] mb-2">
-                      Phone / WhatsApp
-                    </label>
-                    <Input
-                      placeholder="+91 98765 43210"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[13px] font-medium text-[var(--fg)] mb-2">
-                    Inquiry Topic
-                  </label>
-                  <Select
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    options={[
-                      { value: 'Membership Inquiry', label: 'Membership & Registration' },
-                      { value: 'Wing Committee Participation', label: 'Wing Committee Participation' },
-                      { value: 'Event Sponsorship', label: 'Event Sponsorship & Partnerships' },
-                      { value: 'Speaker Nomination', label: 'Speaker Nomination' },
-                      { value: 'Press & Secretariat', label: 'Press & Secretariat Inquiries' },
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[13px] font-medium text-[var(--fg)] mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    rows={4}
-                    className="w-full bg-[var(--surface-muted)] text-[var(--fg)] border border-[var(--line)] rounded-[var(--r)] px-4 py-3 text-[14.5px] outline-none focus:border-[var(--accent)] transition-colors placeholder:text-[var(--faint)]"
-                    placeholder="Describe your requirement or question..."
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  className="mt-2 w-full sm:w-auto self-start"
-                  disabled={isSubmitting}
+              mapLink && (
+                <a
+                  href={mapLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-fit items-center gap-2 rounded-full border border-mist/[0.16] px-5 py-3 text-[14px] font-semibold text-[var(--fg)] hover:border-gold/60 hover:text-gold"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
-                </Button>
-              </form>
-            )}
-          </div>
-
-          {/* Regional Offices */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            <h2 className="font-display text-[22px] font-medium tracking-tight text-[var(--fg)]">
-              Secretariat & City Hubs
-            </h2>
-
-            <div className="flex flex-col gap-4">
-              {offices.map((office, idx) => (
-                <div
-                  key={idx}
-                  className="p-6 rounded-[var(--r)] border border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line-strong)] transition-colors"
-                >
-                  <h3 className="text-[16px] font-medium text-[var(--fg)] mb-2">
-                    {office.city}
-                  </h3>
-                  <p className="text-[13.5px] text-[var(--muted)] leading-relaxed mb-4">
-                    {office.address}
-                  </p>
-                  <div className="flex flex-wrap gap-y-2 gap-x-5 text-[12.5px] font-mono text-[var(--accent)]">
-                    <a href={`mailto:${office.email}`} className="hover:underline">
-                      {office.email}
-                    </a>
-                    <a href={`tel:${office.phone.replace(/[^0-9+]/g, '')}`} className="hover:underline">
-                      {office.phone}
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-6 rounded-[var(--r)] border border-[var(--line)] bg-[linear-gradient(135deg,rgb(var(--cobalt-rgb)/0.15),transparent)]">
-              <h4 className="text-[14px] font-medium text-[var(--fg)] mb-1">
-                Direct Grievance Redressal
-              </h4>
-              <p className="text-[13px] text-[var(--muted)] leading-relaxed">
-                Members may escalate unresolved service or verification requests directly to{' '}
-                <a href="mailto:ombudsman@ascendca.in" className="text-[var(--accent)] hover:underline font-mono">
-                  ombudsman@ascendca.in
+                  <MapPin className="h-4 w-4" aria-hidden /> Open in maps
                 </a>
-                .
+              )
+            )}
+
+            {socials.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Follow along</h2>
+                <ul className="flex flex-wrap gap-2">
+                  {socials.map(([key, url]) => (
+                    <li key={key}>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full border border-mist/[0.14] px-4 py-2.5 text-[13.5px] text-[var(--fg)] transition hover:-translate-y-0.5 hover:border-gold/60 hover:text-gold"
+                      >
+                        <SocialIcon name={key} className="h-4 w-4" />
+                        {SOCIAL_LABELS[key]}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="mt-auto hidden rounded-[24px] border border-gold/25 bg-gold/[0.06] p-6 lg:block">
+              <p className="font-display text-[22px] font-medium leading-snug tracking-[-0.03em] text-[var(--fg)]">
+                Want to speak, partner or host a city chapter? <AccentText tone="gold">Tell us in the form.</AccentText>
               </p>
             </div>
           </div>
-        </div>
-      </section>
-    </WebShell>
+
+          {/* Form */}
+          <div className="rounded-[32px] border border-mist/[0.1] bg-grad-surface p-6 sm:p-8 md:p-12">
+            <Kicker>Send a message</Kicker>
+            <h2 id="contact-form-heading" className="mb-8 mt-4 font-display text-[clamp(30px,3.6vw,48px)] font-medium leading-[1] tracking-[-0.045em] text-[var(--fg)]">
+              How can we <AccentText>help?</AccentText>
+            </h2>
+            <ContactForm />
+          </div>
+        </Container>
+      </Section>
+    </>
   );
 }

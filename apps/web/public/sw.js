@@ -1,12 +1,27 @@
-const CACHE_NAME = 'ascend-ca-v1';
+const CACHE_NAME = 'ascend-ca-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/offline.html',
   '/icon.svg',
   '/manifest.json',
-  '/dashboard',
   '/events',
 ];
+
+/**
+ * Private or personalised responses must never be stored in the cache:
+ * APIs, the member dashboard, login, registration receipts and registration forms.
+ */
+function isPrivatePath(pathname) {
+  return (
+    pathname.startsWith('/api/') ||
+    pathname === '/dashboard' ||
+    pathname.startsWith('/dashboard/') ||
+    pathname === '/login' ||
+    pathname.startsWith('/login/') ||
+    pathname.startsWith('/registration/') ||
+    /^\/events\/[^/]+\/register(?:\/|$)/.test(pathname)
+  );
+}
 
 // Install: Pre-cache static shell & offline fallback
 self.addEventListener('install', (event) => {
@@ -45,8 +60,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip API mutations and auth endpoints from aggressive caching
-  if (url.pathname.startsWith('/api/auth') || url.pathname.startsWith('/api/payments')) {
+  // Never intercept (or cache) private pages and API calls — let the browser go to the network.
+  if (url.origin === self.location.origin && isPrivatePath(url.pathname)) {
+    return;
+  }
+
+  // Payment gateway scripts and APIs always come fresh from the network.
+  if (url.hostname.endsWith('razorpay.com')) {
     return;
   }
 

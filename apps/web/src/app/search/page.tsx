@@ -1,210 +1,222 @@
-'use client';
-
-import React, { useState, useMemo, Suspense } from 'react';
+import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { WebShell } from '../../components/WebShell';
-import {
-  PROTOTYPE_EVENTS,
-  PROTOTYPE_SPEAKERS,
-  PROTOTYPE_WINGS,
-  PROTOTYPE_RESOURCES,
-} from '@ascend/shared';
+import { ArrowUpRight, CalendarDays, FileText, Mic2, Newspaper, Search } from 'lucide-react';
+import type { CommunityEvent, CommunityNews, CommunityResource, CommunitySpeaker } from '@ascend/shared';
+import { AccentText, Avatar, Container, Kicker, cn, fieldInputClass } from '@ascend/ui';
+import { getItems } from '../../lib/community-store';
+import { formatEventDate, locationLabel } from '../../lib/events';
+import { formatDisplayDate, safeUrl, truncate } from '../../lib/content';
 
-const NEWS_ITEMS = [
-  { title: 'Founding member registrations open', date: '03 Nov 2026', desc: 'The first 500 members get founding status and a reserved Launch Summit seat.' },
-  { title: 'Ten wings and their conveners announced', date: '28 Oct 2026', desc: 'Each wing will run a monthly format and one annual summit.' },
-  { title: 'City Leads confirmed for four cities', date: '20 Oct 2026', desc: 'Delhi, Mumbai, Bengaluru and Pune go first.' },
-];
+type SP = Promise<Record<string, string | string[] | undefined>>;
 
-function SearchContent() {
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get('q') || 'tax';
-  const [query, setQuery] = useState(initialQuery);
+function readQuery(sp: Record<string, string | string[] | undefined>) {
+  const raw = sp.q;
+  return (typeof raw === 'string' ? raw : Array.isArray(raw) ? raw[0] ?? '' : '').trim().slice(0, 120);
+}
 
-  const quickChips = ['tax', 'AI', 'CFO', 'Mumbai'];
+export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
+  const q = readQuery(await searchParams);
+  return {
+    title: q ? `Search: ${q}` : 'Search',
+    description: 'Search events, news, resources and speakers across the community website.',
+    robots: { index: false, follow: true },
+  };
+}
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
+/** Every whitespace-separated term must appear somewhere in the haystack. */
+function matches(terms: string[], ...fields: (string | undefined | string[])[]) {
+  const hay = fields.flat().filter(Boolean).join(' ').toLowerCase();
+  return terms.every((t) => hay.includes(t));
+}
 
-    const items: Array<{
-      kind: string;
-      title: string;
-      subtitle: string;
-      url: string;
-    }> = [];
+export default async function SearchPage({ searchParams }: { searchParams: SP }) {
+  const q = readQuery(await searchParams);
+  const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const has = terms.length > 0;
 
-    // Events
-    PROTOTYPE_EVENTS.forEach((e) => {
-      if ((e.title + ' ' + e.city + ' ' + e.category + ' ' + e.description).toLowerCase().includes(q)) {
-        items.push({
-          kind: 'Event',
-          title: e.title,
-          subtitle: `${e.date} · ${e.city}`,
-          url: `/events/${e.slug}`,
-        });
-      }
-    });
+  const events = has
+    ? getItems<CommunityEvent>('events', true).filter((e) => matches(terms, e.title, e.description, e.city, e.venue, e.category, e.mode))
+    : [];
+  const news = has ? getItems<CommunityNews>('news', true).filter((n) => matches(terms, n.title, n.summary, n.content, n.category, n.author)) : [];
+  const resources = has ? getItems<CommunityResource>('resources', true).filter((r) => matches(terms, r.title, r.category, r.format)) : [];
+  const speakers = has
+    ? getItems<CommunitySpeaker>('speakers', true).filter((s) => matches(terms, s.name, s.title, s.bio, s.organisation, s.qualification, s.expertise))
+    : [];
+  const total = events.length + news.length + resources.length + speakers.length;
 
-    // Speakers
-    Object.values(PROTOTYPE_SPEAKERS).forEach((s) => {
-      if ((s.name + ' ' + s.title + ' ' + s.bio + ' ' + s.expertise.join(' ')).toLowerCase().includes(q)) {
-        items.push({
-          kind: 'Speaker',
-          title: s.name,
-          subtitle: s.title,
-          url: `/speakers/${s.slug}`,
-        });
-      }
-    });
-
-    // Resources
-    PROTOTYPE_RESOURCES.forEach((r) => {
-      if ((r.title + ' ' + r.category + ' ' + r.format).toLowerCase().includes(q)) {
-        items.push({
-          kind: 'Resource',
-          title: r.title,
-          subtitle: `${r.category} · ${r.format}`,
-          url: '/resources',
-        });
-      }
-    });
-
-    // News
-    NEWS_ITEMS.forEach((n) => {
-      if ((n.title + ' ' + n.desc).toLowerCase().includes(q)) {
-        items.push({
-          kind: 'News',
-          title: n.title,
-          subtitle: n.date,
-          url: '/news',
-        });
-      }
-    });
-
-    // Wings
-    PROTOTYPE_WINGS.forEach((w) => {
-      if ((w.name + ' ' + w.tags + ' ' + w.activities.join(' ')).toLowerCase().includes(q)) {
-        items.push({
-          kind: 'Wing',
-          title: w.name,
-          subtitle: w.tags,
-          url: '/wings',
-        });
-      }
-    });
-
-    return items;
-  }, [query]);
+  const groups = [
+    { id: 'events', label: 'Events', count: events.length, icon: CalendarDays },
+    { id: 'news', label: 'News & articles', count: news.length, icon: Newspaper },
+    { id: 'resources', label: 'Resources', count: resources.length, icon: FileText },
+    { id: 'speakers', label: 'Speakers', count: speakers.length, icon: Mic2 },
+  ];
 
   return (
     <>
-      {/* Header with Underline Search - Prototype Exact V.search */}
-      <section className="ph" style={{ border: 0 }}>
-        <div className="wrap">
-          <span className="eyebrow">Search</span>
-          <div className="search" style={{ marginTop: '24px' }}>
-            <svg
-              className="ico"
-              viewBox="0 0 24 24"
-              style={{
-                width: '22px',
-                height: '22px',
-                left: 0,
-                position: 'absolute',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--muted)',
-                pointerEvents: 'none',
-              }}
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="7" stroke="currentColor" fill="none" strokeWidth="1.6" />
-              <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-            <input
-              id="sq"
-              className="inp search-underline"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Events, speakers, news"
-              aria-label="Search"
-              autoFocus
-            />
-          </div>
-          <div className="chips" style={{ marginTop: '20px' }}>
-            {quickChips.map((chip) => (
-              <button
-                key={chip}
-                type="button"
-                className={`chip ${query.toLowerCase() === chip.toLowerCase() ? 'active' : ''}`}
-                aria-pressed={query.toLowerCase() === chip.toLowerCase()}
-                onClick={() => setQuery(chip)}
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
+      <section className="grain relative overflow-hidden border-b border-[var(--line)] pb-12 pt-14 md:pb-16 md:pt-20">
+        <div className="aurora opacity-60" aria-hidden>
+          <i />
         </div>
+        <Container size="wide" className="relative z-10 flex flex-col gap-8">
+          <Kicker>Search</Kicker>
+          <h1 className="font-display text-[clamp(42px,7.5vw,108px)] font-medium leading-[0.92] tracking-[-0.055em] text-[var(--fg)]">
+            {has ? (
+              <>
+                Results for <AccentText tone="gold">“{q}”</AccentText>
+              </>
+            ) : (
+              <>
+                Find <AccentText tone="gold">anything.</AccentText>
+              </>
+            )}
+          </h1>
+          <form action="/search" method="get" role="search" className="relative max-w-[720px]">
+            <label htmlFor="site-search" className="sr-only">
+              Search events, news, resources and speakers
+            </label>
+            <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--muted)]" aria-hidden />
+            <input
+              id="site-search"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Try “GST”, “AI”, “Mumbai” or a speaker’s name"
+              className={cn(fieldInputClass, 'h-16 rounded-full pl-14 pr-36 text-[17px]')}
+              maxLength={120}
+            />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 h-12 -translate-y-1/2 rounded-full bg-grad-primary px-6 text-[14.5px] font-semibold text-white hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+            >
+              Search
+            </button>
+          </form>
+          {has && (
+            <div className="flex flex-wrap items-center gap-2" aria-live="polite">
+              <span className="mr-2 font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--muted)]">
+                {total} {total === 1 ? 'result' : 'results'}
+              </span>
+              {groups.map((g) => (
+                <a
+                  key={g.id}
+                  href={`#${g.id}`}
+                  className={cn(
+                    'inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px]',
+                    g.count ? 'border-mist/[0.16] text-[var(--fg)] hover:border-gold/50' : 'pointer-events-none border-mist/[0.08] text-[var(--muted)] opacity-60'
+                  )}
+                  aria-disabled={g.count === 0 || undefined}
+                >
+                  <g.icon className="h-3.5 w-3.5" aria-hidden />
+                  {g.label}
+                  <span className="font-mono text-[11px] text-gold">{g.count}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </Container>
       </section>
 
-      {/* Results Section */}
-      <section className="wrap">
-        <p className="eyebrow" style={{ marginBottom: '8px' }}>
-          {results.length} result{results.length === 1 ? '' : 's'}
-        </p>
+      <Container size="wide" className="flex flex-col gap-16 py-14 md:py-20">
+        {!has && (
+          <p className="text-[16px] text-[var(--muted)]">
+            Search across events, news, resources and speakers. Or jump to{' '}
+            <Link href="/events" className="text-brand-200 underline underline-offset-4">
+              events
+            </Link>
+            ,{' '}
+            <Link href="/resources" className="text-brand-200 underline underline-offset-4">
+              resources
+            </Link>{' '}
+            or the{' '}
+            <Link href="/about#wings" className="text-brand-200 underline underline-offset-4">
+              10 wings
+            </Link>
+            .
+          </p>
+        )}
 
-        {results.length > 0 ? (
-          <div>
-            {results.map((r, i) => (
-              <Link
-                key={i}
-                href={r.url}
-                className="lrow srow"
-                style={{ cursor: 'pointer', textDecoration: 'none' }}
-              >
-                <span className="eyebrow">{r.kind}</span>
-                <div>
-                  <h3 style={{ fontSize: '19px', fontWeight: 500, letterSpacing: '-0.015em' }}>
-                    {r.title}
-                  </h3>
-                  <p style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '4px' }}>
-                    {r.subtitle}
-                  </p>
-                </div>
-                <span className="arrow" aria-hidden="true">
-                  <svg className="ico" viewBox="0 0 24 24" style={{ width: 18, height: 18 }}>
-                    <path
-                      d="M5 12h14M13 6l6 6-6 6"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="empty">
-            Try another word, like &ldquo;audit&rdquo; or &ldquo;Pune&rdquo;.
+        {has && total === 0 && (
+          <div className="rounded-[28px] border border-dashed border-mist/[0.14] p-10 text-center">
+            <p className="font-display text-[26px] font-medium text-[var(--fg)]">Nothing matched “{q}”.</p>
+            <p className="mt-2 text-[15px] text-[var(--muted)]">Try fewer or different words, or check the spelling.</p>
           </div>
         )}
-      </section>
 
-      <div style={{ height: 'var(--sec)' }} />
+        {events.length > 0 && (
+          <ResultGroup id="events" title="Events" count={events.length}>
+            {events.map((e) => (
+              <ResultRow
+                key={e.id}
+                href={`/events/${e.slug}`}
+                title={e.title}
+                meta={`${formatEventDate(e)} · ${locationLabel(e)} · ${e.category}`}
+                text={truncate(e.description, 170)}
+              />
+            ))}
+          </ResultGroup>
+        )}
+        {news.length > 0 && (
+          <ResultGroup id="news" title="News & articles" count={news.length}>
+            {news.map((n) => (
+              <ResultRow key={n.id} href={`/news/${n.slug}`} title={n.title} meta={`${formatDisplayDate(n.date)} · ${n.category}`} text={truncate(n.summary, 170)} />
+            ))}
+          </ResultGroup>
+        )}
+        {resources.length > 0 && (
+          <ResultGroup id="resources" title="Resources" count={resources.length}>
+            {resources.map((r) => (
+              <ResultRow
+                key={r.id}
+                href="/resources"
+                title={r.title}
+                meta={`${r.category} · ${r.format}${r.isMembersOnly ? ' · Members only' : ''}`}
+              />
+            ))}
+          </ResultGroup>
+        )}
+        {speakers.length > 0 && (
+          <ResultGroup id="speakers" title="Speakers" count={speakers.length}>
+            {speakers.map((s) => (
+              <ResultRow
+                key={s.id}
+                href={`/speakers/${s.slug}`}
+                title={s.name}
+                meta={s.title}
+                text={s.expertise.join(' · ')}
+                media={<Avatar name={s.name} src={safeUrl(s.avatarUrl)} size={52} rounded="xl" />}
+              />
+            ))}
+          </ResultGroup>
+        )}
+      </Container>
     </>
   );
 }
 
-export default function SearchPage() {
+function ResultGroup({ id, title, count, children }: { id: string; title: string; count: number; children: React.ReactNode }) {
   return (
-    <WebShell>
-      <Suspense fallback={<div className="wrap sec"><p className="muted">Loading search...</p></div>}>
-        <SearchContent />
-      </Suspense>
-    </WebShell>
+    <section id={id} aria-labelledby={`${id}-heading`} className="scroll-mt-28">
+      <h2 id={`${id}-heading`} className="flex items-baseline gap-3 font-display text-[clamp(28px,3.4vw,44px)] font-medium tracking-[-0.04em] text-[var(--fg)]">
+        {title} <span className="font-mono text-[14px] text-gold">{count}</span>
+      </h2>
+      <ul className="mt-6 border-t border-[var(--line)]">{children}</ul>
+    </section>
+  );
+}
+
+function ResultRow({ href, title, meta, text, media }: { href: string; title: string; meta?: string; text?: string; media?: React.ReactNode }) {
+  return (
+    <li>
+      <Link href={href} className="group flex items-center gap-5 border-b border-[var(--line)] py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
+        {media}
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="font-display text-[clamp(19px,2vw,24px)] font-medium tracking-[-0.03em] text-[var(--fg)] transition-transform duration-300 group-hover:translate-x-1.5">{title}</span>
+          {meta && <span className="font-mono text-[11.5px] uppercase tracking-[0.06em] text-[var(--muted)]">{meta}</span>}
+          {text && <span className="text-[14.5px] text-[var(--muted)]">{text}</span>}
+        </span>
+        <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--muted)] transition-transform duration-300 group-hover:rotate-45 group-hover:text-gold" aria-hidden />
+      </Link>
+    </li>
   );
 }

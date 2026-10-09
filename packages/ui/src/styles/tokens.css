@@ -1661,3 +1661,99 @@ footer .wrap {
 .fx-card.fx-live::after { opacity: 1; }
 .fx-card.fx-live .fx-icon { transform: rotate(-10deg) scale(1.12); }
 .fx-card.fx-live .fx-ghost { opacity: 1; transform: translate3d(-8px, -6px, 0) scale(1.06); }
+
+/* ==========================================================================================
+ * About page effects: 3D flip cards, drawing org-tree connectors, spinning avatar ring
+ * ========================================================================================== */
+.flip {
+  perspective: 1200px;
+}
+.flip-inner {
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.9s var(--ease-out-expo);
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: inherit;
+}
+.flip-back { transform: rotateY(180deg); }
+.flip[data-flipped='true'] .flip-inner { transform: rotateY(180deg); }
+@media (hover: hover) and (pointer: fine) {
+  .flip:hover .flip-inner { transform: rotateY(180deg); }
+}
+
+/* Org tree connectors: draw in when the tree enters the viewport, then pulse downwards */
+.tree-line {
+  position: relative;
+  width: 2px;
+  background: linear-gradient(to bottom, rgb(var(--gold-rgb) / 0.8), rgb(var(--lime-rgb) / 0.5));
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.8s var(--ease-out-expo);
+  transition-delay: var(--d, 0ms);
+}
+.tree-in .tree-line { transform: scaleY(1); }
+.tree-line::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 9999px;
+  background: var(--gold);
+  box-shadow: 0 0 12px var(--gold);
+  opacity: 0;
+}
+.tree-in .tree-line::after {
+  animation: tree-pulse 2.4s var(--ease-out-expo) infinite;
+  animation-delay: calc(var(--d, 0ms) + 900ms);
+}
+@keyframes tree-pulse {
+  0% { top: 0; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: calc(100% - 8px); opacity: 0; }
+}
+.tree-hline {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgb(var(--gold-rgb) / 0.8), transparent);
+  transform: scaleX(0);
+  transition: transform 0.9s var(--ease-out-expo);
+  transition-delay: var(--d, 0ms);
+}
+.tree-in .tree-hline { transform: scaleX(1); }
+.tree-node {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0) scale(0.96);
+  transition: opacity 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+  transition-delay: var(--d, 0ms);
+}
+.tree-in .tree-node { opacity: 1; transform: none; }
+
+/* Spinning conic ring around avatars */
+.ring-spin {
+  position: relative;
+  isolation: isolate;
+}
+.ring-spin::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  z-index: -1;
+  background: conic-gradient(from var(--shine-angle, 0deg), var(--gold), var(--brand-300), transparent 40%, var(--gold));
+  animation: shine-spin 5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-inner { transition: none; }
+  .tree-line, .tree-hline, .tree-node { transition: none; transform: none; opacity: 1; }
+  .tree-line::after, .ring-spin::before { animation: none !important; }
+}

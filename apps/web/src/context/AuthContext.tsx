@@ -36,6 +36,19 @@ export function getInitials(name?: string): string {
   return 'CA';
 }
 
+const MEMBER_COOKIE_MAX_AGE = 604800; // 7 days
+
+function setMemberCookie(token: string) {
+  document.cookie = `ascend_member_token=${encodeURIComponent(token)}; path=/; max-age=${MEMBER_COOKIE_MAX_AGE}; SameSite=Lax`;
+}
+
+function hasMemberCookie(): boolean {
+  return document.cookie.split(';').some((c) => {
+    const [k, v] = c.trim().split('=');
+    return k === 'ascend_member_token' && !!v;
+  });
+}
+
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
@@ -51,6 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const stored = localStorage.getItem('ascend_member_user');
       const token = localStorage.getItem('ascend_member_token');
+
+      // The server reads the cookie, the browser reads localStorage. The cookie expires after
+      // 7 days (or can be cleared) while localStorage stays — keep them in sync, otherwise
+      // the server and the login page keep redirecting to each other.
+      if (token && !hasMemberCookie()) setMemberCookie(token);
 
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -111,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.setItem('ascend_member_user', JSON.stringify(fullUser));
       localStorage.setItem('ascend_member_token', token);
-      document.cookie = `ascend_member_token=${token}; path=/; max-age=604800; SameSite=Lax`;
+      setMemberCookie(token);
     } catch {}
 
     setUser(fullUser);

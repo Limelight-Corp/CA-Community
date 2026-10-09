@@ -3,13 +3,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowRight, CreditCard, Loader2, Lock, RefreshCw, Ticket } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Loader2, Lock, Ticket } from 'lucide-react';
 import { FormField, Stepper, cn, fieldInputClass } from '@ascend/ui';
 import { trackEvent } from '../site/Providers';
-import { payWithRazorpay, type PaymentInit } from './razorpay-client';
-import { PaymentMethods } from './PaymentMethods';
 import { useAuth } from '../../context/AuthContext';
-import { loginUrl } from '../../lib/member-session';
 
 export interface RegistrationEventSummary {
   slug: string;
@@ -49,7 +46,6 @@ interface Booking {
   paymentStatus: string;
   fee: number;
   duplicate?: boolean;
-  payment?: PaymentInit;
 }
 
 const EMPTY: Values = {
@@ -84,10 +80,17 @@ function validate(v: Values): Errors {
 const receiptUrl = (b: Pick<Booking, 'bookingId' | 'accessToken'>) =>
   `/registration/${encodeURIComponent(b.bookingId)}?t=${encodeURIComponent(b.accessToken)}`;
 
+/** The separate payment page (asks the visitor to log in first). */
+const payUrl = (b: Pick<Booking, 'bookingId' | 'accessToken'>) =>
+  `/registration/${encodeURIComponent(b.bookingId)}/pay?t=${encodeURIComponent(b.accessToken)}`;
+
 const storageKey = (slug: string) => `ascend:booking:${slug}`;
 
-/** Event registration: Details → Payment → Confirmed (Website Checklist §27). */
-export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
+/**
+ * Event registration: Details → Payment → Confirmed (Website Checklist §27).
+ * This form only saves the details. Paid events then continue on the separate payment page.
+ */
+export function RegistrationForm({ event }: RegistrationFormProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [values, setValues] = useState<Values>(EMPTY);
@@ -95,8 +98,6 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [booking, setBooking] = useState<Booking | null>(null);
-  const [payState, setPayState] = useState<'idle' | 'opening' | 'verifying' | 'failed' | 'dismissed' | 'error'>('idle');
-  const [payMessage, setPayMessage] = useState('');
   const [saved, setSaved] = useState<{ bookingId: string; accessToken: string } | null>(null);
   const started = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -127,8 +128,6 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
     }));
   }, [user]);
 
-  const toLogin = () => router.push(loginUrl(`/events/${event.slug}/register`));
-
   const step = !booking ? 0 : booking.status === 'confirmed' ? 2 : 1;
 
   const set = <K extends FieldKey>(key: K, value: Values[K]) => {
@@ -145,70 +144,6 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
   const focusFirstError = (errs: Errors) => {
     const first = FIELD_ORDER.find((k) => errs[k]);
     if (first) formRef.current?.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
-  };
-
-  const finish = (b: Pick<Booking, 'bookingId' | 'accessToken'>) => router.push(receiptUrl(b));
-
-  const startPayment = async (b: Booking, payment: PaymentInit | undefined) => {
-    if (!payment || payment.provider === 'unconfigured') return; // honest pending state is rendered below
-    if (payment.provider === 'error') {
-      setPayState('error');
-      setPayMessage(payment.message);
-      return;
-    }
-    setPayState('opening');
-    setPayMessage('');
-    const outcome = await payWithRazorpay({
-      bookingId: b.bookingId,
-      accessToken: b.accessToken,
-      payment,
-      siteName,
-      description: event.title,
-      prefill: { name: values.name.trim(), email: values.email.trim(), contact: normaliseMobile(values.mobile) },
-    });
-    if (outcome.kind === 'paid') {
-      setPayState('verifying');
-      trackEvent('payment_success', { event_slug: event.slug, value: b.fee, currency: 'INR', transaction_id: b.bookingId });
-      setBooking({ ...b, status: 'confirmed', paymentStatus: 'paid', payment });
-      finish(b);
-    } else if (outcome.kind === 'failed') {
-      setPayState('failed');
-      setPayMessage(outcome.message);
-    } else {
-      setPayState('dismissed');
-      setBooking({ ...b, payment });
-    }
-  };
-
-  /** Re-opens checkout: same order after a dismissal, a fresh order after a failure. */
-  const retryPayment = async () => {
-    if (!booking) return;
-    if (payState === 'dismissed' && booking.payment?.provider === 'razorpay') {
-      await startPayment(booking, booking.payment);
-      return;
-    }
-    setPayState('opening');
-    try {
-      const res = await fetch('/api/registrations/retry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: booking.bookingId, accessToken: booking.accessToken }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (data.loginRequired) return toLogin();
-      if (!res.ok || !data.payment) {
-        if (data.paymentStatus === 'paid') return finish(booking);
-        setPayState('error');
-        setPayMessage(data.error || 'Could not restart the payment. Please try again.');
-        return;
-      }
-      const next = { ...booking, payment: data.payment as PaymentInit };
-      setBooking(next);
-      await startPayment(next, next.payment);
-    } catch {
-      setPayState('error');
-      setPayMessage('Network error. Check your connection and retry.');
-    }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -230,10 +165,6 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
         body: JSON.stringify({ ...values, mobile: normaliseMobile(values.mobile), eventSlug: event.slug }),
       });
       const data = await res.json().catch(() => ({}));
-      if (data.loginRequired) {
-        toLogin();
-        return;
-      }
       if (!res.ok) {
         const fe = (data.fieldErrors || {}) as Errors;
         setErrors(fe);
@@ -254,11 +185,8 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
       }
       requestAnimationFrame(() => panelRef.current?.focus());
 
-      if (b.status === 'confirmed') {
-        finish(b);
-        return;
-      }
-      await startPayment(b, b.payment);
+      // Free → pass; paid → the payment page, where the visitor logs in and pays.
+      router.push(b.status === 'confirmed' ? receiptUrl(b) : payUrl(b));
     } catch {
       setFormError('Network error. Check your connection and try again.');
     } finally {
@@ -397,8 +325,6 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
             )}
           </div>
 
-          {event.fee > 0 && <PaymentMethods />}
-
           <button
             type="submit"
             disabled={submitting}
@@ -406,7 +332,7 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
           >
             <span className="inline-flex items-center gap-2">
               {submitting ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : <Ticket className="h-5 w-5" aria-hidden />}
-              {submitting ? 'Saving your seat…' : event.fee > 0 ? `Continue to payment · ${event.feeLabel}` : 'Confirm free registration'}
+              {submitting ? 'Saving your details…' : event.fee > 0 ? `Continue to payment · ${event.feeLabel}` : 'Confirm free registration'}
             </span>
             <span className="grid h-10 w-10 place-items-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5">
               <ArrowRight className="h-5 w-5" aria-hidden />
@@ -414,6 +340,7 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
           </button>
           <p className="flex items-center gap-1.5 text-[12.5px] text-[var(--muted)]">
             <Lock className="h-3.5 w-3.5" aria-hidden /> Your details are used only for this event and never shown publicly.
+            {event.fee > 0 && ' Payment happens on the next page — UPI, cards or net banking.'}
           </p>
         </form>
       ) : (
@@ -424,77 +351,10 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
             <p className="mt-3 text-[14px] text-[var(--muted)]">You were already registered for this event — here is your existing booking.</p>
           )}
 
-          {booking.status === 'confirmed' ? (
-            <p className="mt-5 inline-flex items-center gap-2 text-[15px] text-ok">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Confirmed — opening your pass…
-            </p>
-          ) : booking.payment?.provider === 'unconfigured' || !booking.payment ? (
-            <div className="mt-5 flex flex-col gap-4">
-              <p className="inline-flex w-fit rounded-full border border-warn/30 bg-warn/15 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-warn">
-                Pending payment
-              </p>
-              <p className="text-[15px] leading-relaxed text-[var(--fg-soft)]">
-                Your registration is saved. Online payment isn&apos;t enabled on the website yet, so no payment has been taken. Our team
-                will share payment details with you to complete your booking of <strong className="text-[var(--fg)]">{event.feeLabel}</strong>.
-                Keep your booking ID handy.
-              </p>
-              <Link
-                href={receiptUrl(booking)}
-                className="inline-flex h-12 w-fit items-center gap-2 rounded-full bg-grad-primary px-6 text-[15px] font-semibold text-white hover:brightness-110"
-              >
-                View &amp; save your booking <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </div>
-          ) : (
-            <div className="mt-5 flex flex-col gap-4">
-              {payState === 'opening' && (
-                <p className="inline-flex items-center gap-2 text-[15px] text-[var(--fg-soft)]">
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Opening secure checkout…
-                </p>
-              )}
-              {payState === 'verifying' && (
-                <p className="inline-flex items-center gap-2 text-[15px] text-ok">
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Payment received — confirming…
-                </p>
-              )}
-              {(payState === 'failed' || payState === 'error' || payState === 'dismissed') && (
-                <>
-                  <p
-                    className={cn(
-                      'flex items-start gap-2 rounded-2xl border px-4 py-3 text-[14px]',
-                      payState === 'dismissed' ? 'border-warn/30 bg-warn/10 text-warn' : 'border-bad/30 bg-bad/10 text-bad'
-                    )}
-                    role="alert"
-                  >
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                    {payState === 'dismissed'
-                      ? 'Payment not completed. Your seat is not confirmed until payment goes through.'
-                      : payMessage || 'The payment did not go through.'}{' '}
-                    Your registration is saved.
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={retryPayment}
-                      className="inline-flex h-12 items-center gap-2 rounded-full bg-grad-primary px-6 text-[15px] font-semibold text-white hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
-                    >
-                      {payState === 'dismissed' ? <CreditCard className="h-4 w-4" aria-hidden /> : <RefreshCw className="h-4 w-4" aria-hidden />}
-                      {payState === 'dismissed' ? `Pay ${event.feeLabel}` : 'Retry payment'}
-                    </button>
-                    <Link
-                      href={receiptUrl(booking)}
-                      className="inline-flex h-12 items-center gap-2 rounded-full border border-mist/[0.16] px-6 text-[15px] font-semibold text-[var(--fg)] hover:border-mist/40"
-                    >
-                      View booking
-                    </Link>
-                  </div>
-                </>
-              )}
-              <p className="flex items-center gap-1.5 text-[12.5px] text-[var(--muted)]">
-                <Lock className="h-3.5 w-3.5" aria-hidden /> Payments are processed securely by Razorpay (UPI, cards, net banking).
-              </p>
-            </div>
-          )}
+          <p className="mt-5 inline-flex items-center gap-2 text-[15px] text-[var(--fg-soft)]">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            {booking.status === 'confirmed' ? 'Confirmed — opening your pass…' : 'Details saved — opening the payment page…'}
+          </p>
         </div>
       )}
     </div>

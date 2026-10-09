@@ -126,11 +126,14 @@ picker on mobile (BHIM, Google Pay, PhonePe, Paytm and any bank's UPI app), foll
 cards (RuPay, Visa, Mastercard) and net banking. Which methods appear also depends on what is
 enabled in the Razorpay Dashboard (Account & Settings → Payment configuration).
 
-**Login before payment.** Registering for a **paid** event and paying for an existing
-booking both require a member login. Visitors are sent to `/login` and come straight back
-afterwards. Free events do not require a login. Member login is still a prototype (the API
-is not wired to the website yet), so the server only checks that a member session cookie is
-present — real token verification must be added when the member API goes live.
+**Registration and payment flow.** Anyone can fill in the registration form — no login.
+For a **paid** event, *Continue to payment* saves the booking and opens a separate payment
+page (`/registration/<bookingId>/pay`). Only that page asks the visitor to log in; after
+login they come straight back to it and pay. The booking page links back to it while the
+payment is pending. Free events are confirmed immediately. Member login is still a
+prototype (the API is not wired to the website yet), so the server only checks that a member
+session cookie is present — real token verification must be added when the member API goes
+live.
 
 ## Analytics (optional)
 

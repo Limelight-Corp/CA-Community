@@ -1,8 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { ArrowLeft, ArrowUpRight, CalendarDays, Clock, MapPin, Users } from 'lucide-react';
 import type { CommunityEvent } from '@ascend/shared';
 import { AccentText, Container, Kicker } from '@ascend/ui';
@@ -17,7 +16,6 @@ import {
   STATUS_LABEL,
 } from '../../../../lib/events';
 import { RegistrationForm } from '../../../../components/events/RegistrationForm';
-import { MEMBER_COOKIE, hasMemberSession, loginUrl } from '../../../../lib/member-session';
 
 type Params = Promise<{ slug: string }>;
 
@@ -52,11 +50,6 @@ export default async function RegisterPage({ params }: { params: Params }) {
   const timeLabel = `${event.time}${event.endTime ? ` – ${event.endTime}` : ''} IST`;
   const location = locationLabel(event);
   const left = seatsLeft(event);
-
-  // Paid events need a signed-in member: send visitors to log in and straight back here.
-  if (open && event.fee > 0 && !hasMemberSession((await cookies()).get(MEMBER_COOKIE)?.value)) {
-    redirect(loginUrl(`/events/${event.slug}/register`));
-  }
 
   const summaryCard = (
     <div className="glass-panel rounded-[28px] p-5 md:p-6">

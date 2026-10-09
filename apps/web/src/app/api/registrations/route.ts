@@ -5,14 +5,11 @@ import { mutatePrivate, newId, newSecret } from '../../../lib/community-store';
 import { canRegister, seatsLeft } from '../../../lib/events';
 import {
   clientIp,
-  createRazorpayOrder,
   findPublishedEvent,
   generateBookingId,
   rateLimit,
   takeSeat,
-  type PaymentInit,
 } from './_lib/server';
-import { hasMemberSession, memberTokenFromRequest } from '../../../lib/member-session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -81,10 +78,6 @@ export async function POST(req: Request) {
   const event = findPublishedEvent(input.eventSlug);
   if (!event) return json({ error: 'This event could not be found.' }, 404);
 
-  // Paid events: only signed-in members can register and pay.
-  if (Math.max(0, Number(event.fee) || 0) > 0 && !hasMemberSession(memberTokenFromRequest(req))) {
-    return json({ error: 'Please log in to register and pay for this event.', loginRequired: true }, 401);
-  }
 
   type Outcome =
     | { kind: 'existing'; reg: CommunityRegistration }
@@ -151,22 +144,7 @@ export async function POST(req: Request) {
   // Free registrations take their seat immediately (synchronously after the private write).
   if (outcome.kind === 'created' && reg.status === 'confirmed') takeSeat(event.id);
 
-  let payment: PaymentInit | undefined;
-  if (reg.status === 'pending_payment' && reg.fee > 0) {
-    payment = await createRazorpayOrder(reg);
-    if (payment.provider === 'razorpay') {
-      const orderId = payment.orderId;
-      mutatePrivate((data) => {
-        const r = data.registrations.find((x) => x.bookingId === reg.bookingId);
-        if (r && r.paymentStatus !== 'paid') {
-          r.gatewayOrderId = orderId;
-          r.paymentStatus = 'pending';
-          r.updatedAt = new Date().toISOString();
-        }
-      });
-    }
-  }
-
+  // Paid bookings are paid on the separate payment page (which requires a member login).
   return json(
     {
       bookingId: reg.bookingId,
@@ -175,7 +153,6 @@ export async function POST(req: Request) {
       paymentStatus: reg.paymentStatus,
       fee: reg.fee,
       duplicate: outcome.kind === 'existing' || undefined,
-      payment,
     },
     outcome.kind === 'created' ? 201 : 200
   );

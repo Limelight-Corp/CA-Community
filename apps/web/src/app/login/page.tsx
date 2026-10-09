@@ -38,8 +38,11 @@ export default function MemberLoginPage() {
   }, []);
 
   // Already signed in and sent here to continue somewhere: go straight there.
+  // Only when the server will see the session cookie too, so the two can never bounce.
   useEffect(() => {
-    if (!authLoading && user && nextPath) router.replace(nextPath);
+    if (!authLoading && user && nextPath && /(?:^|;\s*)ascend_member_token=[^;]+/.test(document.cookie)) {
+      router.replace(nextPath);
+    }
   }, [authLoading, user, nextPath, router]);
   const [loginMode, setLoginMode] = useState<'otp' | 'email'>('otp');
 

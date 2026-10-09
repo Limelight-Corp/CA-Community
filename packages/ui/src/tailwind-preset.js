@@ -65,6 +65,11 @@ module.exports = {
         },
         field: channel('field'),
         panel: channel('panel'),
+        gold: {
+          DEFAULT: channel('gold'),
+          deep: channel('gold-deep'),
+          soft: channel('gold-soft'),
+        },
         teal: channel('teal'),
         info: channel('info'),
         alert: channel('alert'),
@@ -100,6 +105,7 @@ module.exports = {
         'grad-tile': 'var(--grad-tile)',
         'grad-avatar': 'var(--grad-avatar)',
         'grad-accent-text': 'var(--grad-accent-text)',
+        'grad-gold': 'var(--grad-gold)',
       },
       fontFamily: {
         sans: ['var(--f-sans)'],

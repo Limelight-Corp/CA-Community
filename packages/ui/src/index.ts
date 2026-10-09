@@ -18,6 +18,8 @@ export * from './components/PricingTierCard';
 export * from './components/MetricCard';
 export * from './components/GrowthChart';
 export * from './components/CalendarPreview';
+export * from './components/Layout';
+export * from './components/Motion';
 export * from './theme/ThemeProvider';
 export * from './theme/theme-utils';
 export * from './utils';

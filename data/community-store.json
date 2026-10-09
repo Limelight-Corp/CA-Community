@@ -291,13 +291,17 @@
       "number": 1,
       "name": "Tax & Regulatory",
       "color": "#2F6FE4",
-      "tags": "Direct Tax · International Tax · GST · Customs",
+      "tags": "Direct Tax · International Tax · GST · Customs · Regulatory",
       "activities": [
-        "Tax Update Live",
+        "Tax Update Live (monthly)",
         "Case Law Café",
         "Tax Masterclass",
+        "Cross-Border Conversations",
         "GST Clinic",
         "Tax Litigation Room",
+        "Ask the Expert",
+        "Tax Leader Roundtable",
+        "Tax Debate",
         "Annual Tax Summit"
       ],
       "isPublished": true
@@ -307,13 +311,17 @@
       "number": 2,
       "name": "Audit, Assurance & Finance",
       "color": "#12907F",
-      "tags": "Audit · Accounting · Financial Reporting · Risk",
+      "tags": "Audit · Assurance · Accounting · Financial Reporting · Risk",
       "activities": [
         "Audit Update Hour",
         "Standards Simplified",
         "CFO Conversations",
+        "Audit Case Room",
         "Risk & Controls Forum",
+        "Financial Reporting Masterclass",
         "Audit Technology Lab",
+        "Emerging CFO Series",
+        "Peer Review Exchange",
         "Annual Audit & Finance Summit"
       ],
       "isPublished": true
@@ -323,13 +331,17 @@
       "number": 3,
       "name": "Practice & Entrepreneurship",
       "color": "#EA7A1E",
-      "tags": "Practice Growth · Business Building · Client Acquisition",
+      "tags": "Practice Growth · Business Building · Client Acquisition · Leadership",
       "activities": [
         "Build Your Practice",
         "The Modern CA Firm",
+        "Practice Growth Clinic",
         "Pricing Your Expertise",
         "Client Acquisition Lab",
+        "Partner's Playbook",
         "From Solo to Scale",
+        "CA Entrepreneur Stories",
+        "Practice Succession Roundtable",
         "CA Business Leaders Summit"
       ],
       "isPublished": true
@@ -339,12 +351,16 @@
       "number": 4,
       "name": "Industry & Leadership",
       "color": "#6E44E0",
-      "tags": "CFO Ecosystem · Corporate Leadership · Board Readiness",
+      "tags": "CFO Ecosystem · Corporate Leadership · Career Progression · Board Readiness",
       "activities": [
         "Inside the CFO Office",
         "CA to CXO",
+        "Leadership Without a Title",
         "Boardroom Conversations",
+        "Industry CA Connect",
         "Career Switch Stories",
+        "Women in Corporate Leadership",
+        "CEO/CFO Fireside",
         "Leadership Masterclass",
         "Future CFO Summit"
       ],
@@ -355,13 +371,17 @@
       "number": 5,
       "name": "AI, Technology & Automation",
       "color": "#14A89A",
-      "tags": "AI for CAs · Automation · Digital Transformation",
+      "tags": "AI for CAs · Automation · Tools · Digital Transformation",
       "activities": [
         "AI for the Modern CA",
         "Automation Friday",
         "AI Tax Lab",
         "AI Audit Lab",
+        "Prompt Engineering for Professionals",
         "Build Your First AI Workflow",
+        "Tools of the Month",
+        "No-Code Automation Challenge",
+        "AI Leaders Roundtable",
         "Future of the CA Profession Summit"
       ],
       "isPublished": true
@@ -371,13 +391,17 @@
       "number": 6,
       "name": "Young Professionals & Career",
       "color": "#E3365E",
-      "tags": "Students · Young CAs · Mentorship",
+      "tags": "Students · Young CAs · Career · Mentorship · Leadership",
       "activities": [
         "CA Career Compass",
         "First 100 Days as a CA",
+        "Partner's Career Stories",
+        "Interview Room",
         "CV & LinkedIn Clinic",
         "Young CA Speed Networking",
         "Mentor Match",
+        "Industry Exposure Series",
+        "Young Leaders Roundtable",
         "Young CA Leadership Summit"
       ],
       "isPublished": true
@@ -387,13 +411,17 @@
       "number": 7,
       "name": "Women Professionals",
       "color": "#A035D8",
-      "tags": "Leadership · Entrepreneurship · Mentoring",
+      "tags": "Leadership · Entrepreneurship · Mentoring · Career Growth",
       "activities": [
         "Women Who Lead",
+        "Beyond the Balance",
         "Return & Rise",
         "Women Entrepreneur Circle",
         "MentorHer",
         "Women CFO Conversations",
+        "Career Reboot",
+        "Women Networking Brunch",
+        "Financial Independence Forum",
         "Women Leadership Summit"
       ],
       "isPublished": true
@@ -403,13 +431,17 @@
       "number": 8,
       "name": "Sports, Fitness & Wellness",
       "color": "#2459D8",
-      "tags": "Sports · Fitness · Mental Health · Family",
+      "tags": "Sports · Fitness · Wellness · Mental Health · Family Engagement",
       "activities": [
         "CA Cricket League",
         "CA Badminton Cup",
+        "CA Football Meet",
         "Run for the Profession",
         "30-Day Fitness Challenge",
+        "Weekend Fitness Club",
         "Mind & Work",
+        "Nutrition for Professionals",
+        "Family Sports Day",
         "Annual CA Sports Festival"
       ],
       "isPublished": true
@@ -419,13 +451,17 @@
       "number": 9,
       "name": "Social Impact & Community",
       "color": "#D9A20E",
-      "tags": "Financial Literacy · CSR · Volunteering",
+      "tags": "Financial Literacy · Education · CSR · Volunteering · Mentoring",
       "activities": [
         "CA Gives Back",
         "Financial Literacy Drive",
         "Teach & Mentor",
+        "Student Scholarship Initiative",
         "Pro Bono Professional Day",
+        "Community Service Weekend",
+        "Financial Awareness for Entrepreneurs",
         "Green Professional Initiative",
+        "Annual Social Impact Project",
         "Community Impact Summit"
       ],
       "isPublished": true
@@ -433,14 +469,18 @@
     {
       "id": "wing-10",
       "number": 10,
-      "name": "Global Network & International",
+      "name": "Global Network & International Relations",
       "color": "#0B66BC",
-      "tags": "Global CA Connect · Study Tours · International Tax",
+      "tags": "Global CA Connect · International Tax · Study Tours · Global Networking",
       "activities": [
         "Global CA Connect",
         "CA Across Borders",
         "International Tax Conversations",
+        "Global Career Series",
         "Meet the Global CFO",
+        "International Practice Exchange",
+        "Global CA Networking Night",
+        "Professional Delegation",
         "International Learning Tour",
         "Global CA Summit"
       ],
@@ -454,8 +494,8 @@
       "title": "Founding member registrations open",
       "category": "Announcement",
       "date": "03 Nov 2026",
-      "summary": "The first 500 members get founding status and a reserved Launch Summit seat.",
-      "content": "Registrations are handled online. You fill in your details, choose a plan and pay by UPI, card or net banking. Your member ID and receipt arrive by email and WhatsApp straight away. Founding members will be listed on the launch wall at the summit on 1 January 2027 and get first choice of wing committee roles.",
+      "summary": "Founding member registrations are open ahead of the 1 January 2027 Pan-India launch.",
+      "content": "Founding member registrations are now open. Fill in your details and choose a plan on the Join Us page. The team reviews every application and follows up with plan and payment details. The community launches Pan-India on 1 January 2027.",
       "isPublished": true
     },
     {
@@ -525,5 +565,81 @@
       "downloads": 488,
       "isPublished": true
     }
-  ]
+  ],
+  "team": [
+    {
+      "id": "team-1",
+      "name": "CA Sandeep Garg",
+      "designation": "President",
+      "group": "Leadership",
+      "order": 1,
+      "isPublished": true,
+      "createdAt": "2026-10-09T08:09:33.491Z"
+    },
+    {
+      "id": "team-2",
+      "name": "CA Abhinav Aggarwal",
+      "designation": "Vice President",
+      "group": "Leadership",
+      "order": 2,
+      "isPublished": true,
+      "createdAt": "2026-10-09T08:09:33.491Z"
+    }
+  ],
+  "testimonials": [],
+  "initiatives": [
+    {
+      "id": "ini-1",
+      "title": "Founding Member Registration",
+      "description": "Founding member registration opens, with wing leaders, Young CA leads, Women CA leads and city leads onboarded.",
+      "tag": "November 2026",
+      "ctaLabel": "Join the community",
+      "ctaUrl": "/join",
+      "isPublished": true,
+      "createdAt": "2026-10-09T08:09:33.491Z"
+    },
+    {
+      "id": "ini-2",
+      "title": "10 Wings Operational",
+      "description": "Ten professional wings, each with a convener and committee, running year-round formats and an annual summit.",
+      "tag": "Launch readiness",
+      "ctaLabel": "Explore the wings",
+      "ctaUrl": "/about#wings",
+      "isPublished": true,
+      "createdAt": "2026-10-09T08:09:33.491Z"
+    },
+    {
+      "id": "ini-3",
+      "title": "Q1 2027 Event Calendar",
+      "description": "The January–March 2027 event calendar locked, with speakers and venues confirmed.",
+      "tag": "December 2026",
+      "ctaLabel": "Explore events",
+      "ctaUrl": "/events",
+      "isPublished": true,
+      "createdAt": "2026-10-09T08:09:33.491Z"
+    },
+    {
+      "id": "ini-4",
+      "title": "Community Launch",
+      "description": "A new beginning for a stronger community — Pan-India launch on 1 January 2027.",
+      "tag": "1 January 2027",
+      "ctaLabel": "Register for an event",
+      "ctaUrl": "/events",
+      "isPublished": true,
+      "createdAt": "2026-10-09T08:09:33.491Z"
+    }
+  ],
+  "settings": {
+    "siteName": "ASCEND",
+    "tagline": "A Professional Community for Chartered Accountants & Beyond",
+    "heroEyebrow": "Pan-India CA Community · Launching 1 January 2027",
+    "heroHeadline": "Where young CAs",
+    "heroHeadlineAccent": "rise together.",
+    "heroIntro": "A Pan-India network built to help professionals — Learn. Connect. Grow. Transform. Thrive. Contribute.",
+    "announcement": "Founding member registrations are open ahead of the 1 January 2027 launch.",
+    "contact": {
+      "email": "hello@ascend-ca.in"
+    },
+    "social": {}
+  }
 }

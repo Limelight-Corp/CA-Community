@@ -1,6 +1,7 @@
 export * from './constants/rbac';
 export * from './constants/theme-tokens';
 export * from './constants/prototype-data';
+export * from './constants/organisation';
 export * from './types/api';
 export * from './schemas/auth.schema';
 export * from './schemas/member.schema';

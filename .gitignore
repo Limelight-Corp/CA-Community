@@ -38,3 +38,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Private submissions (registrations, member applications, messages) - contains personal data
+data/private-store.json
+data/*.tmp

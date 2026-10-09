@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowUpRight,
   BookOpen,
@@ -13,6 +13,7 @@ import {
   Info,
   LayoutDashboard,
   LogIn,
+  LogOut,
   Mail,
   Menu,
   Mic2,
@@ -23,8 +24,9 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { cn } from '@ascend/ui';
+import { cn, useToast } from '@ascend/ui';
 import { useAuth } from '../../context/AuthContext';
+import { UserMenu } from './UserMenu';
 
 /** Website Checklist §30 — recommended menu. */
 export const NAV_ITEMS: readonly { label: string; href: string; hint: string; icon: LucideIcon }[] =
@@ -86,7 +88,16 @@ export function SiteHeader({
   const pathname = usePathname() || '/';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    setOpen(false);
+    logout();
+    toast('You have been logged out');
+    if (pathname.startsWith('/dashboard')) router.push('/');
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -163,13 +174,17 @@ export function SiteHeader({
             >
               <Search className="h-[18px] w-[18px]" />
             </Link>
-            <Link
-              href={user ? '/dashboard' : '/login'}
-              className="hidden h-10 items-center gap-2 rounded-full border border-mist/[0.14] px-4 text-[13.5px] font-medium text-[var(--fg)] transition hover:border-mist/40 sm:flex"
-            >
-              <User className="h-4 w-4" aria-hidden />
-              {user ? 'Dashboard' : 'Log in'}
-            </Link>
+            {user ? (
+              <UserMenu user={user} onLogout={handleLogout} />
+            ) : (
+              <Link
+                href="/login"
+                className="hidden h-10 items-center gap-2 rounded-full border border-mist/[0.14] px-4 text-[13.5px] font-medium text-[var(--fg)] transition hover:border-mist/40 sm:flex"
+              >
+                <User className="h-4 w-4" aria-hidden />
+                Log in
+              </Link>
+            )}
             <Link
               href="/events"
               className="group hidden h-10 items-center gap-2 rounded-full bg-grad-primary pl-4 pr-1.5 text-[13.5px] font-semibold text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] transition hover:brightness-110 md:flex"
@@ -314,17 +329,45 @@ export function SiteHeader({
                 <UserPlus className="h-4 w-4" aria-hidden /> Join us
               </Link>
             </div>
-            <Link
-              href={user ? '/dashboard' : '/login'}
-              className="mt-2.5 flex h-11 items-center justify-center gap-2 rounded-full border border-mist/[0.14] text-[13.5px] font-medium text-[var(--fg)]"
-            >
-              {user ? (
-                <LayoutDashboard className="h-4 w-4" aria-hidden />
-              ) : (
+            {user ? (
+              <div className="mt-2.5 flex items-center gap-2.5 rounded-2xl border border-mist/[0.12] bg-mist/[0.03] p-2">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grad-primary font-mono text-[11.5px] font-semibold text-white ring-2 ring-gold/40">
+                  {user.initials}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13.5px] font-medium text-[var(--fg)]">
+                    {user.name}
+                  </span>
+                  {user.email && (
+                    <span className="block truncate text-[11.5px] text-[var(--muted)]">
+                      {user.email}
+                    </span>
+                  )}
+                </span>
+                <Link
+                  href="/dashboard"
+                  aria-label="Go to dashboard"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)]"
+                >
+                  <LayoutDashboard className="h-4 w-4" aria-hidden />
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-bad/10 px-3 text-[12.5px] font-semibold text-bad"
+                >
+                  <LogOut className="h-4 w-4" aria-hidden /> Log out
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="mt-2.5 flex h-11 items-center justify-center gap-2 rounded-full border border-mist/[0.14] text-[13.5px] font-medium text-[var(--fg)]"
+              >
                 <LogIn className="h-4 w-4" aria-hidden />
-              )}
-              {user ? 'Go to dashboard' : 'Member log in'}
-            </Link>
+                Member log in
+              </Link>
+            )}
           </div>
         </div>
       </div>

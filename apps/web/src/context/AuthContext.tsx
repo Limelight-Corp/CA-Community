@@ -14,7 +14,10 @@ export interface MemberUser {
 interface AuthContextType {
   user: MemberUser | null;
   isLoading: boolean;
-  login: (userData: { name?: string; email?: string; mobile?: string; id?: string }, token?: string) => void;
+  login: (
+    userData: { name?: string; email?: string; mobile?: string; id?: string },
+    token?: string
+  ) => void;
   logout: () => void;
 }
 
@@ -51,7 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (stored) {
         const parsed = JSON.parse(stored);
-        const name = parsed.name || (parsed.mobile ? `CA Member ${parsed.mobile.slice(-4)}` : 'CA Member');
+        const name =
+          parsed.name || (parsed.mobile ? `CA Member ${parsed.mobile.slice(-4)}` : 'CA Member');
         setUser({
           ...parsed,
           name,
@@ -95,7 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userData: { name?: string; email?: string; mobile?: string; id?: string },
     token = 'ascend_token_session'
   ) => {
-    const name = userData.name || (userData.mobile ? `CA Member ${userData.mobile.slice(-4)}` : 'CA Member');
+    const name =
+      userData.name || (userData.mobile ? `CA Member ${userData.mobile.slice(-4)}` : 'CA Member');
     const fullUser: MemberUser = {
       ...userData,
       name,
@@ -115,6 +120,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     try {
+      // Best-effort server-side revoke; the local session is cleared regardless.
+      const token = localStorage.getItem('ascend_member_token');
+      if (token) {
+        const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+        fetch(`${api}/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          keepalive: true,
+        }).catch(() => {});
+      }
       localStorage.removeItem('ascend_member_user');
       localStorage.removeItem('ascend_member_token');
       document.cookie = 'ascend_member_token=; path=/; max-age=0; SameSite=Lax';

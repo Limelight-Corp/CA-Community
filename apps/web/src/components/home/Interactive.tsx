@@ -23,31 +23,42 @@ function finePointer(): boolean {
 
 export function RotatingWord({
   words,
-  interval = 2200,
+  interval = 2400,
   className,
+  wordClassName,
 }: {
   words: string[];
   interval?: number;
   className?: string;
+  /** Applied to every word. Gradient text must go here, not on a parent: background-clip
+   *  on a parent paints the hidden words too. */
+  wordClassName?: string;
 }) {
-  const [i, setI] = useState(0);
+  const [{ i, prev }, setTick] = useState<{ i: number; prev: number | null }>({ i: 0, prev: null });
   useEffect(() => {
     if (words.length < 2 || prefersReducedMotion()) return;
-    const t = setInterval(() => setI((n) => (n + 1) % words.length), interval);
+    const t = setInterval(
+      () => setTick((s) => ({ i: (s.i + 1) % words.length, prev: s.i })),
+      interval
+    );
     return () => clearInterval(t);
   }, [words.length, interval]);
   return (
-    <span className={cn('word-swap', className)}>
+    <>
       {/* Screen readers get a stable sentence, not a ticking word. */}
-      <span className="sr-only" data-active="true">
-        {words[0]}
+      <span className="sr-only">{words[0]}</span>
+      <span className={cn('word-swap', className)} aria-hidden>
+        {words.map((w, n) => (
+          <span
+            key={w}
+            data-state={n === i ? 'active' : n === prev ? 'exit' : 'idle'}
+            className={wordClassName}
+          >
+            {w}
+          </span>
+        ))}
       </span>
-      {words.map((w, n) => (
-        <span key={w} data-active={n === i ? 'true' : 'false'} aria-hidden>
-          {w}
-        </span>
-      ))}
-    </span>
+    </>
   );
 }
 
@@ -234,4 +245,57 @@ export function ScrollProgress() {
     };
   }, []);
   return <div ref={ref} className="scroll-progress" aria-hidden />;
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* FxCard — pointer tilt + gold glow + lift (styles: .fx-card in tokens.css)                  */
+/* ------------------------------------------------------------------------------------------ */
+
+export function FxCard({
+  children,
+  className,
+  max = 7,
+  as: Tag = 'div',
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  max?: number;
+  as?: 'div' | 'li' | 'article';
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !finePointer()) return;
+    const reduce = prefersReducedMotion();
+    let raf = 0;
+    const onMove = (e: PointerEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const r = el.getBoundingClientRect();
+        const x = e.clientX - r.left;
+        const y = e.clientY - r.top;
+        el.style.setProperty('--mx', `${x}px`);
+        el.style.setProperty('--my', `${y}px`);
+        if (!reduce) {
+          el.style.setProperty('--rx', `${(-(y / r.height - 0.5) * max).toFixed(2)}deg`);
+          el.style.setProperty('--ry', `${((x / r.width - 0.5) * max).toFixed(2)}deg`);
+        }
+      });
+    };
+    const onLeave = () => {
+      cancelAnimationFrame(raf);
+      el.style.setProperty('--rx', '0deg');
+      el.style.setProperty('--ry', '0deg');
+    };
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', onLeave);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+    };
+  }, [max]);
+  return React.createElement(Tag, { ref, className: cn('fx-card', className), style }, children);
 }

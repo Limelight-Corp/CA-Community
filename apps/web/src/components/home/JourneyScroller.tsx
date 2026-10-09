@@ -1,7 +1,31 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import {
+  BadgeCheck,
+  CalendarDays,
+  Compass,
+  Crown,
+  HandHeart,
+  IdCard,
+  Network,
+  SlidersHorizontal,
+  UserPlus,
+} from 'lucide-react';
 import { cn } from '@ascend/ui';
+
+/** One icon per documented journey step, in order. */
+const STEP_ICONS = [
+  Compass,
+  UserPlus,
+  BadgeCheck,
+  IdCard,
+  SlidersHorizontal,
+  CalendarDays,
+  Network,
+  HandHeart,
+  Crown,
+];
 
 export interface JourneyStep {
   title: string;
@@ -107,7 +131,7 @@ export function JourneyScroller({
               <li
                 key={s.title}
                 className={cn(
-                  'relative flex w-[min(78vw,340px)] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-[32px] border p-7 transition-all duration-500 lg:h-[400px] lg:w-[340px]',
+                  'relative flex w-[min(78vw,340px)] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-[32px] border p-7 transition-all duration-500 fx-step lg:h-[min(60vh,540px)] lg:w-[min(30vw,400px)]',
                   last
                     ? 'border-transparent bg-grad-gold text-brand-950'
                     : 'border-mist/[0.1] bg-grad-surface',
@@ -117,20 +141,36 @@ export function JourneyScroller({
                 <span
                   aria-hidden
                   className={cn(
-                    'pointer-events-none absolute -right-3 -top-8 font-display text-[180px] font-semibold leading-none tracking-[-0.08em]',
+                    'pointer-events-none absolute -bottom-12 -right-3 font-display text-[200px] font-semibold leading-none tracking-[-0.08em]',
                     last ? 'text-brand-950/10' : 'text-outline opacity-40'
                   )}
                 >
                   {i + 1}
                 </span>
-                <span
-                  className={cn(
-                    'relative font-mono text-[12px] uppercase tracking-[0.14em]',
-                    last ? 'text-brand-950/70' : 'text-gold'
-                  )}
-                >
-                  Step {String(i + 1).padStart(2, '0')}
-                </span>
+                <div className="relative flex items-center justify-between">
+                  <span
+                    className={cn(
+                      'font-mono text-[12px] uppercase tracking-[0.14em]',
+                      last ? 'text-brand-950/70' : 'text-gold'
+                    )}
+                  >
+                    Step {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {(() => {
+                    const Icon = STEP_ICONS[i] ?? Compass;
+                    return (
+                      <span
+                        className={cn(
+                          'grid h-14 w-14 place-items-center rounded-2xl transition-transform duration-700',
+                          last ? 'bg-brand-950 text-gold' : 'bg-brand-500/15 text-brand-200',
+                          lit && pinned && 'rotate-[-8deg] scale-110'
+                        )}
+                      >
+                        <Icon className="h-6 w-6" aria-hidden />
+                      </span>
+                    );
+                  })()}
+                </div>
                 <div className="relative mt-24 lg:mt-0">
                   <h3
                     className={cn(

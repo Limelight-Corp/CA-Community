@@ -21,18 +21,25 @@ import type {
   CommunityTestimonial,
   CommunityWing,
 } from '@ascend/shared';
-import { MEMBER_JOURNEY, ORG_MISSION, ORG_POSITIONING, ORG_VISION, WHY_JOIN } from '@ascend/shared';
+import {
+  MEMBER_JOURNEY,
+  ORG_CORE_PURPOSES,
+  ORG_MISSION,
+  ORG_POSITIONING,
+  ORG_VISION,
+  WHY_JOIN,
+} from '@ascend/shared';
 import { Avatar, Container, Kicker, SectionHeading, AccentText } from '@ascend/ui';
-import { Countdown, Marquee, Reveal } from '../components/ui-client';
+import { CountUp, Countdown, Marquee, Reveal } from '../components/ui-client';
 import { getItems, getSettings } from '../lib/community-store';
 import { canRegister, eventSpeakers, eventWing, isUpcoming, sortByDate } from '../lib/events';
 import { EventTile } from '../components/events/EventTile';
 import {
+  FxCard,
   Magnetic,
   RotatingWord,
   ScrollProgress,
   Spotlight,
-  SpotlightGroup,
   TiltCard,
 } from '../components/home/Interactive';
 import { WingsOrbit } from '../components/home/WingsOrbit';
@@ -95,16 +102,19 @@ export default function HomePage() {
                 <h1 className="mt-8 font-display text-[clamp(52px,9.5vw,148px)] font-medium leading-[0.88] tracking-[-0.06em] text-[var(--fg)]">
                   {settings.heroHeadline}
                   <br />
-                  <AccentText tone="hero" className="pr-3">
-                    {rotating ? (
-                      <>
-                        <RotatingWord words={['rise', 'learn', 'connect', 'grow', 'lead']} />{' '}
-                        together.
-                      </>
-                    ) : (
-                      settings.heroHeadlineAccent
-                    )}
-                  </AccentText>
+                  {rotating ? (
+                    <em className="font-serif font-normal italic tracking-[-0.03em]">
+                      <RotatingWord
+                        words={['rise', 'learn', 'connect', 'grow', 'lead']}
+                        wordClassName="text-hero-gradient pr-[0.08em]"
+                      />{' '}
+                      <span className="text-gold-gradient pr-3">together.</span>
+                    </em>
+                  ) : (
+                    <AccentText tone="hero" className="pr-3">
+                      {settings.heroHeadlineAccent}
+                    </AccentText>
+                  )}
                 </h1>
               </Reveal>
               <Reveal delay={160}>
@@ -243,40 +253,67 @@ export default function HomePage() {
                 <span className="draw-underline">More about us</span>
                 <ArrowUpRight className="h-4 w-4 transition group-hover:rotate-45" aria-hidden />
               </Link>
+              <ul className="mt-10 grid gap-2 sm:grid-cols-2">
+                {ORG_CORE_PURPOSES.map((p, i) => (
+                  <li
+                    key={p.key}
+                    className="group flex items-start gap-3 rounded-2xl border border-mist/[0.08] p-4 transition duration-500 hover:-translate-y-0.5 hover:border-gold/40 hover:bg-gold/[0.04]"
+                  >
+                    <span className="font-mono text-[11px] text-gold transition group-hover:scale-125">
+                      0{i + 1}
+                    </span>
+                    <span>
+                      <span className="block font-display text-[18px] font-medium tracking-[-0.02em] text-[var(--fg)]">
+                        {p.title}
+                      </span>
+                      <span className="mt-0.5 block text-[13px] leading-snug text-[var(--muted)]">
+                        {p.text}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </Reveal>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Reveal delay={60} className="shine glass-panel rounded-[28px] p-7 sm:col-span-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
-                  Our vision
-                </p>
-                <p className="mt-4 font-display text-[clamp(20px,2vw,26px)] leading-snug tracking-[-0.02em] text-[var(--fg)]">
-                  {ORG_VISION}
-                </p>
+              <Reveal delay={60} className="sm:col-span-2">
+                <FxCard className="glass-panel h-full rounded-[28px] p-7">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
+                    Our vision
+                  </p>
+                  <p className="mt-4 font-display text-[clamp(20px,2vw,26px)] leading-snug tracking-[-0.02em] text-[var(--fg)]">
+                    {ORG_VISION}
+                  </p>
+                </FxCard>
               </Reveal>
-              <Reveal delay={120} className="shine glass-panel rounded-[28px] p-7 sm:col-span-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-brand-200">
-                  Our mission
-                </p>
-                <p className="mt-4 text-[16.5px] leading-relaxed text-[var(--muted)]">
-                  {ORG_MISSION}
-                </p>
+              <Reveal delay={120} className="sm:col-span-2">
+                <FxCard className="glass-panel h-full rounded-[28px] p-7">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-brand-200">
+                    Our mission
+                  </p>
+                  <p className="mt-4 text-[16.5px] leading-relaxed text-[var(--muted)]">
+                    {ORG_MISSION}
+                  </p>
+                </FxCard>
               </Reveal>
               {[
-                { k: '10', l: 'Professional wings' },
-                { k: '100', l: 'Proposed activity formats' },
-                { k: '6', l: 'Community structures' },
-                { k: '9', l: 'Steps from member to leader' },
+                { k: 10, l: 'Professional wings' },
+                { k: 100, l: 'Proposed activity formats' },
+                { k: 6, l: 'Community structures' },
+                { k: 9, l: 'Steps from member to leader' },
               ].map((s, i) => (
-                <Reveal
-                  key={s.l}
-                  delay={160 + i * 60}
-                  className="rounded-[28px] border border-mist/[0.08] p-6"
-                >
-                  <span className="block font-display text-[56px] font-medium leading-none tracking-[-0.05em] text-hero-gradient">
-                    {s.k}
-                  </span>
-                  <span className="mt-3 block text-[14px] text-[var(--muted)]">{s.l}</span>
+                <Reveal key={s.l} delay={160 + i * 60}>
+                  <FxCard className="h-full overflow-hidden rounded-[28px] border border-mist/[0.08] bg-grad-surface p-6">
+                    <CountUp
+                      value={s.k}
+                      className="block font-display text-[64px] font-semibold leading-none tracking-[-0.05em] text-white [text-shadow:0_0_30px_rgb(var(--lime-rgb)/0.5)]"
+                    />
+                    <span className="mt-3 block text-[14px] text-[var(--muted)]">{s.l}</span>
+                    <span
+                      aria-hidden
+                      className="fx-ghost absolute -bottom-10 -right-4 h-28 w-28 rounded-full bg-gold/20 opacity-60 blur-2xl"
+                    />
+                  </FxCard>
                 </Reveal>
               ))}
             </div>
@@ -315,12 +352,14 @@ export default function HomePage() {
             <div className="-mx-5 mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
               {featured.map((e, i) => (
                 <Reveal key={e.id} delay={i * 90} className="w-[86%] shrink-0 snap-start md:w-auto">
-                  <EventTile
-                    event={e}
-                    wing={eventWing(e, wings)}
-                    speakers={eventSpeakers(e, speakers)}
-                    className="h-full"
-                  />
+                  <FxCard className="h-full rounded-[28px]" max={5}>
+                    <EventTile
+                      event={e}
+                      wing={eventWing(e, wings)}
+                      speakers={eventSpeakers(e, speakers)}
+                      className="h-full"
+                    />
+                  </FxCard>
                 </Reveal>
               ))}
             </div>
@@ -346,49 +385,82 @@ export default function HomePage() {
               className="mx-auto"
             />
           </Reveal>
-          <SpotlightGroup className="mt-16 grid auto-rows-[minmax(200px,auto)] gap-4 md:grid-cols-6">
-            {WHY_JOIN.map((w, i) => {
+          <div className="mt-16 grid auto-rows-[minmax(210px,auto)] gap-4 md:grid-cols-4">
+            {WHY_JOIN.slice(0, 5).map((w, i) => {
               const Icon = WHY_ICONS[w.key];
-              const span = [
-                'md:col-span-4',
-                'md:col-span-2',
-                'md:col-span-2',
-                'md:col-span-2',
-                'md:col-span-2',
-                'md:col-span-6 lg:col-span-6',
-              ][i];
               const hero = i === 0;
               return (
                 <Reveal
                   key={w.key}
                   delay={i * 70}
-                  className={`spotlight-card shine group relative overflow-hidden rounded-[28px] border border-mist/[0.08] p-7 transition-colors hover:bg-mist/[0.03] ${span} ${hero ? 'bg-grad-primary !border-transparent' : 'bg-grad-surface'}`}
+                  className={hero ? 'md:col-span-2 md:row-span-2' : ''}
                 >
-                  <span
-                    className={`grid h-12 w-12 place-items-center rounded-2xl ${hero ? 'bg-white/15 text-white' : 'bg-brand-500/15 text-brand-200'}`}
+                  <FxCard
+                    className={`flex h-full flex-col overflow-hidden rounded-[28px] border p-7 ${hero ? 'border-transparent bg-grad-primary' : 'border-mist/[0.08] bg-grad-surface'}`}
                   >
-                    <Icon className="h-6 w-6" aria-hidden />
-                  </span>
-                  <h3
-                    className={`mt-8 font-display font-medium tracking-[-0.03em] ${hero ? 'text-[clamp(32px,4vw,52px)] leading-[0.95] text-white' : 'text-[26px] text-[var(--fg)]'}`}
-                  >
-                    {w.title}
-                  </h3>
-                  <p
-                    className={`mt-3 max-w-[44ch] text-[15px] leading-relaxed ${hero ? 'text-white/80' : 'text-[var(--muted)]'}`}
-                  >
-                    {w.text}
-                  </p>
-                  <span
-                    aria-hidden
-                    className={`absolute -bottom-6 -right-2 font-display text-[140px] font-semibold leading-none tracking-[-0.06em] ${hero ? 'text-white/10' : 'text-mist/[0.04]'}`}
-                  >
-                    0{i + 1}
-                  </span>
+                    {hero && (
+                      <div
+                        aria-hidden
+                        className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gold/30 blur-[90px]"
+                      />
+                    )}
+                    <span
+                      className={`fx-icon relative grid place-items-center rounded-2xl ${hero ? 'h-16 w-16 bg-white/15 text-white' : 'h-12 w-12 bg-brand-500/15 text-brand-200'}`}
+                    >
+                      <Icon className={hero ? 'h-8 w-8' : 'h-6 w-6'} aria-hidden />
+                    </span>
+                    <h3
+                      className={`relative font-display font-medium tracking-[-0.03em] ${hero ? 'mt-auto pt-24 text-[clamp(40px,5vw,72px)] leading-[0.92] text-white' : 'mt-8 text-[26px] text-[var(--fg)]'}`}
+                    >
+                      {w.title}
+                    </h3>
+                    <p
+                      className={`relative mt-3 max-w-[44ch] leading-relaxed ${hero ? 'text-[17px] text-white/80' : 'text-[15px] text-[var(--muted)]'}`}
+                    >
+                      {w.text}
+                    </p>
+                    <span
+                      aria-hidden
+                      className={`fx-ghost absolute -bottom-6 -right-2 font-display font-semibold leading-none tracking-[-0.06em] opacity-70 ${hero ? 'text-[220px] text-white/10' : 'text-[140px] text-mist/[0.05]'}`}
+                    >
+                      0{i + 1}
+                    </span>
+                  </FxCard>
                 </Reveal>
               );
             })}
-          </SpotlightGroup>
+            {WHY_JOIN[5] && (
+              <Reveal delay={350} className="md:col-span-4">
+                <FxCard
+                  max={3}
+                  className="grain flex h-full flex-col gap-6 overflow-hidden rounded-[28px] border border-gold/25 bg-gradient-to-r from-brand-900 via-brand-950 to-brand-900 p-7 md:flex-row md:items-center md:justify-between md:p-10"
+                >
+                  <div className="relative flex items-center gap-5">
+                    <span className="fx-icon grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-grad-gold text-brand-950">
+                      <TrendingUp className="h-7 w-7" aria-hidden />
+                    </span>
+                    <div>
+                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
+                        06 · {WHY_JOIN[5].title}
+                      </span>
+                      <p className="mt-1 font-display text-[clamp(22px,2.6vw,34px)] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)]">
+                        {WHY_JOIN[5].text}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/join"
+                    className="group/cta relative inline-flex h-14 shrink-0 items-center gap-4 self-start rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-brand-950 transition hover:brightness-105 md:self-auto"
+                  >
+                    Join the community
+                    <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-gold transition-transform duration-300 group-hover/cta:rotate-45">
+                      <ArrowUpRight className="h-5 w-5" aria-hidden />
+                    </span>
+                  </Link>
+                </FxCard>
+              </Reveal>
+            )}
+          </div>
         </Container>
       </section>
 
@@ -430,7 +502,7 @@ export default function HomePage() {
                   <span className="relative z-10 grid h-14 w-14 place-items-center rounded-full border border-gold/40 bg-bg font-display text-[18px] font-semibold text-gold">
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  <div className="mt-6 rounded-[24px] border border-mist/[0.08] bg-grad-surface p-6">
+                  <FxCard className="mt-6 rounded-[24px] border border-mist/[0.08] bg-grad-surface p-6">
                     {it.tag && (
                       <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-gold">
                         {it.tag}
@@ -454,7 +526,7 @@ export default function HomePage() {
                         />
                       </Link>
                     )}
-                  </div>
+                  </FxCard>
                 </Reveal>
               ))}
             </ol>
@@ -519,44 +591,46 @@ export default function HomePage() {
             <div className="mt-14 grid gap-5 md:grid-cols-3">
               {news.map((n, i) => (
                 <Reveal key={n.id} delay={i * 80}>
-                  <Link
-                    href={`/news/${n.slug}`}
-                    className="shine group flex h-full flex-col overflow-hidden rounded-[28px] border border-mist/[0.08] bg-grad-surface"
-                  >
-                    <div className="relative aspect-[16/9] overflow-hidden">
-                      {n.coverImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={n.coverImageUrl}
-                          alt=""
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div
-                          className="h-full w-full transition-transform duration-700 group-hover:scale-105"
-                          style={{
-                            background: `radial-gradient(80% 90% at ${20 + i * 30}% 10%, rgb(var(--lime-rgb) / 0.55), transparent 60%), radial-gradient(60% 70% at 100% 100%, rgb(var(--gold-rgb) / 0.3), transparent 60%), var(--surface-hi)`,
-                          }}
-                        />
-                      )}
-                      <span className="absolute left-4 top-4 rounded-full bg-bg/80 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.08em] text-gold backdrop-blur-md">
-                        {n.category}
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col gap-3 p-6">
-                      <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--muted)]">
-                        {n.date}
-                        {n.author ? ` · ${n.author}` : ''}
-                      </p>
-                      <h3 className="font-display text-[21px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-white">
-                        {n.title}
-                      </h3>
-                      <p className="line-clamp-3 text-[14.5px] leading-relaxed text-[var(--muted)]">
-                        {n.summary}
-                      </p>
-                    </div>
-                  </Link>
+                  <FxCard className="h-full rounded-[28px]" max={5}>
+                    <Link
+                      href={`/news/${n.slug}`}
+                      className="shine group flex h-full flex-col overflow-hidden rounded-[28px] border border-mist/[0.08] bg-grad-surface"
+                    >
+                      <div className="relative aspect-[16/9] overflow-hidden">
+                        {n.coverImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={n.coverImageUrl}
+                            alt=""
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div
+                            className="h-full w-full transition-transform duration-700 group-hover:scale-105"
+                            style={{
+                              background: `radial-gradient(80% 90% at ${20 + i * 30}% 10%, rgb(var(--lime-rgb) / 0.55), transparent 60%), radial-gradient(60% 70% at 100% 100%, rgb(var(--gold-rgb) / 0.3), transparent 60%), var(--surface-hi)`,
+                            }}
+                          />
+                        )}
+                        <span className="absolute left-4 top-4 rounded-full bg-bg/80 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.08em] text-gold backdrop-blur-md">
+                          {n.category}
+                        </span>
+                      </div>
+                      <div className="flex flex-1 flex-col gap-3 p-6">
+                        <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--muted)]">
+                          {n.date}
+                          {n.author ? ` · ${n.author}` : ''}
+                        </p>
+                        <h3 className="font-display text-[21px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-white">
+                          {n.title}
+                        </h3>
+                        <p className="line-clamp-3 text-[14.5px] leading-relaxed text-[var(--muted)]">
+                          {n.summary}
+                        </p>
+                      </div>
+                    </Link>
+                  </FxCard>
                 </Reveal>
               ))}
             </div>

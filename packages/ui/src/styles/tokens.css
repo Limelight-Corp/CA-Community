@@ -1533,18 +1533,31 @@ footer .wrap {
 .word-swap {
   display: inline-grid;
   vertical-align: bottom;
+  overflow: hidden;
+  /* room for italic overhang and descenders */
+  padding: 0 0.12em 0.14em 0;
+  margin-bottom: -0.14em;
 }
 .word-swap > span {
   grid-area: 1 / 1;
   opacity: 0;
-  filter: blur(14px);
-  transform: translateY(0.35em) scale(0.96);
-  transition: opacity 0.7s var(--ease-out-expo), filter 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+  transform: translate3d(0, 0.9em, 0) rotate(4deg);
+  filter: blur(6px);
+  transition:
+    opacity 0.55s var(--ease-out-expo),
+    transform 0.75s var(--ease-out-expo),
+    filter 0.55s var(--ease-out-expo);
+  will-change: transform, opacity;
 }
-.word-swap > span[data-active='true'] {
+.word-swap > span[data-state='active'] {
   opacity: 1;
-  filter: blur(0);
   transform: none;
+  filter: blur(0);
+}
+.word-swap > span[data-state='exit'] {
+  opacity: 0;
+  transform: translate3d(0, -0.9em, 0) rotate(-4deg);
+  filter: blur(6px);
 }
 
 /* Cursor spotlight: parent sets --mx / --my in px */
@@ -1605,6 +1618,38 @@ footer .wrap {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .word-swap > span { transition: none; }
+  .word-swap > span { transition: none; filter: none; }
   .orbit-ring, .orbit-node { animation: none !important; }
+}
+
+/* FX card — pointer-driven tilt (set by <FxCard>), gold glow and lift */
+.fx-card {
+  position: relative;
+  isolation: isolate;
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform 0.45s var(--ease-out-expo), box-shadow 0.45s var(--ease-out-expo), border-color 0.3s;
+}
+.fx-card:hover {
+  box-shadow: 0 30px 70px -35px rgb(var(--lime-rgb) / 0.55), 0 0 0 1px rgb(var(--gold-rgb) / 0.25);
+}
+.fx-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.35s;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--gold-rgb) / 0.16), transparent 55%);
+}
+.fx-card:hover::after { opacity: 1; }
+.fx-card .fx-icon { transition: transform 0.6s var(--ease-out-expo); }
+.fx-card:hover .fx-icon { transform: rotate(-10deg) scale(1.15); }
+.fx-card .fx-ghost { transition: transform 0.8s var(--ease-out-expo), opacity 0.5s; }
+.fx-card:hover .fx-ghost { transform: translate3d(-10px, -8px, 0) scale(1.08); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-card { transform: none !important; }
+  .fx-card .fx-icon, .fx-card .fx-ghost { transition: none; }
 }

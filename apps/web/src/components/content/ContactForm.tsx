@@ -8,7 +8,7 @@ import { HONEYPOT_FIELD, contactMessageSchema, fieldErrors } from '../../lib/for
 
 type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'done' } | { kind: 'error'; message: string };
 
-export function ContactForm() {
+export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const formRef = useRef<HTMLFormElement>(null);
@@ -95,7 +95,7 @@ export function ContactForm() {
         {(c) => <input {...c} name="phone" type="tel" inputMode="tel" autoComplete="tel" className={fieldInputClass} />}
       </FormField>
       <FormField id="contact-subject" label="Subject" required error={errors.subject}>
-        {(c) => <input {...c} name="subject" type="text" className={fieldInputClass} />}
+        {(c) => <input {...c} name="subject" type="text" defaultValue={defaultSubject} className={fieldInputClass} />}
       </FormField>
       <FormField id="contact-message" label="Message" required error={errors.message} className="md:col-span-2">
         {(c) => <textarea {...c} name="message" rows={6} className={`${fieldInputClass} resize-y`} />}

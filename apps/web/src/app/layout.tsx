@@ -79,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <Providers gaId={gaId}>
             <SiteHeader siteName={settings.siteName} announcement={settings.announcement} />
-            <main id="main" className="relative">
+            <main id="main" className="relative overflow-x-clip">
               {children}
             </main>
             <SiteFooter settings={settings} />

@@ -1,5 +1,6 @@
 import { readPrivate } from '../../lib/community-store';
 import { AdminShell } from '../../components/shell/AdminShell';
+import { gateBypassed, gateConfig } from '../../lib/admin-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,5 +11,10 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
     unreadMessages: priv.messages.filter((m) => m.status === 'new').length,
     pendingPayments: priv.registrations.filter((r) => r.paymentStatus === 'pending' && r.status !== 'cancelled').length,
   };
-  return <AdminShell counts={counts}>{children}</AdminShell>;
+  const adminName = gateBypassed() ? null : (gateConfig()?.user ?? null);
+  return (
+    <AdminShell counts={counts} adminName={adminName}>
+      {children}
+    </AdminShell>
+  );
 }

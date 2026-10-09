@@ -53,9 +53,13 @@ npm run build --workspace=@ascend/admin && npm run start --workspace=@ascend/adm
 
 ## Admin access
 
-The admin console is protected by an access gate (HTTP Basic auth). There is **no
-built-in password**: the credentials come from environment variables, and the admin
+The admin console has its own sign-in page at `/login`. There is **no built-in
+password**: the username and password come from environment variables, and the admin
 answers `503 Admin console is locked` when they are not set.
+
+After a successful sign-in the admin gets a signed, httpOnly session cookie that lasts
+12 hours. **Log out** is at the bottom of the sidebar (or the navigation drawer on
+mobile). Failed sign-ins are limited to 5 attempts per 15 minutes.
 
 ### Local development credentials
 
@@ -72,13 +76,20 @@ ADMIN_GATE_USER=preview
 ADMIN_GATE_PASSWORD=Preview-Gate-2026
 ```
 
-Then start the admin and sign in with the username and password above when the browser asks.
+Then start the admin, open http://localhost:3001 and sign in on the login page with the
+username and password above.
 
 > **Warning:** these are local development values. They are written in this README, so
 > treat them as public. Never use them on staging or production. For any deployed
 > environment, set `ADMIN_GATE_USER` and `ADMIN_GATE_PASSWORD` to a new username and a long
 > random password (for example `openssl rand -base64 24`) in that server's environment or
-> secret manager. `docker-compose.yml` refuses to start the admin without them.
+> secret manager. `docker-compose.yml` refuses to start the admin without them. Also set
+> `ADMIN_SESSION_SECRET` to another long random value to sign session cookies; without it
+> the key is derived from the credentials, so changing the password signs everyone out.
+> Behind a reverse proxy, make sure it sends `X-Forwarded-For` so the sign-in attempt
+> limit is counted per visitor.
+
+Scripts can still call the admin with HTTP Basic credentials (`curl -u user:password`).
 
 For local development only, you can also skip the gate with `ADMIN_GATE_DISABLED=true`
 in `apps/admin/.env.local`. This is ignored when `NODE_ENV=production`.

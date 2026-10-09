@@ -112,7 +112,9 @@ export function PayPanel(props: PayPanelProps) {
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             {state.kind === 'dismissed'
               ? 'Payment not completed. Your seat is confirmed only after the payment goes through.'
-              : state.message}{' '}
+              : /[.!?]$/.test(state.message.trim())
+                ? state.message.trim()
+                : `${state.message.trim()}.`}{' '}
             Your registration is saved.
           </p>
         )}

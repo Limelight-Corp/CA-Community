@@ -80,7 +80,7 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
       {/* Orbit (tablet and up) */}
       <div
         className={cn(
-          'relative mx-auto hidden aspect-square w-full max-w-[640px] md:block',
+          'relative mx-auto aspect-square w-full max-w-[640px]',
           active && 'orbit-paused'
         )}
       >
@@ -100,7 +100,7 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
         />
 
         {/* Centre */}
-        <div className="absolute inset-[26%] z-10 grid place-items-center rounded-full border border-mist/[0.12] bg-bg/85 p-6 text-center shadow-[0_0_80px_-20px_rgb(var(--gold-rgb)/0.45)] backdrop-blur-md">
+        <div className="absolute inset-[24%] z-10 grid place-items-center rounded-full border border-mist/[0.12] bg-bg/85 p-3 text-center sm:inset-[26%] sm:p-6 shadow-[0_0_80px_-20px_rgb(var(--gold-rgb)/0.45)] backdrop-blur-md">
           {active ? (
             <div key={active.id} className="reveal is-in flex flex-col items-center gap-2">
               <span
@@ -109,11 +109,13 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
               >
                 Wing {String(active.number).padStart(2, '0')}
               </span>
-              <span className="font-display text-[clamp(18px,2.2vw,26px)] font-medium leading-[1.05] tracking-[-0.03em] text-[var(--fg)]">
+              <span className="font-display text-[clamp(15px,4vw,26px)] font-medium leading-[1.05] tracking-[-0.03em] text-[var(--fg)]">
                 {active.name}
               </span>
-              <span className="line-clamp-2 text-[12px] text-[var(--muted)]">{active.tags}</span>
-              <ul className="mt-1 flex flex-wrap justify-center gap-1.5">
+              <span className="line-clamp-2 hidden text-[12px] text-[var(--muted)] sm:block">
+                {active.tags}
+              </span>
+              <ul className="mt-1 hidden flex-wrap justify-center gap-1.5 sm:flex">
                 {active.activities.slice(0, 3).map((a) => (
                   <li
                     key={a}
@@ -126,14 +128,14 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <span className="font-display text-[clamp(72px,9vw,112px)] font-semibold leading-[0.9] tracking-[-0.06em] text-white [text-shadow:0_0_40px_rgb(var(--gold-rgb)/0.55),0_0_2px_rgb(var(--white-rgb)/0.6)]">
+              <span className="font-display text-[clamp(48px,14vw,112px)] font-semibold leading-[0.9] tracking-[-0.06em] text-white [text-shadow:0_0_40px_rgb(var(--gold-rgb)/0.55),0_0_2px_rgb(var(--white-rgb)/0.6)]">
                 {n}
               </span>
-              <span className="mt-2 font-display text-[20px] font-medium tracking-[-0.03em] text-[var(--fg)]">
+              <span className="mt-1 font-display text-[14px] font-medium tracking-[-0.03em] text-[var(--fg)] sm:mt-2 sm:text-[20px]">
                 wings,{' '}
                 <em className="font-serif font-normal italic text-gold-gradient">one community</em>
               </span>
-              <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold-soft">
+              <span className="mt-3 hidden items-center gap-2 rounded-full border border-gold/30 sm:inline-flex bg-gold/10 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold-soft">
                 <span className="live-dot !bg-gold" aria-hidden /> Hover a wing
               </span>
             </div>
@@ -160,7 +162,7 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
                     tabIndex={-1}
                     {...handlers(w)}
                     className={cn(
-                      'grid h-14 w-14 place-items-center rounded-full border-2 font-mono text-[13px] font-semibold text-white transition duration-300',
+                      'grid h-10 w-10 place-items-center rounded-full border-2 font-mono text-[11px] font-semibold text-white transition duration-300 sm:h-12 sm:w-12 md:h-14 md:w-14 md:text-[13px]',
                       isActive ? 'scale-125 border-white/80' : 'border-bg hover:scale-110'
                     )}
                     style={{
@@ -180,29 +182,38 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
         </ul>
       </div>
 
-      {/* Mobile grid */}
-      <ul className="grid grid-cols-2 gap-2.5 md:hidden">
-        {wings.map((w) => (
-          <li key={w.id}>
-            <Link
-              href="/about#wings"
-              className="flex h-full flex-col gap-3 rounded-[20px] border border-mist/[0.1] p-4"
-              style={{
-                background: `linear-gradient(160deg, color-mix(in srgb, ${w.color} 26%, transparent), transparent 70%), var(--surface-lo)`,
-              }}
-            >
-              <span
-                className="grid h-8 w-8 place-items-center rounded-full font-mono text-[11px] font-semibold text-white"
-                style={{ background: w.color }}
+      {/* Mobile: tap a wing (synced with the orbit) */}
+      <ul
+        className="-mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-2 lg:hidden [scrollbar-width:none]"
+        aria-label="Professional wings"
+      >
+        {wings.map((w) => {
+          const on = active?.id === w.id;
+          return (
+            <li key={w.id} className="snap-start">
+              <button
+                type="button"
+                onClick={() => setActive(on ? null : w)}
+                aria-pressed={on}
+                className={cn(
+                  'flex items-center gap-2 whitespace-nowrap rounded-full border py-1.5 pl-1.5 pr-3.5 text-[13px] font-medium transition',
+                  on ? 'border-transparent text-white' : 'border-mist/[0.14] text-[var(--fg)]'
+                )}
+                style={
+                  on ? { background: `color-mix(in srgb, ${w.color} 45%, transparent)` } : undefined
+                }
               >
-                {String(w.number).padStart(2, '0')}
-              </span>
-              <span className="font-display text-[16px] font-medium leading-tight tracking-[-0.02em] text-[var(--fg)]">
+                <span
+                  className="grid h-7 w-7 place-items-center rounded-full font-mono text-[10.5px] font-semibold text-white"
+                  style={{ background: w.color }}
+                >
+                  {String(w.number).padStart(2, '0')}
+                </span>
                 {w.name}
-              </span>
-            </Link>
-          </li>
-        ))}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

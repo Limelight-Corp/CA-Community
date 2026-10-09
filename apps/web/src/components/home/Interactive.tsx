@@ -35,6 +35,9 @@ export function RotatingWord({
   wordClassName?: string;
 }) {
   const [{ i, prev }, setTick] = useState<{ i: number; prev: number | null }>({ i: 0, prev: null });
+  const [width, setWidth] = useState<number | null>(null);
+  const spans = useRef<(HTMLSpanElement | null)[]>([]);
+
   useEffect(() => {
     if (words.length < 2 || prefersReducedMotion()) return;
     const t = setInterval(
@@ -43,14 +46,34 @@ export function RotatingWord({
     );
     return () => clearInterval(t);
   }, [words.length, interval]);
+
+  // The container animates to the active word's width, so following text slides instead of
+  // leaving a gap sized for the longest word.
+  useEffect(() => {
+    const measure = () => {
+      const el = spans.current[i];
+      if (el) setWidth(el.offsetWidth);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [i]);
+
   return (
     <>
       {/* Screen readers get a stable sentence, not a ticking word. */}
       <span className="sr-only">{words[0]}</span>
-      <span className={cn('word-swap', className)} aria-hidden>
+      <span
+        className={cn('word-swap', className)}
+        style={width ? { width: `calc(${width}px + 0.12em)` } : undefined}
+        aria-hidden
+      >
         {words.map((w, n) => (
           <span
             key={w}
+            ref={(el) => {
+              spans.current[n] = el;
+            }}
             data-state={n === i ? 'active' : n === prev ? 'exit' : 'idle'}
             className={wordClassName}
           >
@@ -267,8 +290,40 @@ export function FxCard({
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
-    if (!el || !finePointer()) return;
+    if (!el) return;
     const reduce = prefersReducedMotion();
+    if (!finePointer()) {
+      // Touch screens: the card tilts gently and the glow sweeps across it as it scrolls
+      // through the viewport, so mobile gets motion without hover.
+      if (reduce || typeof IntersectionObserver === 'undefined') return;
+      let raf = 0;
+      let visible = false;
+      const update = () => {
+        const r = el.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const p = Math.min(1, Math.max(-1, (r.top + r.height / 2 - vh / 2) / (vh / 2)));
+        el.style.setProperty('--rx', `${(p * max * 0.6).toFixed(2)}deg`);
+        el.style.setProperty('--mx', `${r.width * (0.5 - p * 0.4)}px`);
+        el.style.setProperty('--my', `${r.height * (0.5 + p * 0.5)}px`);
+        el.classList.toggle('fx-live', Math.abs(p) < 0.55);
+      };
+      const onScroll = () => {
+        if (!visible) return;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(update);
+      };
+      const io = new IntersectionObserver((entries) => {
+        visible = entries.some((e) => e.isIntersecting);
+        if (visible) onScroll();
+      });
+      io.observe(el);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      return () => {
+        cancelAnimationFrame(raf);
+        io.disconnect();
+        window.removeEventListener('scroll', onScroll);
+      };
+    }
     let raf = 0;
     const onMove = (e: PointerEvent) => {
       cancelAnimationFrame(raf);

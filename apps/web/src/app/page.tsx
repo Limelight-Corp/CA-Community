@@ -94,12 +94,12 @@ export default function HomePage() {
 
         <Container size="wide" className="relative z-10 pb-20 pt-16 md:pb-28 md:pt-24">
           <div className="grid items-end gap-14 lg:grid-cols-[1.35fr_1fr]">
-            <div>
+            <div className="min-w-0">
               <Reveal>
                 <Kicker tone="gold">{settings.heroEyebrow}</Kicker>
               </Reveal>
               <Reveal delay={80}>
-                <h1 className="mt-8 font-display text-[clamp(52px,9.5vw,148px)] font-medium leading-[0.88] tracking-[-0.06em] text-[var(--fg)]">
+                <h1 className="mt-8 font-display text-[clamp(40px,10.5vw,148px)] font-medium leading-[0.88] tracking-[-0.06em] text-[var(--fg)]">
                   {settings.heroHeadline}
                   <br />
                   {rotating ? (
@@ -154,7 +154,7 @@ export default function HomePage() {
             </div>
 
             {/* Launch badge + countdown + next event */}
-            <Reveal delay={200} className="relative">
+            <Reveal delay={200} className="relative min-w-0">
               <div className="relative mx-auto w-full max-w-[460px]">
                 <TiltCard>
                   <div className="glass-panel float rounded-[32px] p-6 md:p-7">
@@ -385,7 +385,7 @@ export default function HomePage() {
               className="mx-auto"
             />
           </Reveal>
-          <div className="mt-16 grid auto-rows-[minmax(210px,auto)] gap-4 md:grid-cols-4">
+          <div className="mt-12 grid grid-cols-2 auto-rows-[minmax(170px,auto)] gap-3 md:mt-16 md:auto-rows-[minmax(210px,auto)] md:grid-cols-4 md:gap-4">
             {WHY_JOIN.slice(0, 5).map((w, i) => {
               const Icon = WHY_ICONS[w.key];
               const hero = i === 0;
@@ -393,10 +393,10 @@ export default function HomePage() {
                 <Reveal
                   key={w.key}
                   delay={i * 70}
-                  className={hero ? 'md:col-span-2 md:row-span-2' : ''}
+                  className={hero ? 'col-span-2 md:row-span-2' : ''}
                 >
                   <FxCard
-                    className={`flex h-full flex-col overflow-hidden rounded-[28px] border p-7 ${hero ? 'border-transparent bg-grad-primary' : 'border-mist/[0.08] bg-grad-surface'}`}
+                    className={`flex h-full flex-col overflow-hidden rounded-[24px] border p-5 md:rounded-[28px] md:p-7 ${hero ? 'border-transparent bg-grad-primary' : 'border-mist/[0.08] bg-grad-surface'}`}
                   >
                     {hero && (
                       <div
@@ -405,23 +405,23 @@ export default function HomePage() {
                       />
                     )}
                     <span
-                      className={`fx-icon relative grid place-items-center rounded-2xl ${hero ? 'h-16 w-16 bg-white/15 text-white' : 'h-12 w-12 bg-brand-500/15 text-brand-200'}`}
+                      className={`fx-icon relative grid place-items-center rounded-2xl ${hero ? 'h-14 w-14 bg-white/15 text-white md:h-16 md:w-16' : 'h-10 w-10 bg-brand-500/15 text-brand-200 md:h-12 md:w-12'}`}
                     >
                       <Icon className={hero ? 'h-8 w-8' : 'h-6 w-6'} aria-hidden />
                     </span>
                     <h3
-                      className={`relative font-display font-medium tracking-[-0.03em] ${hero ? 'mt-auto pt-24 text-[clamp(40px,5vw,72px)] leading-[0.92] text-white' : 'mt-8 text-[26px] text-[var(--fg)]'}`}
+                      className={`relative font-display font-medium tracking-[-0.03em] ${hero ? 'mt-auto pt-16 text-[clamp(40px,5vw,72px)] leading-[0.92] text-white md:pt-24' : 'mt-auto pt-6 text-[19px] leading-tight text-[var(--fg)] md:pt-8 md:text-[26px]'}`}
                     >
                       {w.title}
                     </h3>
                     <p
-                      className={`relative mt-3 max-w-[44ch] leading-relaxed ${hero ? 'text-[17px] text-white/80' : 'text-[15px] text-[var(--muted)]'}`}
+                      className={`relative mt-3 max-w-[44ch] leading-relaxed ${hero ? 'text-[16px] text-white/80 md:text-[17px]' : 'text-[12.5px] text-[var(--muted)] md:text-[15px]'}`}
                     >
                       {w.text}
                     </p>
                     <span
                       aria-hidden
-                      className={`fx-ghost absolute -bottom-6 -right-2 font-display font-semibold leading-none tracking-[-0.06em] opacity-70 ${hero ? 'text-[220px] text-white/10' : 'text-[140px] text-mist/[0.05]'}`}
+                      className={`fx-ghost absolute -bottom-6 -right-2 font-display font-semibold leading-none tracking-[-0.06em] opacity-70 ${hero ? 'text-[160px] text-white/10 md:text-[220px]' : 'text-[90px] text-mist/[0.05] md:text-[140px]'}`}
                     >
                       0{i + 1}
                     </span>
@@ -430,7 +430,7 @@ export default function HomePage() {
               );
             })}
             {WHY_JOIN[5] && (
-              <Reveal delay={350} className="md:col-span-4">
+              <Reveal delay={350} className="col-span-2 md:col-span-4">
                 <FxCard
                   max={3}
                   className="grain flex h-full flex-col gap-6 overflow-hidden rounded-[28px] border border-gold/25 bg-gradient-to-r from-brand-900 via-brand-950 to-brand-900 p-7 md:flex-row md:items-center md:justify-between md:p-10"
@@ -465,7 +465,7 @@ export default function HomePage() {
       </section>
 
       {/* ------------------------------------------------------------------ MEMBER JOURNEY (pinned horizontal scroll) */}
-      <section className="relative border-t border-[var(--line)] py-24 md:py-32 lg:py-0">
+      <section className="relative border-t border-[var(--line)]">
         <JourneyScroller
           steps={MEMBER_JOURNEY}
           heading={

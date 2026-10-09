@@ -49,7 +49,10 @@ export function middleware(request: NextRequest) {
   }
 
   const isProduction = process.env.NODE_ENV === 'production';
-  const bypass = !isProduction && process.env.ADMIN_GATE_DISABLED === 'true';
+  const bypass =
+    !isProduction &&
+    (process.env.ADMIN_GATE_DISABLED === 'true' ||
+      (!process.env.ADMIN_GATE_USER && !process.env.ADMIN_GATE_PASSWORD));
 
   if (bypass) {
     const res = NextResponse.next();

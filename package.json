@@ -13,6 +13,8 @@
   "scripts": {
     "build:packages": "npm run build --workspace=@ascend/shared && npm run build --workspace=@ascend/ui",
     "build": "npm run build:packages && npm run build --workspace=@ascend/api && npm run build --workspace=@ascend/web && npm run build --workspace=@ascend/admin",
+    "build:web": "npm run build:packages && npm run build --workspace=@ascend/web",
+    "build:admin": "npm run build:packages && npm run build --workspace=@ascend/admin",
     "dev:web": "npm run dev --workspace=@ascend/web",
     "dev:admin": "npm run dev --workspace=@ascend/admin",
     "dev:api": "npm run dev --workspace=@ascend/api",

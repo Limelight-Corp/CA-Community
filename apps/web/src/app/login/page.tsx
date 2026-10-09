@@ -3,20 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { WebShell } from '../../components/WebShell';
-import { useToast } from '@ascend/ui';
+import { AccentText, Kicker, cn, useToast } from '@ascend/ui';
 import { useAuth } from '../../context/AuthContext';
+import { FxCard } from '../../components/home/Interactive';
 import {
-  Smartphone,
-  Mail,
-  Lock,
+  AlertCircle,
+  ArrowRight,
+  Check,
   Eye,
   EyeOff,
-  ArrowRight,
-  ShieldCheck,
-  AlertCircle,
+  Layers,
+  Loader2,
+  Lock,
+  Mail,
+  Receipt,
   RotateCcw,
+  ShieldCheck,
+  Smartphone,
   Sparkles,
+  Ticket,
 } from 'lucide-react';
 
 export default function MemberLoginPage() {
@@ -79,7 +84,11 @@ export default function MemberLoginPage() {
 
       setOtpSent(true);
       setResendTimer(30);
-      toast(`OTP sent to +91 ${cleanMobile}. (Dev code: 123456)`);
+      toast(
+        IS_DEV
+          ? `OTP sent to +91 ${cleanMobile}. (Dev code: 123456)`
+          : `OTP sent to +91 ${cleanMobile}.`
+      );
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to send OTP. Please try again.');
     } finally {
@@ -127,7 +136,11 @@ export default function MemberLoginPage() {
           userObj = data.data.user;
         }
       } catch (apiErr: any) {
-        if (apiErr?.message && !apiErr.message.includes('fetch') && !apiErr.message.includes('Failed')) {
+        if (
+          apiErr?.message &&
+          !apiErr.message.includes('fetch') &&
+          !apiErr.message.includes('Failed')
+        ) {
           throw apiErr;
         }
         if (cleanOtp !== '123456') {
@@ -160,7 +173,9 @@ export default function MemberLoginPage() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
       let userObj: { id?: string; name: string; email: string } = {
-        name: email.toLowerCase().includes('kavya') ? 'CA Kavya Reddy' : `CA ${email.split('@')[0]}`,
+        name: email.toLowerCase().includes('kavya')
+          ? 'CA Kavya Reddy'
+          : `CA ${email.split('@')[0]}`,
         email: email,
       };
       let authToken = 'dev_token_ascend';
@@ -182,7 +197,11 @@ export default function MemberLoginPage() {
           userObj = data.data.user;
         }
       } catch (apiErr: any) {
-        if (apiErr?.message && !apiErr.message.includes('fetch') && !apiErr.message.includes('Failed')) {
+        if (
+          apiErr?.message &&
+          !apiErr.message.includes('fetch') &&
+          !apiErr.message.includes('Failed')
+        ) {
           throw apiErr;
         }
       }
@@ -199,334 +218,605 @@ export default function MemberLoginPage() {
     }
   };
 
+  const cleanMobile = mobile.replace(/\D/g, '');
+  const maskedMobile =
+    cleanMobile.length >= 4
+      ? `+91 ${cleanMobile.slice(0, 2)}•• ••• ${cleanMobile.slice(-3)}`
+      : cleanMobile
+        ? `+91 ${cleanMobile}`
+        : '';
+  const passIdentity = loginMode === 'otp' ? maskedMobile : email.trim();
+
   return (
-    <WebShell>
-      <div className="relative min-h-[calc(100vh-140px)] flex items-center justify-center py-16 sm:py-24 px-4 overflow-hidden">
-        {/* Ambient Glows & Background Lights */}
-        <div
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-[radial-gradient(ellipse_at_center,rgb(var(--lime-rgb)/0.18)_0%,transparent_70%)] pointer-events-none blur-3xl -z-10"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-[radial-gradient(circle_at_center,rgb(var(--cobalt-rgb)/0.12)_0%,transparent_70%)] pointer-events-none blur-2xl -z-10"
-          aria-hidden="true"
-        />
-        {/* Subtle dot matrix grid background */}
-        <div
-          className="absolute inset-0 bg-[radial-gradient(#2F5BFF12_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_65%_55%_at_50%_45%,#000_60%,transparent_100%)] pointer-events-none -z-10"
-          aria-hidden="true"
-        />
+    <section className="grain relative -mt-[72px] overflow-hidden pt-[72px]">
+      <div className="aurora" aria-hidden>
+        <i />
+      </div>
+      <div className="grid-lines absolute inset-0" aria-hidden />
 
-        {/* Centered Premium Glass Card */}
-        <div className="relative w-full max-w-[480px] rounded-[28px] border border-[rgb(var(--mist-rgb)/0.13)] bg-[linear-gradient(180deg,rgb(var(--card-rgb)/0.88)_0%,rgb(var(--ink-rgb)/0.96)_100%)] backdrop-blur-2xl shadow-[0_30px_70px_-20px_rgb(var(--black-rgb)/0.85),0_0_60px_-15px_rgb(var(--lime-rgb)/0.22)] p-7 sm:p-10 overflow-hidden">
-          {/* Top Edge Specular Highlight */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-200/50 to-transparent" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 bg-brand-500/15 blur-2xl rounded-full pointer-events-none" />
-
-          {/* Card Header */}
-          <div className="flex flex-col items-start gap-2 mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono tracking-wider uppercase text-brand-100 bg-brand-500/10 border border-brand-300/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-300 shadow-[0_0_8px_var(--brand-300)] animate-pulse" />
-              Members Portal
-            </div>
-
-            <h1 className="font-display text-[32px] sm:text-[40px] font-medium tracking-tight text-white leading-[1.1]">
-              Welcome{' '}
-              <em className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-brand-200 via-mist to-white font-normal">
-                back.
-              </em>
+      <div className="relative z-10 mx-auto grid min-h-[calc(100svh-72px)] max-w-[1300px] items-center gap-10 px-5 py-10 md:px-8 md:py-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+        {/* ------------------------------------------------------------ Left: story + member pass */}
+        <div className="flex min-w-0 flex-col gap-8">
+          <div className="flex flex-col gap-5">
+            <Kicker tone="gold">Member portal</Kicker>
+            <h1 className="font-display text-[clamp(44px,7vw,96px)] font-medium leading-[0.9] tracking-[-0.055em] text-[var(--fg)]">
+              Welcome <AccentText tone="hero">back.</AccentText>
             </h1>
-
-            <p className="text-[14px] text-[var(--muted)] leading-relaxed mt-1">
-              Sign in to manage your CPE credits, passes, and community privileges.
+            <p className="max-w-[44ch] text-[16px] leading-relaxed text-[var(--muted)]">
+              Your passes, receipts and wings — in one place. Sign in with a one-time code on your
+              mobile or with your email.
             </p>
           </div>
 
-          {/* Mode Switcher Segmented Control */}
-          <div className="flex p-1 rounded-full bg-bg/70 border border-[rgb(var(--mist-rgb)/0.12)] gap-1 mb-6">
-            <button
-              type="button"
-              onClick={() => {
-                setLoginMode('otp');
-                setErrorMessage('');
-              }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-[13px] font-medium transition-all duration-200 cursor-pointer ${
-                loginMode === 'otp'
-                  ? 'bg-gradient-to-r from-brand-450 via-brand-500 to-brand-650 text-white shadow-[0_6px_18px_-4px_rgb(var(--lime-rgb)/0.7)] font-semibold'
-                  : 'text-[var(--muted)] hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>Mobile OTP</span>
-            </button>
+          <MemberPass identity={passIdentity} mode={loginMode} />
 
-            <button
-              type="button"
-              onClick={() => {
-                setLoginMode('email');
-                setErrorMessage('');
-              }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-[13px] font-medium transition-all duration-200 cursor-pointer ${
-                loginMode === 'email'
-                  ? 'bg-gradient-to-r from-brand-450 via-brand-500 to-brand-650 text-white shadow-[0_6px_18px_-4px_rgb(var(--lime-rgb)/0.7)] font-semibold'
-                  : 'text-[var(--muted)] hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>Email</span>
-            </button>
-          </div>
+          <ul className="hidden gap-2.5 sm:flex sm:flex-wrap">
+            {[
+              { icon: Ticket, label: 'Event passes' },
+              { icon: Receipt, label: 'Payment receipts' },
+              { icon: Layers, label: 'Your wings' },
+            ].map(({ icon: Icon, label }) => (
+              <li
+                key={label}
+                className="inline-flex items-center gap-2 rounded-full border border-mist/[0.12] bg-bg/40 px-3.5 py-2 text-[13px] text-[var(--fg)] backdrop-blur"
+              >
+                <Icon className="h-4 w-4 text-gold" aria-hidden />
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          {/* Error Message Alert */}
-          {errorMessage && (
-            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[rgb(var(--bad-rgb)/0.08)] border border-[rgb(var(--bad-rgb)/0.25)] text-bad text-[13px] mb-5 animate-in fade-in-50 duration-200">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span className="leading-snug">{errorMessage}</span>
+        {/* ------------------------------------------------------------ Right: login card */}
+        <div className="relative min-w-0">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-6 rounded-[48px] bg-brand-500/20 blur-[80px]"
+          />
+          <div className="shine glass-panel relative overflow-hidden rounded-[32px] p-6 shadow-[0_40px_90px_-40px_rgb(var(--black-rgb)/0.9)] sm:p-9">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gold/20 blur-[80px]"
+            />
+
+            <div className="relative flex items-center justify-between gap-3">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-gold">
+                  Sign in
+                </p>
+                <h2 className="mt-1 font-display text-[28px] font-medium tracking-[-0.035em] text-[var(--fg)]">
+                  {loginMode === 'otp'
+                    ? otpSent
+                      ? 'Enter your code'
+                      : 'Use your mobile'
+                    : 'Use your email'}
+                </h2>
+              </div>
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-grad-primary text-white shadow-[0_12px_30px_-12px_rgb(var(--lime-rgb)/0.9)]">
+                {loginMode === 'otp' ? (
+                  <Smartphone className="h-5 w-5" aria-hidden />
+                ) : (
+                  <Mail className="h-5 w-5" aria-hidden />
+                )}
+              </span>
             </div>
-          )}
 
-          {/* Mode 1: Mobile OTP Form */}
-          {loginMode === 'otp' && (
-            <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="flex flex-col gap-5">
-              {!otpSent ? (
-                <div>
-                  <label className="block text-[13px] font-medium text-[var(--muted)] mb-2">
-                    Mobile Number
-                  </label>
-                  <div className="flex rounded-2xl border border-[rgb(var(--mist-rgb)/0.12)] bg-field/80 focus-within:border-[var(--lime)] focus-within:ring-2 focus-within:ring-[var(--lime)]/20 transition-all overflow-hidden shadow-inner">
-                    <div className="flex items-center gap-1.5 px-3.5 py-3.5 bg-bg/70 border-r border-[rgb(var(--mist-rgb)/0.12)] text-[14px] font-mono text-[var(--fg)] select-none">
-                      <span className="text-[14px]">🇮🇳</span>
-                      <span className="font-semibold">+91</span>
+            {/* Mode switch with sliding pill */}
+            <div
+              className="relative mt-6 grid grid-cols-2 rounded-full border border-mist/[0.12] bg-bg/60 p-1"
+              role="tablist"
+              aria-label="Sign-in method"
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  'absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-grad-primary shadow-[0_8px_22px_-8px_rgb(var(--lime-rgb)/0.9)] transition-transform duration-500 [transition-timing-function:var(--ease-out-expo)]',
+                  loginMode === 'email' && 'translate-x-full'
+                )}
+              />
+              {(
+                [
+                  { key: 'otp', label: 'Mobile OTP', Icon: Smartphone },
+                  { key: 'email', label: 'Email', Icon: Mail },
+                ] as const
+              ).map(({ key, label, Icon }) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={loginMode === key}
+                  onClick={() => {
+                    setLoginMode(key);
+                    setErrorMessage('');
+                  }}
+                  className={cn(
+                    'relative z-10 flex items-center justify-center gap-2 rounded-full py-2.5 text-[13.5px] font-semibold transition-colors',
+                    loginMode === key ? 'text-white' : 'text-[var(--muted)] hover:text-[var(--fg)]'
+                  )}
+                >
+                  <Icon className="h-4 w-4" aria-hidden />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {errorMessage && (
+              <div
+                role="alert"
+                className="mt-5 flex items-start gap-2.5 rounded-2xl border border-bad/30 bg-bad/10 p-3.5 text-[13px] text-bad"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            {/* ---------------- OTP flow */}
+            {loginMode === 'otp' && (
+              <form
+                onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}
+                className="mt-6 flex flex-col gap-5"
+                noValidate
+              >
+                <ol className="flex items-center gap-2 text-[12px]" aria-label="Steps">
+                  {['Mobile number', 'Verification code'].map((step, i) => {
+                    const done = otpSent && i === 0;
+                    const current = (otpSent ? 1 : 0) === i;
+                    return (
+                      <li
+                        key={step}
+                        className="flex flex-1 items-center gap-2"
+                        aria-current={current ? 'step' : undefined}
+                      >
+                        <span
+                          className={cn(
+                            'grid h-6 w-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-semibold transition-colors',
+                            done
+                              ? 'bg-ok/20 text-ok'
+                              : current
+                                ? 'bg-gold text-brand-950'
+                                : 'bg-mist/[0.08] text-[var(--muted)]'
+                          )}
+                        >
+                          {done ? <Check className="h-3.5 w-3.5" aria-hidden /> : i + 1}
+                        </span>
+                        <span
+                          className={cn(
+                            'truncate',
+                            current || done ? 'text-[var(--fg)]' : 'text-[var(--muted)]'
+                          )}
+                        >
+                          {step}
+                        </span>
+                        {i === 0 && (
+                          <span
+                            aria-hidden
+                            className={cn('h-px flex-1', otpSent ? 'bg-ok/50' : 'bg-mist/[0.12]')}
+                          />
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+
+                {!otpSent ? (
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="login-mobile"
+                      className="text-[13px] font-medium text-[var(--fg)]"
+                    >
+                      Mobile number
+                    </label>
+                    <div className="group flex overflow-hidden rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]">
+                      <span className="flex select-none items-center gap-1.5 border-r border-mist/[0.12] bg-bg/60 px-4 font-mono text-[15px] text-[var(--fg)]">
+                        +91
+                      </span>
+                      <input
+                        id="login-mobile"
+                        type="tel"
+                        inputMode="numeric"
+                        autoComplete="tel-national"
+                        placeholder="98765 43210"
+                        value={mobile}
+                        onChange={(e) =>
+                          setMobile(e.target.value.replace(/[^\d\s]/g, '').slice(0, 11))
+                        }
+                        maxLength={11}
+                        className="min-w-0 flex-1 bg-transparent px-4 py-4 font-mono text-[17px] tracking-wide text-white outline-none placeholder:text-faint"
+                      />
                     </div>
+                    <p className="text-[12px] text-[var(--muted)]">
+                      We’ll text a 6-digit one-time code to this number.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between rounded-2xl border border-mist/[0.1] bg-field/60 p-3.5">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-500/15 text-brand-200">
+                          <Smartphone className="h-4 w-4" aria-hidden />
+                        </span>
+                        <div>
+                          <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                            Code sent to
+                          </p>
+                          <p className="font-mono text-[14px] text-white">+91 {cleanMobile}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtp('');
+                          setErrorMessage('');
+                        }}
+                        className="rounded-full border border-mist/[0.14] px-3 py-1.5 text-[12px] text-[var(--fg)] hover:border-gold/50 hover:text-gold"
+                      >
+                        Change
+                      </button>
+                    </div>
+
+                    <OtpBoxes value={otp} onChange={setOtp} />
+
+                    <div className="flex items-center justify-between text-[12.5px] text-[var(--muted)]">
+                      <span>Didn&apos;t get it?</span>
+                      {resendTimer > 0 ? (
+                        <span className="flex items-center gap-2 font-mono text-[12px]">
+                          <ResendRing seconds={resendTimer} total={30} />
+                          Resend in {resendTimer}s
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleSendOtp}
+                          className="flex items-center gap-1.5 font-medium text-brand-200 hover:text-white"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+                          Resend code
+                        </button>
+                      )}
+                    </div>
+
+                    {IS_DEV && (
+                      <div className="flex items-center justify-between rounded-xl border border-brand-500/20 bg-brand-500/10 px-3.5 py-2.5 text-[12px]">
+                        <span className="flex items-center gap-2 text-brand-100">
+                          <Sparkles className="h-3.5 w-3.5" aria-hidden /> Dev test code:{' '}
+                          <strong className="font-mono text-white">123456</strong>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setOtp('123456')}
+                          className="rounded-md bg-brand-500/20 px-2.5 py-1 font-mono text-[11px] font-semibold text-brand-200 hover:bg-brand-500/40 hover:text-white"
+                        >
+                          Auto-fill
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <SubmitButton
+                  loading={isLoading}
+                  loadingLabel={otpSent ? 'Verifying…' : 'Sending code…'}
+                >
+                  {otpSent ? 'Verify & enter portal' : 'Send one-time code'}
+                </SubmitButton>
+              </form>
+            )}
+
+            {/* ---------------- Email flow */}
+            {loginMode === 'email' && (
+              <form onSubmit={handleEmailLogin} className="mt-6 flex flex-col gap-5" noValidate>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="login-email" className="text-[13px] font-medium text-[var(--fg)]">
+                    Email address
+                  </label>
+                  <div className="relative flex items-center rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]">
+                    <Mail
+                      className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]"
+                      aria-hidden
+                    />
                     <input
-                      type="tel"
-                      inputMode="numeric"
-                      placeholder="98765 43210"
-                      value={mobile}
-                      onChange={(e) => setMobile(e.target.value)}
-                      maxLength={10}
-                      className="flex-1 bg-transparent px-4 py-3.5 text-[15px] font-mono tracking-wide text-white outline-none placeholder:text-faint"
-                      autoFocus
+                      id="login-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="ca.name@firm.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-transparent py-4 pl-11 pr-4 text-[15px] text-white outline-none placeholder:text-faint"
                     />
                   </div>
-                  <p className="text-[12px] text-muted mt-2 flex items-center gap-1.5">
-                    <span>We will send a 6-digit one-time passcode to this number.</span>
-                  </p>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  {/* Phone Sent Confirmation Banner */}
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-field/80 border border-[rgb(var(--mist-rgb)/0.1)] text-[13px]">
-                    <div className="flex items-center gap-2.5 text-[var(--muted)]">
-                      <div className="w-7 h-7 rounded-full bg-brand-500/15 grid place-items-center text-brand-200">
-                        <Smartphone className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <div className="text-[11px] uppercase tracking-wider text-muted font-mono">Sent to</div>
-                        <span className="text-white font-mono font-medium">+91 {mobile}</span>
-                      </div>
-                    </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="login-password"
+                      className="text-[13px] font-medium text-[var(--fg)]"
+                    >
+                      Password
+                    </label>
+                    <Link
+                      href="/contact?topic=membership#contact-form"
+                      className="text-[12px] text-brand-200 hover:text-white hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative flex items-center rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]">
+                    <Lock
+                      className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]"
+                      aria-hidden
+                    />
+                    <input
+                      id="login-password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      placeholder="Your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-transparent py-4 pl-11 pr-12 text-[15px] text-white outline-none placeholder:text-faint"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 grid h-8 w-8 place-items-center rounded-full text-[var(--muted)] hover:bg-mist/[0.06] hover:text-white"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {IS_DEV && (
+                  <div className="flex items-center justify-between rounded-xl border border-brand-500/20 bg-brand-500/10 px-3.5 py-2.5 text-[12px]">
+                    <span className="text-brand-100">Dev: demo member account</span>
                     <button
                       type="button"
                       onClick={() => {
-                        setOtpSent(false);
-                        setOtp('');
-                        setErrorMessage('');
+                        setEmail('kavya.reddy@example.com');
+                        setPassword('Member@2027');
                       }}
-                      className="text-[12px] font-mono text-brand-200 hover:text-white underline cursor-pointer bg-transparent border-0 py-1 px-2"
+                      className="rounded-md bg-brand-500/20 px-2.5 py-1 font-mono text-[11px] font-semibold text-brand-200 hover:bg-brand-500/40 hover:text-white"
                     >
-                      Change
+                      Fill demo
                     </button>
                   </div>
-
-                  {/* Dev Code Quick Auto-Fill Banner */}
-                  <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-[12px]">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-3.5 h-3.5 text-brand-200" />
-                      <span className="text-brand-100">
-                        Dev test code: <strong className="font-mono text-white">123456</strong>
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setOtp('123456')}
-                      className="text-[11px] font-mono font-semibold text-brand-200 hover:text-white bg-brand-500/20 hover:bg-brand-500/40 px-2.5 py-1 rounded-md transition-colors cursor-pointer border-0"
-                    >
-                      Auto-fill
-                    </button>
-                  </div>
-
-                  {/* OTP Input */}
-                  <div>
-                    <label className="block text-[13px] font-medium text-[var(--muted)] mb-2">
-                      Enter 6-Digit Passcode
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="······"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      maxLength={6}
-                      className="w-full text-center font-mono text-[22px] tracking-[0.45em] py-3.5 px-4 rounded-2xl border border-[rgb(var(--mist-rgb)/0.12)] bg-field/80 focus:border-[var(--lime)] focus:ring-2 focus:ring-[var(--lime)]/20 text-white outline-none placeholder:text-faint transition-all shadow-inner"
-                      autoFocus
-                    />
-                  </div>
-
-                  {/* Resend Timer / Action */}
-                  <div className="flex items-center justify-between text-[12px] font-mono text-muted pt-1">
-                    <span>Didn&apos;t receive code?</span>
-                    {resendTimer > 0 ? (
-                      <span className="text-faint">Resend in {resendTimer}s</span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleSendOtp}
-                        className="flex items-center gap-1.5 text-brand-200 hover:text-white cursor-pointer bg-transparent border-0"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Resend OTP</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-full font-semibold text-[14.5px] text-white bg-gradient-to-r from-brand-400 via-brand-500 to-brand-700 hover:brightness-110 active:brightness-95 shadow-[0_10px_28px_-10px_rgb(var(--lime-rgb)/0.85),inset_0_1px_0_rgb(var(--white-rgb)/0.25)] border border-brand-300/30 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none mt-2"
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>{otpSent ? 'Verifying Code...' : 'Sending OTP...'}</span>
-                  </span>
-                ) : (
-                  <>
-                    <span>{otpSent ? 'Verify & Enter Portal' : 'Send One-Time OTP'}</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                  </>
                 )}
-              </button>
-            </form>
-          )}
 
-          {/* Mode 2: Email Login Form */}
-          {loginMode === 'email' && (
-            <form onSubmit={handleEmailLogin} className="flex flex-col gap-4.5">
-              <div>
-                <label className="block text-[13px] font-medium text-[var(--muted)] mb-2">
-                  Email Address
-                </label>
-                <div className="relative flex items-center rounded-2xl border border-[rgb(var(--mist-rgb)/0.12)] bg-field/80 focus-within:border-[var(--lime)] focus-within:ring-2 focus-within:ring-[var(--lime)]/20 transition-all shadow-inner">
-                  <Mail className="absolute left-4 w-4 h-4 text-muted pointer-events-none" />
-                  <input
-                    type="email"
-                    placeholder="ca.name@firm.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-transparent pl-11 pr-4 py-3.5 text-[14.5px] text-white outline-none placeholder:text-faint"
-                    autoFocus
-                  />
-                </div>
-              </div>
+                <SubmitButton loading={isLoading} loadingLabel="Signing in…">
+                  Log in
+                </SubmitButton>
+              </form>
+            )}
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-[13px] font-medium text-[var(--muted)]">
-                    Password
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => toast('Password reset link sent to your registered email.')}
-                    className="text-[12px] text-brand-200 hover:underline cursor-pointer bg-transparent border-0"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="relative flex items-center rounded-2xl border border-[rgb(var(--mist-rgb)/0.12)] bg-field/80 focus-within:border-[var(--lime)] focus-within:ring-2 focus-within:ring-[var(--lime)]/20 transition-all shadow-inner">
-                  <Lock className="absolute left-4 w-4 h-4 text-muted pointer-events-none" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your account password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-transparent pl-11 pr-11 py-3.5 text-[14.5px] text-white outline-none placeholder:text-faint"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 text-muted hover:text-white cursor-pointer bg-transparent border-0 p-0"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Demo Fill Quick Helper */}
-              <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-[12px]">
-                <span className="text-brand-100">Demo: Member Account</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('kavya.reddy@example.com');
-                    setPassword('Member@2027');
-                  }}
-                  className="text-[11px] font-mono font-semibold text-brand-200 hover:text-white bg-brand-500/20 hover:bg-brand-500/40 px-2.5 py-1 rounded-md transition-colors cursor-pointer border-0"
+            <div className="relative mt-8 flex flex-col gap-4 border-t border-mist/[0.1] pt-6">
+              <p className="text-center text-[14px] text-[var(--muted)]">
+                New here?{' '}
+                <Link
+                  href="/join"
+                  className="font-semibold text-white underline underline-offset-4 hover:text-gold"
                 >
-                  Fill Demo
-                </button>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-full font-semibold text-[14.5px] text-white bg-gradient-to-r from-brand-400 via-brand-500 to-brand-700 hover:brightness-110 active:brightness-95 shadow-[0_10px_28px_-10px_rgb(var(--lime-rgb)/0.85),inset_0_1px_0_rgb(var(--white-rgb)/0.25)] border border-brand-300/30 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none mt-2"
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Signing In...</span>
-                  </span>
-                ) : (
-                  <>
-                    <span>Log In to Account</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
-
-          {/* Card Footer Divider & Actions */}
-          <div className="mt-8 pt-6 border-t border-[rgb(var(--mist-rgb)/0.1)] flex flex-col gap-4">
-            <p className="text-[13.5px] text-[var(--muted)] text-center">
-              New to ASCEND?{' '}
-              <Link
-                href="/membership"
-                className="font-semibold text-white hover:text-brand-200 underline underline-offset-4 transition-colors"
-              >
-                Become a member &rarr;
-              </Link>
-            </p>
-
-            <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-muted">
-              <ShieldCheck className="w-3.5 h-3.5 text-ok" />
-              <span>256-bit Encrypted ICAI Member Authentication</span>
+                  Become a member →
+                </Link>
+              </p>
+              <p className="flex items-center justify-center gap-1.5 text-center text-[11.5px] text-[var(--muted)]">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-ok" aria-hidden />
+                We never ask for your OTP or password by phone or message.
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </WebShell>
+    </section>
+  );
+}
+
+const IS_DEV = process.env.NODE_ENV !== 'production';
+
+/* ------------------------------------------------------------------------------------------ */
+/* Member pass — 3D holographic card that previews the identity being typed                  */
+/* ------------------------------------------------------------------------------------------ */
+
+function MemberPass({ identity, mode }: { identity: string; mode: 'otp' | 'email' }) {
+  return (
+    <div
+      className="relative mx-auto w-full max-w-[460px] lg:mx-0"
+      style={{ perspective: '1200px' }}
+    >
+      <div
+        aria-hidden
+        className="absolute inset-x-10 -bottom-6 h-10 rounded-full bg-brand-500/40 blur-2xl"
+      />
+      <FxCard max={14} className="float holo rounded-[28px]">
+        <div className="relative aspect-[1.6/1] overflow-hidden rounded-[28px] border border-white/15 bg-gradient-to-br from-brand-500 via-brand-800 to-brand-950 p-5 sm:p-7">
+          <div
+            aria-hidden
+            className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gold/35 blur-[60px]"
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-brand-300/40 blur-[70px]"
+          />
+          <div className="relative flex h-full flex-col justify-between">
+            <div className="flex items-start justify-between">
+              <span className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 backdrop-blur">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <path d="M3 19 L10 6 L14 13 L17 9 L21 19" />
+                  </svg>
+                </span>
+                <span className="font-display text-[14px] font-semibold tracking-[0.16em] text-white">
+                  ASCEND
+                </span>
+              </span>
+              <span className="rounded-full border border-gold/50 bg-gold/15 px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-gold-soft">
+                Member pass
+              </span>
+            </div>
+
+            {/* chip */}
+            <span
+              aria-hidden
+              className="h-8 w-11 rounded-md bg-grad-gold opacity-90 shadow-inner sm:h-9 sm:w-12"
+            />
+
+            <div className="flex items-end justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/60">
+                  {mode === 'otp' ? 'Mobile' : 'Email'}
+                </p>
+                <p className="mt-1 truncate font-mono text-[clamp(14px,2.2vw,19px)] tracking-wide text-white">
+                  {identity || (mode === 'otp' ? '+91 •• ••• •••' : 'you@firm.com')}
+                </p>
+                <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-gold-soft">
+                  Founding member · 2027
+                </p>
+              </div>
+              {/* decorative code pattern */}
+              <span
+                aria-hidden
+                className="grid shrink-0 grid-cols-5 gap-[3px] rounded-lg bg-white/90 p-1.5"
+              >
+                {Array.from({ length: 25 }, (_, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      'h-2 w-2 rounded-[1px] sm:h-2.5 sm:w-2.5',
+                      [0, 1, 2, 4, 5, 9, 12, 14, 15, 19, 20, 21, 22, 24, 7, 17].includes(i)
+                        ? 'bg-brand-950'
+                        : 'bg-transparent'
+                    )}
+                  />
+                ))}
+              </span>
+            </div>
+          </div>
+        </div>
+      </FxCard>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* OTP boxes — one real input (paste / SMS autofill) drawn as six boxes                       */
+/* ------------------------------------------------------------------------------------------ */
+
+function OtpBoxes({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [focused, setFocused] = useState(true);
+  const digits = value.padEnd(6, ' ').slice(0, 6).split('');
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor="login-otp" className="text-[13px] font-medium text-[var(--fg)]">
+        6-digit code
+      </label>
+      <div className="relative">
+        <input
+          id="login-otp"
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]*"
+          maxLength={6}
+          value={value}
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0"
+          autoFocus
+          aria-describedby="login-otp-hint"
+        />
+        <div className="grid grid-cols-6 gap-2 sm:gap-3" aria-hidden>
+          {digits.map((d, i) => {
+            const filled = d.trim() !== '';
+            const active = focused && i === Math.min(value.length, 5);
+            return (
+              <span
+                key={i}
+                className={cn(
+                  'grid aspect-[4/5] place-items-center rounded-2xl border font-display text-[26px] font-semibold text-white transition-all duration-300',
+                  filled
+                    ? 'border-brand-300/60 bg-brand-500/20 shadow-[0_10px_24px_-14px_rgb(var(--lime-rgb)/0.9)]'
+                    : 'border-mist/[0.12] bg-field/80',
+                  active && 'scale-105 border-gold shadow-[0_0_0_4px_rgb(var(--gold-rgb)/0.18)]'
+                )}
+              >
+                {filled ? (
+                  d
+                ) : active ? (
+                  <span className="h-6 w-[2px] animate-pulse rounded bg-gold" />
+                ) : (
+                  ''
+                )}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      <p id="login-otp-hint" className="text-[12px] text-[var(--muted)]">
+        Paste works too — the code fills all six boxes.
+      </p>
+    </div>
+  );
+}
+
+function ResendRing({ seconds, total }: { seconds: number; total: number }) {
+  const r = 7;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg viewBox="0 0 18 18" className="h-[18px] w-[18px] -rotate-90" aria-hidden>
+      <circle cx="9" cy="9" r={r} fill="none" strokeWidth="2" className="stroke-mist/[0.15]" />
+      <circle
+        cx="9"
+        cy="9"
+        r={r}
+        fill="none"
+        strokeWidth="2"
+        strokeLinecap="round"
+        className="stroke-gold transition-[stroke-dashoffset] duration-1000 ease-linear"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - seconds / total)}
+      />
+    </svg>
+  );
+}
+
+function SubmitButton({
+  loading,
+  loadingLabel,
+  children,
+}: {
+  loading: boolean;
+  loadingLabel: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="submit"
+      disabled={loading}
+      className="btn-shimmer group mt-1 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-grad-primary px-6 text-[15px] font-semibold text-white shadow-[0_16px_40px_-16px_rgb(var(--lime-rgb)/0.95)] transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {loading ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          {loadingLabel}
+        </>
+      ) : (
+        <>
+          {children}
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-1">
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </span>
+        </>
+      )}
+    </button>
   );
 }

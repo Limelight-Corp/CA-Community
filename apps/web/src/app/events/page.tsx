@@ -3,17 +3,24 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { WebShell } from '../../components/WebShell';
-import { PROTOTYPE_EVENTS, PROTOTYPE_WINGS, PROTOTYPE_SPEAKERS } from '@ascend/shared';
+import { useCommunityData } from '../../lib/useCommunityData';
+import { PROTOTYPE_WINGS, PROTOTYPE_SPEAKERS } from '@ascend/shared';
 
 export default function EventsPage() {
+  const { data } = useCommunityData(true);
+  const events = data.events || [];
+  const wings = data.wings || PROTOTYPE_WINGS;
+  const speakers = data.speakers || [];
+
   const [formatFilter, setFormatFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   const categories = ['All', 'Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Career'];
 
-  const filteredEvents = PROTOTYPE_EVENTS.filter((e) => {
-    const wing = PROTOTYPE_WINGS.find((w) => w.number === e.wingNumber);
+  const filteredEvents = events.filter((e) => {
+    if (e.isPublished === false) return false;
+    const wing = wings.find((w) => w.number === e.wingNumber);
     const wingName = wing ? wing.name : '';
     const matchesSearch =
       !searchQuery ||
@@ -116,13 +123,16 @@ export default function EventsPage() {
               const dotColor = isSoldOut ? '#FF9AA3' : isFillingFast ? '#FFD27A' : '#86EBB0';
               const fillPercent = Math.min(100, (e.seatsTaken / e.seatsTotal) * 100);
 
-              const dateParts = e.date.split(' ');
-              const day = dateParts[0] || '01';
-              const month = dateParts[1] || 'Jan';
-              const year = dateParts[2] || '2027';
+              const d = new Date(e.date + 'T00:00:00');
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+              const year = d.getFullYear();
+              const weekday = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
 
               const firstSpeakerSlug = e.speakerSlugs[0];
-              const firstSpeaker = firstSpeakerSlug ? PROTOTYPE_SPEAKERS[firstSpeakerSlug] : undefined;
+              const firstSpeaker = firstSpeakerSlug
+                ? speakers.find((s) => s.slug === firstSpeakerSlug) || PROTOTYPE_SPEAKERS[firstSpeakerSlug]
+                : undefined;
 
               return (
                 <Link
@@ -132,20 +142,27 @@ export default function EventsPage() {
                   style={{ '--wc': wing.color } as React.CSSProperties}
                   aria-label={e.title}
                 >
-                  <div className="ev-tile">
-                    <div className="ev-row">
+                  <div className="ev-tile relative overflow-hidden">
+                    {e.imageUrl && (
+                      <img
+                        src={e.imageUrl}
+                        alt={e.title}
+                        className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-luminosity pointer-events-none"
+                      />
+                    )}
+                    <div className="ev-row relative z-10">
                       <span className="glass">{e.mode === 'Online' ? 'Online' : e.city}</span>
                       <span className="glass" style={{ '--dot': dotColor } as React.CSSProperties}>
                         <i />
                         {statusText}
                       </span>
                     </div>
-                    <div className="ev-date">
+                    <div className="ev-date relative z-10">
                       <b>{day}</b>
                       <span>
                         {month} {year}
                         <br />
-                        {e.time}
+                        {weekday} · {e.time}
                       </span>
                     </div>
                   </div>
@@ -194,11 +211,11 @@ export default function EventsPage() {
                     <div className="fee">
                       {e.fee === 0 ? 'Free' : `₹${e.fee.toLocaleString('en-IN')}`}
                       <small>
-                        {e.fee && e.memberFee < e.fee
+                        {e.fee === 0
+                          ? 'For all members'
+                          : e.memberFee < e.fee
                           ? `Members ₹${e.memberFee.toLocaleString('en-IN')}`
-                          : e.fee
-                          ? 'Incl. certificate'
-                          : 'For all members'}
+                          : 'Incl. certificate'}
                       </small>
                     </div>
                     <button className="arrow" aria-label={`Register for ${e.title}`} type="button">

@@ -18,8 +18,9 @@ export interface NavbarProps {
   onSearchClick?: () => void;
   onLoginClick?: () => void;
   onRegisterClick?: () => void;
+  onLogoutClick?: () => void;
   onBurgerClick?: () => void;
-  user?: { name: string; initials: string } | null;
+  user?: { name: string; initials: string; email?: string } | null;
   className?: string;
 }
 
@@ -39,6 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSearchClick,
   onLoginClick,
   onRegisterClick,
+  onLogoutClick,
   onBurgerClick,
   user,
   className,
@@ -98,34 +100,61 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {user ? (
-            <button
-              onClick={() => onNavigate?.('dashboard')}
-              className="flex items-center gap-2.5 py-1.5 px-3 rounded-full bg-[rgba(219,231,240,0.06)] border border-[var(--line)] text-[var(--fg)] hover:border-[rgba(219,231,240,0.2)] transition-colors cursor-pointer"
-            >
-              <span className="w-6 h-6 rounded-full bg-[var(--lime)] text-white text-[11px] font-semibold grid place-items-center">
-                {user.initials}
-              </span>
-              <span className="text-[13.5px] font-medium hidden sm:inline">{user.name}</span>
-            </button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onLoginClick}
-              className="hidden sm:inline-flex"
-            >
-              Log in
-            </Button>
-          )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onNavigate?.('dashboard')}
+                className="flex items-center gap-2.5 py-1.5 px-3 rounded-full bg-[rgba(219,231,240,0.06)] border border-[var(--line)] text-[var(--fg)] hover:border-[rgba(157,182,255,0.4)] hover:bg-[rgba(219,231,240,0.1)] transition-all cursor-pointer group"
+                title="Member Dashboard"
+              >
+                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[#4A72FF] to-[#0F38C0] text-white text-[11px] font-semibold grid place-items-center shadow-sm">
+                  {user.initials}
+                </span>
+                <span className="text-[13.5px] font-medium hidden sm:inline text-white group-hover:text-[#9DB6FF] transition-colors">
+                  {user.name}
+                </span>
+              </button>
 
-          <Button
-            variant="lime"
-            size="sm"
-            onClick={onRegisterClick}
-            className="hidden sm:inline-flex"
-          >
-            Register for an event
-          </Button>
+              <Button
+                variant="dark"
+                size="sm"
+                onClick={() => onNavigate?.('dashboard')}
+                className="hidden md:inline-flex"
+              >
+                Dashboard
+              </Button>
+
+              {onLogoutClick && (
+                <button
+                  type="button"
+                  onClick={onLogoutClick}
+                  className="hidden sm:inline-flex text-[12.5px] font-medium text-[var(--muted)] hover:text-white transition-colors cursor-pointer bg-transparent border-0 py-1.5 px-2"
+                  title="Sign out of account"
+                >
+                  Sign out
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLoginClick}
+                className="hidden sm:inline-flex"
+              >
+                Log in
+              </Button>
+
+              <Button
+                variant="lime"
+                size="sm"
+                onClick={onRegisterClick}
+                className="hidden sm:inline-flex"
+              >
+                Register for an event
+              </Button>
+            </>
+          )}
 
           <button
             onClick={onBurgerClick}

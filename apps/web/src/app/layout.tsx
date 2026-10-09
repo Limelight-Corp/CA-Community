@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Inter_Tight, Instrument_Serif } from 'next/font/google';
 import { generateThemeCssVariables } from '@ascend/ui';
 import { DEFAULT_DARK_TOKENS } from '@ascend/shared';
+import { AuthProvider } from '../context/AuthContext';
 import './globals.css';
 
 const inter = Inter({
@@ -67,7 +68,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--fg)] font-sans antialiased selection:bg-[var(--lime)] selection:text-white">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

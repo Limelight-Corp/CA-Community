@@ -9,7 +9,7 @@ export interface WingRowProps {
   name: string;
   color: string;
   tags: string;
-  activities: string[];
+  activities: string[] | string;
   isOpen: boolean;
   onToggle: () => void;
   className?: string;
@@ -25,6 +25,12 @@ export const WingRow: React.FC<WingRowProps> = ({
   onToggle,
   className,
 }) => {
+  const actsList = Array.isArray(activities)
+    ? activities
+    : typeof activities === 'string'
+    ? (activities as string).split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+
   return (
     <div className={cn('border-b border-[var(--line)]', className)}>
       <button
@@ -32,7 +38,7 @@ export const WingRow: React.FC<WingRowProps> = ({
         onClick={onToggle}
         aria-expanded={isOpen}
         className={cn(
-          'w-full py-5.5 bg-transparent border-0 text-left cursor-pointer transition-colors',
+          'w-full py-[22px] bg-transparent border-0 text-left cursor-pointer transition-colors',
           'grid grid-cols-[40px_minmax(0,1fr)_20px] md:grid-cols-[56px_minmax(0,1fr)_minmax(0,1.2fr)_24px] gap-6 items-center group'
         )}
       >
@@ -42,7 +48,7 @@ export const WingRow: React.FC<WingRowProps> = ({
         </span>
 
         {/* Title & Dot */}
-        <h3 className="font-display text-[18px] md:text-[22px] font-medium tracking-[-0.02em] text-[var(--fg)] flex items-center gap-3 transition-colors group-hover:text-[var(--lime-deep)]">
+        <h3 className="font-display text-[clamp(18px,1.9cqi,22px)] font-medium tracking-[-0.02em] text-[var(--fg)] flex items-center gap-3 transition-colors duration-150 group-hover:text-[var(--lime-deep)]">
           <i
             className="w-2 h-2 rounded-full flex-none"
             style={{ backgroundColor: color }}
@@ -63,12 +69,9 @@ export const WingRow: React.FC<WingRowProps> = ({
 
       {/* Activities Panel */}
       {isOpen && (
-        <div className="pb-7 pl-10 md:pl-20 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-[14.5px] text-[var(--muted)] animate-in fade-in duration-200">
-          {activities.map((act, idx) => (
-            <span key={idx} className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-[var(--faint)]" />
-              {act}
-            </span>
+        <div className="pt-1 pb-7 pl-0 md:pl-20 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-[14.5px] text-[var(--muted)] animate-in fade-in duration-200">
+          {actsList.map((act, idx) => (
+            <span key={idx}>{act}</span>
           ))}
         </div>
       )}

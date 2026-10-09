@@ -21,6 +21,7 @@ export interface EventCardData {
   memberFee: number;
   seatsTotal: number;
   seatsTaken: number;
+  imageUrl?: string;
   speakers?: Array<{ name: string }>;
 }
 
@@ -39,9 +40,9 @@ export const EventCard: React.FC<EventCardProps> = ({
 }) => {
   const d = new Date(event.date + 'T00:00:00');
   const dayNum = String(d.getDate()).padStart(2, '0');
-  const monthStr = d.toLocaleDateString('en-IN', { month: 'short' });
+  const monthStr = d.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase();
   const yearStr = d.getFullYear();
-  const weekdayStr = d.toLocaleDateString('en-IN', { weekday: 'short' });
+  const weekdayStr = d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
 
   const seatsLeft = event.seatsTotal - event.seatsTaken;
   const isSoldOut = seatsLeft <= 0;
@@ -75,6 +76,13 @@ export const EventCard: React.FC<EventCardProps> = ({
           background: `radial-gradient(80% 90% at 85% 10%, color-mix(in srgb, ${event.wingColor} 70%, #4A72FF) 0%, transparent 60%), linear-gradient(155deg, #2F5BFF 0%, #0F38C0 38%, #0C1A58 78%, #070C24 100%)`,
         }}
       >
+        {event.imageUrl && (
+          <img
+            src={event.imageUrl}
+            alt={event.title}
+            className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-luminosity pointer-events-none"
+          />
+        )}
         <div className="flex justify-between items-start gap-2 relative z-10">
           <span className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-full font-mono text-[11px] uppercase tracking-[0.04em] bg-white/12 border border-white/18 backdrop-blur-md">
             {event.mode === 'Online' ? 'Online' : event.city}
@@ -155,11 +163,11 @@ export const EventCard: React.FC<EventCardProps> = ({
             {formatInr(event.fee)}
           </span>
           <small className="block font-mono text-[12px] text-[var(--muted)]">
-            {event.fee > 0 && event.memberFee < event.fee
+            {event.fee === 0
+              ? 'For all members'
+              : event.memberFee < event.fee
               ? `Members ${formatInr(event.memberFee)}`
-              : event.fee > 0
-              ? 'Incl. certificate'
-              : 'For all members'}
+              : 'Incl. certificate'}
           </small>
         </div>
 

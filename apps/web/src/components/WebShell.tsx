@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Navbar, BottomNav, Drawer, ToastProvider, Button } from '@ascend/ui';
 import { PwaRegister } from './PwaRegister';
+import { useAuth } from '../context/AuthContext';
 
 export interface WebShellProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   const navItems = [
     { id: 'about', label: 'About', href: '/about' },
@@ -49,6 +51,12 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
     else router.push(`/${id}`);
   };
 
+  const handleLogout = () => {
+    setIsDrawerOpen(false);
+    logout();
+    router.push('/');
+  };
+
   return (
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-[var(--bg)] text-[var(--fg)] pb-16 md:pb-0">
@@ -56,10 +64,12 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
         <Navbar
           navItems={navItems}
           currentNav={currentNav}
+          user={user}
           onNavigate={handleNavigate}
           onSearchClick={() => router.push('/search')}
           onLoginClick={() => router.push('/login')}
           onRegisterClick={() => router.push('/events')}
+          onLogoutClick={handleLogout}
           onBurgerClick={() => setIsDrawerOpen(true)}
         />
 
@@ -124,19 +134,42 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
             >
               Membership
             </button>
-            <button
-              onClick={() => handleNavigate('login')}
-              className="bg-transparent border-0 py-3 text-left text-[20px] font-light text-[var(--lime-deep)] cursor-pointer"
-            >
-              Member Log In
-            </button>
-            <Button
-              variant="lime"
-              onClick={() => handleNavigate('events')}
-              className="mt-6 w-full"
-            >
-              Register for an event
-            </Button>
+
+            {user ? (
+              <div className="flex flex-col gap-1 pt-2">
+                <button
+                  onClick={() => handleNavigate('dashboard')}
+                  className="bg-transparent border-0 py-3 text-left text-[20px] font-light text-[var(--lime-deep)] cursor-pointer flex items-center justify-between"
+                >
+                  <span>Dashboard</span>
+                  <span className="text-[12px] font-mono px-2.5 py-1 rounded-full bg-[rgba(47,91,255,0.2)] text-[#9DB6FF] border border-[#2F5BFF]/30">
+                    {user.name}
+                  </span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-transparent border-0 py-2 text-left text-[15px] text-[var(--bad)] cursor-pointer font-mono"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleNavigate('login')}
+                  className="bg-transparent border-0 py-3 text-left text-[20px] font-light text-[var(--lime-deep)] cursor-pointer"
+                >
+                  Member Log In
+                </button>
+                <Button
+                  variant="lime"
+                  onClick={() => handleNavigate('events')}
+                  className="mt-6 w-full"
+                >
+                  Register for an event
+                </Button>
+              </>
+            )}
           </div>
         </Drawer>
 

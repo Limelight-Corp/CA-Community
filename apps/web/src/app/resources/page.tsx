@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { WebShell } from '../../components/WebShell';
 import { Heading, Eyebrow, Badge, Button, Input, useToast } from '@ascend/ui';
-import { PROTOTYPE_RESOURCES } from '@ascend/shared';
+import { useCommunityData } from '../../lib/useCommunityData';
 
 export default function ResourcesPage() {
   const { toast } = useToast();
@@ -11,14 +11,19 @@ export default function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
+  const { data } = useCommunityData(true);
+  const rawResources = data.resources || [];
+
   const categories = ['All', 'Tax updates', 'Guides', 'Practice', 'Career', 'Webinars'];
 
-  const resourcesWithStats = PROTOTYPE_RESOURCES.map((r, i) => ({
-    id: `res-${i + 1}`,
-    ...r,
-    downloads: 140 + (i * 87),
-    isMembersOnly: i > 1, // some are open, some members-only
-  }));
+  const resourcesWithStats = rawResources
+    .filter((r) => r.isPublished !== false)
+    .map((r, i) => ({
+      ...r,
+      id: r.id || `res-${i + 1}`,
+      downloads: r.downloads ?? 140 + i * 87,
+      isMembersOnly: r.isMembersOnly ?? i > 1,
+    }));
 
   const filteredResources = resourcesWithStats.filter((r) => {
     const matchesCat = selectedCategory === 'All' || r.category.toLowerCase() === selectedCategory.toLowerCase();
@@ -103,6 +108,16 @@ export default function ResourcesPage() {
                 className="group p-6 rounded-[var(--r)] border border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-elevated)] transition-all flex flex-col justify-between"
               >
                 <div>
+                  {res.fileUrl && (
+                    <div className="w-full h-32 rounded-lg overflow-hidden mb-3 border border-[var(--line)]">
+                      <img
+                        src={res.fileUrl}
+                        alt={res.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between mb-4">
                     <Badge variant="blue">{res.category}</Badge>
                     <span className="font-mono text-[12px] text-[var(--muted)]">

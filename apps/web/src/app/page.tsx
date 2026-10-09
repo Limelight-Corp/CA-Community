@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { WebShell } from '../components/WebShell';
 import {
@@ -22,9 +22,9 @@ import {
 } from '@ascend/ui';
 import {
   PROTOTYPE_WINGS,
-  PROTOTYPE_EVENTS,
   PROTOTYPE_SPEAKERS,
 } from '@ascend/shared';
+import { useCommunityData } from '../lib/useCommunityData';
 
 export default function HomePage() {
   const router = useRouter();
@@ -32,19 +32,38 @@ export default function HomePage() {
   const [calRange, setCalRange] = useState<CalendarRange>('yr');
   const [openWing, setOpenWing] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#wings') {
+      const el = document.getElementById('wings');
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      }
+    }
+  }, []);
+
+  const { data } = useCommunityData(true);
+  const liveEvents = (data.events || []).filter((e) => e.isPublished !== false);
+  const liveWings = (data.wings || []).filter((w) => w.isPublished !== false);
+  const liveSpeakers = data.speakers || [];
+
   const launchDate = new Date('2027-01-01T00:00:00');
   const daysToLaunch = Math.max(
     0,
     Math.ceil((launchDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
   );
 
-  const upcomingEvents = PROTOTYPE_EVENTS.slice(0, 3).map((e) => {
-    const wing = PROTOTYPE_WINGS.find((w) => w.number === e.wingNumber);
-    const speakers = e.speakerSlugs.map((slug) => ({
-      name: PROTOTYPE_SPEAKERS[slug]?.name || slug,
-    }));
+  const upcomingEvents = liveEvents.slice(0, 3).map((e) => {
+    const wing = liveWings.find((w) => w.number === e.wingNumber) || PROTOTYPE_WINGS[0];
+    const speakers = e.speakerSlugs.map((slug) => {
+      const spk = liveSpeakers.find((s) => s.slug === slug);
+      return {
+        name: spk?.name || PROTOTYPE_SPEAKERS[slug]?.name || slug,
+      };
+    });
     return {
-      id: e.slug,
+      id: e.slug || e.id,
       slug: e.slug,
       title: e.title,
       wingNumber: e.wingNumber,
@@ -296,7 +315,7 @@ export default function HomePage() {
       </section>
 
       {/* 10 Wings Preview Section */}
-      <section className="pb-24 max-w-[1200px] mx-auto px-5 md:px-8">
+      <section id="wings" className="pb-24 max-w-[1200px] mx-auto px-5 md:px-8 scroll-mt-24">
         <div className="flex justify-between items-end gap-6 flex-wrap mb-14">
           <div>
             <Eyebrow pill>10 wings</Eyebrow>
@@ -309,16 +328,16 @@ export default function HomePage() {
           </div>
           <button
             onClick={() => router.push('/wings')}
-            className="border-0 border-b border-current pb-0.5 text-[14.5px] font-medium inline-flex items-center gap-2 cursor-pointer bg-transparent text-[var(--fg)] hover:text-white"
+            className="border-0 border-b border-current pb-0.5 text-[14.5px] font-medium inline-flex items-center gap-2 cursor-pointer bg-transparent text-[var(--fg)] hover:text-white transition-colors"
           >
             Explore wings <ArrowIcon size={16} />
           </button>
         </div>
 
         <div className="border-t border-[var(--line)]">
-          {PROTOTYPE_WINGS.slice(0, 5).map((w) => (
+          {liveWings.slice(0, 5).map((w) => (
             <WingRow
-              key={w.number}
+              key={w.id || w.number}
               number={w.number}
               name={w.name}
               color={w.color}

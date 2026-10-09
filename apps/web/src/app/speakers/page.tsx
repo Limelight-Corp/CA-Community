@@ -4,10 +4,12 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { WebShell } from '../../components/WebShell';
 import { Heading, Eyebrow, getInitials } from '@ascend/ui';
-import { PROTOTYPE_SPEAKERS } from '@ascend/shared';
+import { useCommunityData } from '../../lib/useCommunityData';
 
 export default function SpeakersPage() {
   const router = useRouter();
+  const { data } = useCommunityData(true);
+  const speakers = (data.speakers || []).filter((s) => s.isPublished !== false);
 
   return (
     <WebShell>
@@ -27,16 +29,20 @@ export default function SpeakersPage() {
       {/* Speakers Grid */}
       <section className="py-20 pb-28 max-w-[1200px] mx-auto px-5 md:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-          {Object.entries(PROTOTYPE_SPEAKERS).map(([key, s]) => {
+          {speakers.map((s) => {
             const initials = getInitials(s.name);
             return (
               <button
-                key={key}
+                key={s.id || s.slug}
                 onClick={() => router.push(`/speakers/${s.slug}`)}
                 className="bg-transparent border-0 p-0 text-left cursor-pointer flex flex-col gap-3 group"
               >
-                <div className="aspect-square rounded-[var(--r)] border border-[var(--line)] bg-[radial-gradient(90%_90%_at_80%_10%,rgba(47,91,255,0.45),transparent_60%),linear-gradient(160deg,#0C1A58,#060A1F)] grid place-items-center text-[var(--fg)] font-light text-[52px] md:text-[56px] tracking-tight group-hover:border-[rgba(157,182,255,0.4)] transition-all">
-                  {initials}
+                <div className="aspect-square rounded-[var(--r)] border border-[var(--line)] bg-[radial-gradient(90%_90%_at_80%_10%,rgba(47,91,255,0.45),transparent_60%),linear-gradient(160deg,#0C1A58,#060A1F)] grid place-items-center text-[var(--fg)] font-light text-[52px] md:text-[56px] tracking-tight group-hover:border-[rgba(157,182,255,0.4)] transition-all overflow-hidden">
+                  {s.avatarUrl ? (
+                    <img src={s.avatarUrl} alt={s.name} className="w-full h-full object-cover" />
+                  ) : (
+                    initials
+                  )}
                 </div>
                 <div>
                   <b className="block text-[17px] font-medium text-[var(--fg)] group-hover:text-[var(--lime-deep)] transition-colors">

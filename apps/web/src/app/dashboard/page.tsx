@@ -16,6 +16,7 @@ import {
   Modal,
   useToast,
 } from '@ascend/ui';
+import { useAuth } from '../../context/AuthContext';
 
 interface MemberEvent {
   id: string;
@@ -40,19 +41,30 @@ interface MemberReceipt {
 
 export default function MemberDashboardPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'events' | 'receipts' | 'profile' | 'wings'>('events');
   const [selectedPass, setSelectedPass] = useState<MemberEvent | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<MemberReceipt | null>(null);
 
   const [profileData, setProfileData] = useState({
-    name: 'CA Kavya Reddy',
-    email: 'kavya.reddy@example.com',
+    name: user?.name || 'CA Kavya Reddy',
+    email: user?.email || 'kavya.reddy@example.com',
     mno: '084291',
     city: 'Hyderabad',
     firm: 'Reddy & Rao Associates',
     bio: 'Partner specializing in corporate tax structuring and cross-border transfer pricing.',
     linkedin: 'https://linkedin.com/in/kavyareddy-ca',
   });
+
+  React.useEffect(() => {
+    if (user?.name) {
+      setProfileData((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+      }));
+    }
+  }, [user]);
 
   const memberEvents: MemberEvent[] = [
     {

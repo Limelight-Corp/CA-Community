@@ -4,11 +4,14 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { WebShell } from '../../components/WebShell';
 import { Heading, Eyebrow, Badge, ArrowIcon } from '@ascend/ui';
-import { PROTOTYPE_NEWS } from '@ascend/shared';
+import { useCommunityData } from '../../lib/useCommunityData';
 
 export default function NewsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { data } = useCommunityData(true);
+  const newsList = data.news || [];
 
   const categories = ['All', 'Announcement', 'Community', 'Chapters'];
 
@@ -19,7 +22,8 @@ export default function NewsPage() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
 
-  const filteredNews = PROTOTYPE_NEWS.filter((item) => {
+  const filteredNews = newsList.filter((item) => {
+    if (item.isPublished === false) return false;
     const matchesCat = selectedCategory === 'All' || item.category === selectedCategory;
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,6 +92,16 @@ export default function NewsPage() {
                 className="group flex flex-col justify-between p-7 rounded-[var(--r)] border border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-elevated)] transition-all"
               >
                 <div>
+                  {item.coverImageUrl && (
+                    <div className="w-full h-44 rounded-lg overflow-hidden mb-4 border border-[var(--line)]">
+                      <img
+                        src={item.coverImageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between gap-2 mb-4">
                     <Badge variant="blue">{item.category}</Badge>
                     <span className="font-mono text-[12px] text-[var(--muted)]">{item.date}</span>

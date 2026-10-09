@@ -88,24 +88,31 @@ export default function AboutPage() {
       </section>
 
       {/* Principles Section */}
-      <section className="pb-28 max-w-[1200px] mx-auto px-5 md:px-8">
-        <div className="mb-12">
+      <section className="pb-32 max-w-[1200px] mx-auto px-5 md:px-8">
+        <div className="mb-14">
           <Eyebrow pill>Principles</Eyebrow>
-          <Heading level="h2" className="mt-4">
+          <Heading
+            level="h2"
+            style={{ fontSize: 'clamp(32px, 32.76px, 52px)' }}
+            className="text-[clamp(32px,32.76px,52px)] mt-4"
+          >
             How we decide.
           </Heading>
         </div>
 
-        <div className="border-t border-[var(--line)]">
+        <div className="border-t border-[rgba(219,231,240,0.12)] w-full">
           {principles.map((pr, idx) => (
             <div
               key={idx}
-              className="grid grid-cols-[56px_minmax(0,1fr)] items-center py-5.5 border-b border-[var(--line)]"
+              className="grid grid-cols-[72px_1fr] sm:grid-cols-[96px_1fr] items-center py-7 sm:py-8 border-b border-[rgba(219,231,240,0.12)] transition-colors hover:bg-white/[0.015]"
             >
-              <span className="font-mono text-[13px] text-[var(--muted)]">
+              <span className="font-mono text-[15px] sm:text-[16px] text-[#7F95C4]">
                 {String(idx + 1).padStart(2, '0')}
               </span>
-              <h3 className="font-display text-[20px] font-medium tracking-tight text-[var(--fg)]">
+              <h3
+                style={{ fontSize: 'clamp(18px, 1.9cqi, 22px)' }}
+                className="font-display text-[clamp(18px,1.9cqi,22px)] font-medium tracking-tight text-white"
+              >
                 {pr}
               </h3>
             </div>

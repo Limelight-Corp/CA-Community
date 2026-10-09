@@ -7,6 +7,9 @@ import { AlertTriangle, ArrowRight, CreditCard, Loader2, Lock, RefreshCw, Ticket
 import { FormField, Stepper, cn, fieldInputClass } from '@ascend/ui';
 import { trackEvent } from '../site/Providers';
 import { payWithRazorpay, type PaymentInit } from './razorpay-client';
+import { PaymentMethods } from './PaymentMethods';
+import { useAuth } from '../../context/AuthContext';
+import { loginUrl } from '../../lib/member-session';
 
 export interface RegistrationEventSummary {
   slug: string;
@@ -86,6 +89,7 @@ const storageKey = (slug: string) => `ascend:booking:${slug}`;
 /** Event registration: Details → Payment → Confirmed (Website Checklist §27). */
 export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [values, setValues] = useState<Values>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -107,6 +111,23 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
       /* storage unavailable */
     }
   }, [event.slug]);
+
+  // Pre-fill from the signed-in member's profile (only fields the visitor hasn't typed yet).
+  useEffect(() => {
+    if (!user) return;
+    const mobile = user.mobile ? normaliseMobile(user.mobile) : '';
+    // Prototype logins without an email get a placeholder address — don't use it.
+    const email = user.email && !user.email.endsWith('@ascend-mobile.in') ? user.email : '';
+    const name = /^CA Member( \d{4})?$/.test(user.name) ? '' : user.name;
+    setValues((v) => ({
+      ...v,
+      name: v.name || name,
+      email: v.email || email,
+      mobile: v.mobile || mobile,
+    }));
+  }, [user]);
+
+  const toLogin = () => router.push(loginUrl(`/events/${event.slug}/register`));
 
   const step = !booking ? 0 : booking.status === 'confirmed' ? 2 : 1;
 
@@ -174,6 +195,7 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
         body: JSON.stringify({ bookingId: booking.bookingId, accessToken: booking.accessToken }),
       });
       const data = await res.json().catch(() => ({}));
+      if (data.loginRequired) return toLogin();
       if (!res.ok || !data.payment) {
         if (data.paymentStatus === 'paid') return finish(booking);
         setPayState('error');
@@ -208,6 +230,10 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
         body: JSON.stringify({ ...values, mobile: normaliseMobile(values.mobile), eventSlug: event.slug }),
       });
       const data = await res.json().catch(() => ({}));
+      if (data.loginRequired) {
+        toLogin();
+        return;
+      }
       if (!res.ok) {
         const fe = (data.fieldErrors || {}) as Errors;
         setErrors(fe);
@@ -370,6 +396,8 @@ export function RegistrationForm({ event, siteName }: RegistrationFormProps) {
               </p>
             )}
           </div>
+
+          {event.fee > 0 && <PaymentMethods />}
 
           <button
             type="submit"

@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus, Copy, Loader2, Printer, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CalendarPlus, Copy, Loader2, LogIn, Printer, RefreshCw } from 'lucide-react';
 import { cn, useToast } from '@ascend/ui';
 import { trackEvent } from '../site/Providers';
 import { buildIcs, type IcsInput } from './event-time';
 import { payWithRazorpay, type PaymentInit } from './razorpay-client';
+import { useAuth } from '../../context/AuthContext';
+import { loginUrl } from '../../lib/member-session';
 
 const ghostBtn =
   'inline-flex h-12 items-center gap-2 rounded-full border border-mist/[0.16] px-5 text-[14.5px] font-semibold text-[var(--fg)] transition hover:border-brand-300/60 hover:bg-brand-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300';
@@ -85,10 +87,14 @@ export interface RetryPaymentProps {
 /** Starts a fresh payment for a pending or failed registration (same booking). */
 export function RetryPaymentButton(props: RetryPaymentProps) {
   const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const toLogin = () => router.push(loginUrl(`${window.location.pathname}${window.location.search}`));
 
   const run = async () => {
+    // Only signed-in members can pay.
+    if (!user) return toLogin();
     setBusy(true);
     setMessage('');
     try {
@@ -97,7 +103,13 @@ export function RetryPaymentButton(props: RetryPaymentProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId: props.bookingId, accessToken: props.accessToken }),
       });
-      const data = (await res.json().catch(() => ({}))) as { payment?: PaymentInit; error?: string; paymentStatus?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        payment?: PaymentInit;
+        error?: string;
+        paymentStatus?: string;
+        loginRequired?: boolean;
+      };
+      if (data.loginRequired) return toLogin();
       if (data.paymentStatus === 'paid') {
         router.refresh();
         return;
@@ -136,11 +148,17 @@ export function RetryPaymentButton(props: RetryPaymentProps) {
       <button
         type="button"
         onClick={run}
-        disabled={busy}
+        disabled={busy || isLoading}
         className="inline-flex h-12 w-fit items-center gap-2 rounded-full bg-grad-primary px-6 text-[15px] font-semibold text-white shadow-[0_14px_36px_-12px_rgb(var(--lime-rgb)/0.95)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 disabled:cursor-wait disabled:opacity-70"
       >
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <RefreshCw className="h-4 w-4" aria-hidden />}
-        {busy ? 'Opening checkout…' : `Pay ${props.feeLabel} now`}
+        {busy ? (
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        ) : user || isLoading ? (
+          <RefreshCw className="h-4 w-4" aria-hidden />
+        ) : (
+          <LogIn className="h-4 w-4" aria-hidden />
+        )}
+        {busy ? 'Opening checkout…' : user || isLoading ? `Pay ${props.feeLabel} now` : `Log in to pay ${props.feeLabel}`}
       </button>
       <div aria-live="polite">
         {message && (

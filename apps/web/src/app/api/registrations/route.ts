@@ -12,6 +12,7 @@ import {
   takeSeat,
   type PaymentInit,
 } from './_lib/server';
+import { hasMemberSession, memberTokenFromRequest } from '../../../lib/member-session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -79,6 +80,11 @@ export async function POST(req: Request) {
 
   const event = findPublishedEvent(input.eventSlug);
   if (!event) return json({ error: 'This event could not be found.' }, 404);
+
+  // Paid events: only signed-in members can register and pay.
+  if (Math.max(0, Number(event.fee) || 0) > 0 && !hasMemberSession(memberTokenFromRequest(req))) {
+    return json({ error: 'Please log in to register and pay for this event.', loginRequired: true }, 401);
+  }
 
   type Outcome =
     | { kind: 'existing'; reg: CommunityRegistration }

@@ -51,6 +51,24 @@ npm run build --workspace=@ascend/web && npm run start --workspace=@ascend/web
 npm run build --workspace=@ascend/admin && npm run start --workspace=@ascend/admin
 ```
 
+## Test data
+
+```bash
+npm run seed:test
+```
+
+Loads test data for local development (refuses to run with `NODE_ENV=production`):
+
+- `data/seed/private-store.seed.json` → `data/private-store.json`: 84 test event
+  registrations, 14 membership applications and 4 contact messages. All use `@example.com`
+  addresses and clearly test names. Add `-- --force` to replace an existing private store
+  (the old file is backed up as `data/private-store.backup-<time>.json`).
+- The local development admin account (`admin` / `Admin@Ascend2027!`, see below), only if
+  it does not exist yet.
+
+`data/private-store.json` and `data/admin-users.json` stay gitignored: the real files hold
+people's submissions, password hashes and the session signing secret.
+
 ## Admin access
 
 The admin console has its own sign-in page at `/login`, and every admin page requires

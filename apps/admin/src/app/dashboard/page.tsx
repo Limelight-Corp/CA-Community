@@ -1469,6 +1469,7 @@ function ImageUploader({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(currentUrl);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     setPreviewUrl(currentUrl);
@@ -1477,6 +1478,7 @@ function ImageUploader({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setUploadError(null);
 
     // 1. Instant local preview
     const localDataUrl = await new Promise<string>((resolve) => {
@@ -1497,6 +1499,14 @@ function ImageUploader({
         body: fd,
       });
 
+      if (res.status >= 400 && res.status < 500) {
+        // Rejected by server-side validation (type/size): do not fall back to an inline copy.
+        const rejected = await res.json().catch(() => null);
+        setUploadError(rejected?.error || 'This file cannot be uploaded');
+        setPreviewUrl(currentUrl);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
       if (!res.ok) throw new Error(`Upload HTTP ${res.status}`);
       const json = await res.json();
       if (json.success && json.url) {
@@ -1532,10 +1542,15 @@ function ImageUploader({
       <input
         type="file"
         ref={fileInputRef}
-        accept="image/*"
+        accept="image/png,image/jpeg,image/webp,image/gif"
         onChange={handleFileChange}
         className="hidden"
       />
+      {uploadError && (
+        <p role="alert" className="text-xs text-[var(--bad)]">
+          {uploadError}
+        </p>
+      )}
 
       {previewUrl ? (
         <div className="relative group border border-[var(--line)] rounded-lg overflow-hidden bg-[rgba(0,0,0,0.3)]">

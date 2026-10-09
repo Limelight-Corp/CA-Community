@@ -101,6 +101,8 @@ services:
       PORT: 3001
       NEXT_PUBLIC_ADMIN_API_URL: http://localhost:4000/admin-api/v1
       NEXT_PUBLIC_ADMIN_APP_URL: http://localhost:3001
+      ADMIN_GATE_USER: ${ADMIN_GATE_USER:?ADMIN_GATE_USER must be set}
+      ADMIN_GATE_PASSWORD: ${ADMIN_GATE_PASSWORD:?ADMIN_GATE_PASSWORD must be set}
     ports:
       - '3001:3001'
     networks:

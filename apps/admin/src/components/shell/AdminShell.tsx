@@ -10,6 +10,7 @@ import {
   Images,
   Inbox,
   LayoutDashboard,
+  Activity,
   Layers,
   Menu,
   Megaphone,
@@ -42,7 +43,10 @@ interface NavItem {
 const NAV: { heading: string; items: NavItem[] }[] = [
   {
     heading: 'Overview',
-    items: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/analytics', label: 'Analytics', icon: Activity },
+    ],
   },
   {
     heading: 'Events',

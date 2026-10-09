@@ -13,6 +13,9 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { getDashboardData } from '../../../lib/admin-data';
+import { getAnalytics } from '../../../lib/analytics';
+import { ChartCard, ChartEmpty, LineChart } from '../../../components/charts/Charts';
+import { InsightList } from '../../../components/charts/AnalyticsWidgets';
 import { formatDate, formatDateTime, formatFee, formatINR } from '../../../lib/format';
 import { PageHeader, Panel, PaymentChip, SeatBar, StatCard, PublishChip, Chip } from '../../../components/ui/Display';
 
@@ -28,6 +31,8 @@ const QUICK_ACTIONS = [
 
 export default function DashboardPage() {
   const { kpis, recentRegistrations, upcomingEvents } = getDashboardData();
+  const trend = getAnalytics('30');
+  const hasTrend = trend.timeline.some((p) => p.registrations > 0 || p.paid > 0);
 
   return (
     <>
@@ -70,6 +75,39 @@ export default function DashboardPage() {
           </ul>
         </div>
       </section>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr]">
+        <ChartCard
+          title="Last 30 days"
+          description="Daily registrations and paid bookings"
+          legend={[
+            { label: 'Registrations', color: 'var(--series-1)', shape: 'line' },
+            { label: 'Paid', color: 'var(--series-2)', shape: 'line' },
+          ]}
+          table={{ columns: ['Day', 'Registrations', 'Paid'], rows: trend.timeline.map((p) => [p.label, p.registrations, p.paid]) }}
+          actions={
+            <Link href="/analytics" className="text-[13px] font-medium text-brand-200 hover:text-[var(--fg)]">
+              Full analytics
+            </Link>
+          }
+        >
+          {hasTrend ? (
+            <LineChart
+              height={220}
+              labels={trend.timeline.map((p) => p.label)}
+              series={[
+                { key: 'reg', label: 'Registrations', color: 'var(--series-1)', values: trend.timeline.map((p) => p.registrations), area: true },
+                { key: 'paid', label: 'Paid', color: 'var(--series-2)', values: trend.timeline.map((p) => p.paid) },
+              ]}
+            />
+          ) : (
+            <ChartEmpty height={220}>No registrations in the last 30 days yet.</ChartEmpty>
+          )}
+        </ChartCard>
+        <Panel title="Smart insights" description="What needs attention right now">
+          <InsightList items={trend.insights.slice(0, 5)} />
+        </Panel>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.25fr_1fr]">
         <Panel

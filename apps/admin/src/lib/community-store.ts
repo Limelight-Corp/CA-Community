@@ -1,75 +1,129 @@
+/**
+ * File-backed community store (server-only).
+ *
+ * - data/community-store.json  — public CMS content (events, speakers, news, settings …)
+ * - data/private-store.json    — registrations, membership applications, contact messages.
+ *                                Contains personal data: gitignored, never served publicly.
+ *
+ * This module is kept identical in apps/web and apps/admin. Interim persistence until the
+ * Express API + PostgreSQL take over; writes are synchronous and atomic (temp file + rename),
+ * so a read-modify-write inside one request cannot interleave with another in this process.
+ */
 import fs from 'fs';
 import path from 'path';
-import { CommunityStoreData, INITIAL_COMMUNITY_DATA } from '@ascend/shared';
+import crypto from 'crypto';
+import {
+  CommunityStoreData,
+  CommunityContentType,
+  INITIAL_COMMUNITY_DATA,
+  DEFAULT_SITE_SETTINGS,
+  PrivateStoreData,
+  INITIAL_PRIVATE_DATA,
+  SiteSettings,
+} from '@ascend/shared';
 
-function resolveStorePath(): string {
+export type ContentType = CommunityContentType;
+
+function findDataDir(): string {
   const candidates = [
-    path.resolve(process.cwd(), '../../data/community-store.json'),
-    path.resolve(process.cwd(), '../data/community-store.json'),
-    path.resolve(process.cwd(), 'data/community-store.json'),
-    'C:\\Limelight\\CA Community\\data\\community-store.json',
+    path.resolve(process.cwd(), '../../data'),
+    path.resolve(process.cwd(), '../data'),
+    path.resolve(process.cwd(), 'data'),
   ];
-
-  for (const p of candidates) {
-    if (fs.existsSync(p)) {
-      return p;
-    }
+  for (const dir of candidates) {
+    if (fs.existsSync(path.join(dir, 'community-store.json'))) return dir;
   }
-
-  // Fallback to primary monorepo location
-  const primary = path.resolve(process.cwd(), '../../data/community-store.json');
-  const dir = path.dirname(primary);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  fs.writeFileSync(primary, JSON.stringify(INITIAL_COMMUNITY_DATA, null, 2), 'utf-8');
+  const primary = candidates[0]!;
+  fs.mkdirSync(primary, { recursive: true });
   return primary;
 }
 
-export function readStore(): CommunityStoreData {
+function readJson<T>(file: string, fallback: T): T {
   try {
-    const filePath = resolveStorePath();
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(raw);
+    if (!fs.existsSync(file)) return structuredClone(fallback);
+    return JSON.parse(fs.readFileSync(file, 'utf-8')) as T;
   } catch (err) {
-    console.error('Failed to read community store, returning initial fallback:', err);
-    return INITIAL_COMMUNITY_DATA;
+    console.error(`Failed to read ${path.basename(file)}:`, err);
+    return structuredClone(fallback);
   }
+}
+
+function writeJsonAtomic(file: string, data: unknown): void {
+  const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
+  fs.renameSync(tmp, file);
+}
+
+const contentFile = () => path.join(findDataDir(), 'community-store.json');
+const privateFile = () => path.join(findDataDir(), 'private-store.json');
+
+// ---------------------------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------------------------
+
+/** Fills in collections/settings added after a store file was created. */
+function normalize(data: Partial<CommunityStoreData>): CommunityStoreData {
+  return {
+    events: data.events ?? [],
+    gallery: data.gallery ?? [],
+    speakers: data.speakers ?? [],
+    wings: data.wings ?? [],
+    news: data.news ?? [],
+    resources: data.resources ?? [],
+    team: data.team ?? INITIAL_COMMUNITY_DATA.team,
+    testimonials: data.testimonials ?? [],
+    initiatives: data.initiatives ?? INITIAL_COMMUNITY_DATA.initiatives,
+    settings: {
+      ...DEFAULT_SITE_SETTINGS,
+      ...(data.settings ?? {}),
+      contact: { ...DEFAULT_SITE_SETTINGS.contact, ...(data.settings?.contact ?? {}) },
+      social: { ...DEFAULT_SITE_SETTINGS.social, ...(data.settings?.social ?? {}) },
+    },
+  };
+}
+
+export function readStore(): CommunityStoreData {
+  const file = contentFile();
+  if (!fs.existsSync(file)) writeJsonAtomic(file, INITIAL_COMMUNITY_DATA);
+  return normalize(readJson<Partial<CommunityStoreData>>(file, INITIAL_COMMUNITY_DATA));
 }
 
 export function writeStore(data: CommunityStoreData): void {
-  try {
-    const filePath = resolveStorePath();
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Failed to write community store:', err);
-  }
+  writeJsonAtomic(contentFile(), data);
 }
 
-export type ContentType = 'events' | 'gallery' | 'speakers' | 'wings' | 'news' | 'resources';
+export function getSettings(): SiteSettings {
+  return readStore().settings;
+}
+
+export function updateSettings(updates: Partial<SiteSettings>): SiteSettings {
+  const store = readStore();
+  store.settings = {
+    ...store.settings,
+    ...updates,
+    contact: { ...store.settings.contact, ...(updates.contact ?? {}) },
+    social: { ...store.settings.social, ...(updates.social ?? {}) },
+  };
+  writeStore(store);
+  return store.settings;
+}
 
 export function getItems<T = any>(type: ContentType, publishedOnly = false): T[] {
-  const store = readStore();
-  const list = (store[type] || []) as any[];
-  if (publishedOnly) {
-    return list.filter((item) => item.isPublished !== false) as T[];
-  }
-  return list as T[];
+  const list = (readStore()[type] || []) as any[];
+  return (publishedOnly ? list.filter((item) => item.isPublished !== false) : list) as T[];
 }
 
 export function addItem(type: ContentType, itemData: any): any {
   const store = readStore();
-  const list = store[type] || [];
-
-  const id = itemData.id || `${type.slice(0, 3)}-${Date.now()}`;
+  const list = (store[type] || []) as any[];
+  const stamp = new Date().toISOString();
   const newItem = {
     ...itemData,
-    id,
+    id: itemData.id || `${type.slice(0, 3)}-${Date.now()}-${crypto.randomBytes(2).toString('hex')}`,
     isPublished: itemData.isPublished !== undefined ? itemData.isPublished : true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: stamp,
+    updatedAt: stamp,
   };
-
   (store as any)[type] = [newItem, ...list];
   writeStore(store);
   return newItem;
@@ -80,27 +134,51 @@ export function updateItem(type: ContentType, id: string, updates: any): any | n
   const list = (store[type] || []) as any[];
   const index = list.findIndex((x) => x.id === id);
   if (index === -1) return null;
-
-  const updatedItem = {
-    ...list[index],
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  list[index] = updatedItem;
+  list[index] = { ...list[index], ...updates, id, updatedAt: new Date().toISOString() };
   (store as any)[type] = list;
   writeStore(store);
-  return updatedItem;
+  return list[index];
 }
 
 export function deleteItem(type: ContentType, id: string): boolean {
   const store = readStore();
   const list = (store[type] || []) as any[];
-  const initialLength = list.length;
-  (store as any)[type] = list.filter((x) => x.id !== id);
-  if ((store as any)[type].length !== initialLength) {
-    writeStore(store);
-    return true;
-  }
-  return false;
+  const next = list.filter((x) => x.id !== id);
+  if (next.length === list.length) return false;
+  (store as any)[type] = next;
+  writeStore(store);
+  return true;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Private submissions
+// ---------------------------------------------------------------------------------------------
+
+export function readPrivate(): PrivateStoreData {
+  const data = readJson<Partial<PrivateStoreData>>(privateFile(), INITIAL_PRIVATE_DATA);
+  return {
+    registrations: data.registrations ?? [],
+    members: data.members ?? [],
+    messages: data.messages ?? [],
+  };
+}
+
+export function writePrivate(data: PrivateStoreData): void {
+  writeJsonAtomic(privateFile(), data);
+}
+
+/** Runs a synchronous read-modify-write on the private store and persists the result. */
+export function mutatePrivate<R>(fn: (data: PrivateStoreData) => R): R {
+  const data = readPrivate();
+  const result = fn(data);
+  writePrivate(data);
+  return result;
+}
+
+export function newId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${crypto.randomBytes(3).toString('hex')}`;
+}
+
+export function newSecret(): string {
+  return crypto.randomBytes(18).toString('base64url');
 }

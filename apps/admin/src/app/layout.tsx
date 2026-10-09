@@ -17,8 +17,8 @@ const interTight = Inter_Tight({
 });
 
 export const metadata: Metadata = {
-  title: 'ASCEND CA Community — Admin Console',
-  description: 'Isolated Administrative Control Panel',
+  title: { default: 'ASCEND Admin', template: '%s · ASCEND Admin' },
+  description: 'Content, events, registrations and membership management for the ASCEND CA community website.',
   robots: {
     index: false,
     follow: false,

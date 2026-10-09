@@ -6,6 +6,7 @@ import {
   DEFAULT_DARK_TOKENS,
   DEFAULT_LIGHT_TOKENS,
 } from '@ascend/shared';
+import { themeChannelVariables } from './theme-utils';
 
 interface ThemeContextType {
   mode: 'dark' | 'light';
@@ -62,6 +63,11 @@ export function ThemeProvider({
     root.style.setProperty('--bad-bg', currentTokens.badBg);
     root.style.setProperty('--yellow', currentTokens.yellow);
     root.style.setProperty('--r', currentTokens.radius);
+
+    // Keep translucent variants (rgb(var(--x-rgb) / a)) in sync with the colours above.
+    for (const [name, value] of Object.entries(themeChannelVariables(currentTokens))) {
+      root.style.setProperty(name, value);
+    }
   }, [mode, currentTokens]);
 
   const toggleMode = () => {

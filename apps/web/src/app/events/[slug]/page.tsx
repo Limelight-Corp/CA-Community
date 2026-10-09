@@ -42,7 +42,7 @@ export default function EventDetailPage() {
   return (
     <WebShell>
       {/* Event Header Banner */}
-      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgba(15,56,192,0.38),transparent_70%)]">
+      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgb(var(--cobalt-rgb)/0.38),transparent_70%)]">
         <div className="max-w-[1200px] mx-auto px-5 md:px-8">
           <button
             onClick={() => router.push('/events')}
@@ -95,7 +95,7 @@ export default function EventDetailPage() {
                       href={`/speakers/${sp!.slug}`}
                       className="group p-6 rounded-[var(--r)] border border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-elevated)] transition-all flex items-start gap-4"
                     >
-                      <div className="w-14 h-14 rounded-full bg-[linear-gradient(135deg,#0C1A58,#173196)] border border-[var(--line)] flex-shrink-0 grid place-items-center text-[18px] font-medium text-white shadow-sm">
+                      <div className="w-14 h-14 rounded-full bg-[linear-gradient(135deg,var(--brand-900),var(--brand-800))] border border-[var(--line)] flex-shrink-0 grid place-items-center text-[18px] font-medium text-white shadow-sm">
                         {getInitials(sp!.name)}
                       </div>
                       <div className="flex flex-col">

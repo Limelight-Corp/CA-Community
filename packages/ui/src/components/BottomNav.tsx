@@ -24,7 +24,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange, c
       aria-label="App bottom navigation"
       className={cn(
         'fixed left-0 right-0 bottom-0 z-35 flex md:hidden items-center justify-around',
-        'bg-[rgba(6,10,31,0.86)] backdrop-blur-[14px] border-t border-[var(--line)]',
+        'bg-[rgb(var(--ink-rgb)/0.86)] backdrop-blur-[14px] border-t border-[var(--line)]',
         'py-2 px-2 pb-[calc(8px+env(safe-area-inset-bottom,0px))]',
         className
       )}
@@ -35,7 +35,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange, c
             <button
               key={t.id}
               onClick={() => onTabChange('events')}
-              className="w-[46px] h-[40px] rounded-[12px] bg-gradient-to-b from-[#4A72FF] to-[#0F38C0] text-white flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(47,91,255,0.9)] cursor-pointer border-0"
+              className="w-[46px] h-[40px] rounded-[12px] bg-gradient-to-b from-brand-400 to-brand-700 text-white flex items-center justify-center shadow-[0_8px_20px_-6px_rgb(var(--lime-rgb)/0.9)] cursor-pointer border-0"
               aria-label="Register for an event"
             >
               <PlusIcon size={20} />

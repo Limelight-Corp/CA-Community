@@ -24,12 +24,12 @@ export default function AboutPage() {
   return (
     <WebShell>
       {/* Page Header */}
-      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgba(15,56,192,0.38),transparent_70%)]">
+      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgb(var(--cobalt-rgb)/0.38),transparent_70%)]">
         <div className="max-w-[1200px] mx-auto px-5 md:px-8">
           <Eyebrow pill>About</Eyebrow>
           <Heading level="h1" className="text-[clamp(42px,6cqi,76px)] mt-6 max-w-[15ch]">
             A stronger profession.{' '}
-            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#9DB6FF] to-[#DBE7F0]">
+            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-brand-200 to-mist">
               A brighter tomorrow.
             </em>
           </Heading>
@@ -50,7 +50,7 @@ export default function AboutPage() {
             <Eyebrow>Mission</Eyebrow>
             <p className="text-[clamp(21px,2.2cqi,27px)] font-light leading-[1.45] tracking-tight text-[var(--fg)]">
               A platform where professionals{' '}
-              <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#9DB6FF] to-[#DBE7F0]">
+              <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-brand-200 to-mist">
                 learn, connect, grow, transform, thrive and contribute.
               </em>
             </p>
@@ -70,7 +70,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {leadership.map((person, idx) => (
             <div key={idx} className="flex flex-col gap-3">
-              <div className="aspect-[4/5] rounded-[var(--r)] border border-[var(--line)] bg-[linear-gradient(160deg,#0C1A58,#060A1F)] grid place-items-center text-[var(--fg)] font-light text-[42px] md:text-[48px] tracking-tight">
+              <div className="aspect-[4/5] rounded-[var(--r)] border border-[var(--line)] bg-[linear-gradient(160deg,var(--brand-900),var(--brand-950))] grid place-items-center text-[var(--fg)] font-light text-[42px] md:text-[48px] tracking-tight">
                 {person.initials ? person.initials : <ImageIcon size={32} className="text-[var(--faint)]" />}
               </div>
               <div>
@@ -100,13 +100,13 @@ export default function AboutPage() {
           </Heading>
         </div>
 
-        <div className="border-t border-[rgba(219,231,240,0.12)] w-full">
+        <div className="border-t border-[rgb(var(--mist-rgb)/0.12)] w-full">
           {principles.map((pr, idx) => (
             <div
               key={idx}
-              className="grid grid-cols-[72px_1fr] sm:grid-cols-[96px_1fr] items-center py-7 sm:py-8 border-b border-[rgba(219,231,240,0.12)] transition-colors hover:bg-white/[0.015]"
+              className="grid grid-cols-[72px_1fr] sm:grid-cols-[96px_1fr] items-center py-7 sm:py-8 border-b border-[rgb(var(--mist-rgb)/0.12)] transition-colors hover:bg-white/[0.015]"
             >
-              <span className="font-mono text-[15px] sm:text-[16px] text-[#7F95C4]">
+              <span className="font-mono text-[15px] sm:text-[16px] text-muted">
                 {String(idx + 1).padStart(2, '0')}
               </span>
               <h3

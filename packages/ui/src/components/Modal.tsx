@@ -66,14 +66,14 @@ export const Modal: React.FC<ModalProps> = ({
       >
         <button
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 z-20 p-1.5 text-[var(--muted)] hover:text-white bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.12)] rounded-full transition-colors"
+          className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 z-20 p-1.5 text-[var(--muted)] hover:text-white bg-[rgb(var(--white-rgb)/0.06)] hover:bg-[rgb(var(--white-rgb)/0.12)] rounded-full transition-colors"
           aria-label="Close dialog"
         >
           <XIcon size={18} />
         </button>
 
         {(title || description) && (
-          <div className="p-4 sm:p-6 pb-3 sm:pb-4 pr-12 border-b border-[var(--line)] bg-[rgba(255,255,255,0.02)] flex-shrink-0">
+          <div className="p-4 sm:p-6 pb-3 sm:pb-4 pr-12 border-b border-[var(--line)] bg-[rgb(var(--white-rgb)/0.02)] flex-shrink-0">
             {title && (
               <h3 className="font-display text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-[var(--fg)]">
                 {title}

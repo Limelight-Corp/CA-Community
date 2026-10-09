@@ -31,7 +31,7 @@ export default function SpeakerDetailPage() {
       title: e.title,
       wingNumber: e.wingNumber,
       wingName: wing?.name || '',
-      wingColor: wing?.color || '#2F5BFF',
+      wingColor: wing?.color || 'var(--brand-500)',
       category: e.category,
       date: e.date,
       time: e.time,
@@ -48,7 +48,7 @@ export default function SpeakerDetailPage() {
   return (
     <WebShell>
       {/* Page Header */}
-      <section className="py-14 md:py-20 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgba(15,56,192,0.38),transparent_70%)]">
+      <section className="py-14 md:py-20 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgb(var(--cobalt-rgb)/0.38),transparent_70%)]">
         <div className="max-w-[1200px] mx-auto px-5 md:px-8">
           <button
             onClick={() => router.push('/speakers')}
@@ -58,7 +58,7 @@ export default function SpeakerDetailPage() {
           </button>
 
           <div className="flex gap-7 items-end flex-wrap mt-7">
-            <div className="w-[132px] h-[132px] rounded-[var(--r)] border border-[var(--line)] bg-[linear-gradient(160deg,#0C1A58,#060A1F)] grid place-items-center text-[var(--fg)] font-light text-[44px]">
+            <div className="w-[132px] h-[132px] rounded-[var(--r)] border border-[var(--line)] bg-[linear-gradient(160deg,var(--brand-900),var(--brand-950))] grid place-items-center text-[var(--fg)] font-light text-[44px]">
               {getInitials(speaker.name)}
             </div>
             <div>
@@ -103,13 +103,13 @@ export default function SpeakerDetailPage() {
           </div>
 
           {/* Aside Sidebar */}
-          <aside className="sticky top-24 border border-[var(--line)] bg-[linear-gradient(180deg,rgba(219,231,240,0.05),rgba(219,231,240,0.015)),var(--card)] rounded-[var(--r)] p-7 flex flex-col gap-5.5">
+          <aside className="sticky top-24 border border-[var(--line)] bg-[linear-gradient(180deg,rgb(var(--mist-rgb)/0.05),rgb(var(--mist-rgb)/0.015)),var(--card)] rounded-[var(--r)] p-7 flex flex-col gap-5.5">
             <Eyebrow>Expertise</Eyebrow>
             <div className="flex flex-wrap gap-2">
               {speaker.expertise.map((exp, idx) => (
                 <span
                   key={idx}
-                  className="py-1.5 px-3.5 rounded-full border border-[rgba(219,231,240,0.14)] bg-[rgba(219,231,240,0.04)] text-[13.5px] text-[var(--fg)] select-none"
+                  className="py-1.5 px-3.5 rounded-full border border-[rgb(var(--mist-rgb)/0.14)] bg-[rgb(var(--mist-rgb)/0.04)] text-[13.5px] text-[var(--fg)] select-none"
                 >
                   {exp}
                 </span>
@@ -120,7 +120,7 @@ export default function SpeakerDetailPage() {
               href="https://www.linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-full border border-[rgba(219,231,240,0.16)] bg-[rgba(219,231,240,0.04)] text-[var(--fg)] hover:border-[rgba(219,231,240,0.4)] transition-colors text-[14px] font-medium"
+              className="mt-2 inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-full border border-[rgb(var(--mist-rgb)/0.16)] bg-[rgb(var(--mist-rgb)/0.04)] text-[var(--fg)] hover:border-[rgb(var(--mist-rgb)/0.4)] transition-colors text-[14px] font-medium"
             >
               LinkedIn profile <ArrowIcon size={16} />
             </a>

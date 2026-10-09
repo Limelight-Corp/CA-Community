@@ -169,17 +169,17 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)] flex flex-col font-sans">
       {/* Toast notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-[9999] bg-[#0C1A58] text-[#DBE7F0] border border-[#2F6FE4] px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
-          <CheckIcon size={18} className="text-[#6F95FF]" />
+        <div className="fixed top-5 right-5 z-[9999] bg-brand-900 text-mist border border-info px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
+          <CheckIcon size={18} className="text-brand-300" />
           <span className="text-[13.5px] font-medium">{toastMessage}</span>
         </div>
       )}
 
       {/* Admin Header */}
-      <header className="hdr border-b border-[var(--line)] bg-[rgba(3,5,15,0.85)] sticky top-0 z-40 backdrop-blur-md">
+      <header className="hdr border-b border-[var(--line)] bg-[rgb(var(--bg-rgb)/0.85)] sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="logo-mark flex items-center justify-center p-1.5 rounded-lg bg-[rgba(47,91,255,0.15)] text-[var(--accent)]">
+            <span className="logo-mark flex items-center justify-center p-1.5 rounded-lg bg-[rgb(var(--lime-rgb)/0.15)] text-[var(--accent)]">
               <AscendLogoMark size={20} />
             </span>
             <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export default function AdminDashboardPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                   activeTab === t.id
                     ? 'bg-[var(--accent)] text-white shadow-sm'
-                    : 'bg-[rgba(255,255,255,0.04)] text-[var(--muted)] hover:text-white border border-[var(--line)]'
+                    : 'bg-[rgb(var(--white-rgb)/0.04)] text-[var(--muted)] hover:text-white border border-[var(--line)]'
                 }`}
               >
                 <span>{t.icon}</span>
@@ -229,7 +229,7 @@ export default function AdminDashboardPage() {
           </div>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 px-2.5 rounded-lg border border-[var(--line)] text-xs text-[var(--fg)] flex items-center justify-center flex-shrink-0 bg-[rgba(255,255,255,0.04)]"
+            className="p-1.5 px-2.5 rounded-lg border border-[var(--line)] text-xs text-[var(--fg)] flex items-center justify-center flex-shrink-0 bg-[rgb(var(--white-rgb)/0.04)]"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? '✕' : '☰'}
@@ -246,7 +246,7 @@ export default function AdminDashboardPage() {
                 className={`w-full text-left py-2.5 px-3 rounded-lg text-sm flex items-center justify-between ${
                   activeTab === t.id
                     ? 'bg-[var(--accent)] text-white font-medium'
-                    : 'text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[rgba(255,255,255,0.03)]'
+                    : 'text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[rgb(var(--white-rgb)/0.03)]'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -281,7 +281,7 @@ export default function AdminDashboardPage() {
                       className={`w-full flex items-center justify-between text-left py-2.5 px-3 rounded-lg text-sm transition-all ${
                         isActive
                           ? 'bg-[var(--accent)] text-white font-medium shadow-md'
-                          : 'text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[rgba(255,255,255,0.04)]'
+                          : 'text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[rgb(var(--white-rgb)/0.04)]'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
@@ -404,7 +404,7 @@ export default function AdminDashboardPage() {
                     {weeklyBars.map((v, i) => (
                       <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
                         <i
-                          className="w-full rounded-t transition-all bg-gradient-to-t from-[#0F38C0] to-[#6F95FF]"
+                          className="w-full rounded-t transition-all bg-gradient-to-t from-brand-700 to-brand-300"
                           style={{ height: `${(v / 512) * 100}%` }}
                         />
                         <span className="text-[10px] mono text-[var(--muted)]">W{i + 1}</span>
@@ -436,7 +436,7 @@ export default function AdminDashboardPage() {
                       </thead>
                       <tbody className="divide-y divide-[var(--line)]">
                         {payments.map((p) => (
-                          <tr key={p.booking} className="hover:bg-[rgba(255,255,255,0.015)]">
+                          <tr key={p.booking} className="hover:bg-[rgb(var(--white-rgb)/0.015)]">
                             <td className="py-3 mono text-xs">{p.booking}</td>
                             <td className="py-3 font-medium">{p.attendee}</td>
                             <td className="py-3 text-[var(--muted)] text-xs">{p.event}</td>
@@ -505,7 +505,7 @@ export default function AdminDashboardPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm border-collapse min-w-[840px]">
                           <thead>
-                            <tr className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.02)] text-xs mono text-[var(--muted)]">
+                            <tr className="border-b border-[var(--line)] bg-[rgb(var(--white-rgb)/0.02)] text-xs mono text-[var(--muted)]">
                               <th className="py-3 px-4">Event Details</th>
                               <th className="py-3 px-4">Wing / Category</th>
                               <th className="py-3 px-4">Date & Time</th>
@@ -526,7 +526,7 @@ export default function AdminDashboardPage() {
                               paginatedList.map((item: any) => {
                                 const isPub = item.isPublished !== false;
                                 return (
-                                  <tr key={item.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors">
+                                  <tr key={item.id} className="hover:bg-[rgb(var(--white-rgb)/0.02)] transition-colors">
                                     <td className="py-3.5 px-4">
                                       <div className="flex items-center gap-3">
                                         {item.imageUrl ? (
@@ -536,7 +536,7 @@ export default function AdminDashboardPage() {
                                             className="w-10 h-10 rounded-lg object-cover border border-[var(--line)] flex-shrink-0"
                                           />
                                         ) : (
-                                          <div className="w-10 h-10 rounded-lg bg-[rgba(47,91,255,0.15)] border border-[rgba(47,91,255,0.3)] flex items-center justify-center text-sm font-semibold text-[#9DB6FF] flex-shrink-0">
+                                          <div className="w-10 h-10 rounded-lg bg-[rgb(var(--lime-rgb)/0.15)] border border-[rgb(var(--lime-rgb)/0.3)] flex items-center justify-center text-sm font-semibold text-brand-200 flex-shrink-0">
                                             #{item.wingNumber}
                                           </div>
                                         )}
@@ -640,7 +640,7 @@ export default function AdminDashboardPage() {
                                       className="w-12 h-12 rounded-lg object-cover border border-[var(--line)] flex-shrink-0"
                                     />
                                   ) : (
-                                    <div className="w-12 h-12 rounded-lg bg-[rgba(47,91,255,0.15)] border border-[rgba(47,91,255,0.3)] flex items-center justify-center text-sm font-semibold text-[#9DB6FF] flex-shrink-0">
+                                    <div className="w-12 h-12 rounded-lg bg-[rgb(var(--lime-rgb)/0.15)] border border-[rgb(var(--lime-rgb)/0.3)] flex items-center justify-center text-sm font-semibold text-brand-200 flex-shrink-0">
                                       #{item.wingNumber}
                                     </div>
                                   )}
@@ -722,7 +722,7 @@ export default function AdminDashboardPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm border-collapse min-w-[760px]">
                           <thead>
-                            <tr className="border-b border-[var(--line)] bg-[rgba(255,255,255,0.02)] text-xs mono text-[var(--muted)]">
+                            <tr className="border-b border-[var(--line)] bg-[rgb(var(--white-rgb)/0.02)] text-xs mono text-[var(--muted)]">
                               {activeTab === 'gallery' && (
                                 <>
                                   <th className="py-3 px-4">Item Details</th>
@@ -788,7 +788,7 @@ export default function AdminDashboardPage() {
                                 const itemTitle = item.title || item.name;
 
                                 return (
-                                  <tr key={item.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors">
+                                  <tr key={item.id} className="hover:bg-[rgb(var(--white-rgb)/0.02)] transition-colors">
                                     {/* GALLERY ROW */}
                                     {activeTab === 'gallery' && (
                                       <>
@@ -835,7 +835,7 @@ export default function AdminDashboardPage() {
                                                 className="w-9 h-9 rounded-full object-cover border border-[var(--line)] flex-shrink-0"
                                               />
                                             ) : (
-                                              <div className="w-9 h-9 rounded-full bg-[rgba(47,91,255,0.2)] border border-[rgba(47,91,255,0.4)] flex items-center justify-center font-medium text-xs text-[#9DB6FF] flex-shrink-0">
+                                              <div className="w-9 h-9 rounded-full bg-[rgb(var(--lime-rgb)/0.2)] border border-[rgb(var(--lime-rgb)/0.4)] flex items-center justify-center font-medium text-xs text-brand-200 flex-shrink-0">
                                                 {item.name.charAt(0)}
                                               </div>
                                             )}
@@ -1047,7 +1047,7 @@ export default function AdminDashboardPage() {
                                           className="w-12 h-12 rounded-full object-cover border border-[var(--line)] flex-shrink-0"
                                         />
                                       ) : (
-                                        <div className="w-12 h-12 rounded-full bg-[rgba(47,91,255,0.2)] border border-[rgba(47,91,255,0.4)] flex items-center justify-center font-bold text-sm text-[#9DB6FF] flex-shrink-0">
+                                        <div className="w-12 h-12 rounded-full bg-[rgb(var(--lime-rgb)/0.2)] border border-[rgb(var(--lime-rgb)/0.4)] flex items-center justify-center font-bold text-sm text-brand-200 flex-shrink-0">
                                           {item.name.charAt(0)}
                                         </div>
                                       )}
@@ -1153,7 +1153,7 @@ export default function AdminDashboardPage() {
                                           className="w-12 h-14 rounded-lg object-cover border border-[var(--line)] flex-shrink-0"
                                         />
                                       ) : (
-                                        <div className="w-12 h-14 rounded-lg bg-[rgba(47,91,255,0.15)] border border-[var(--line)] flex items-center justify-center text-lg flex-shrink-0">
+                                        <div className="w-12 h-14 rounded-lg bg-[rgb(var(--lime-rgb)/0.15)] border border-[var(--line)] flex items-center justify-center text-lg flex-shrink-0">
                                           📄
                                         </div>
                                       )}
@@ -1228,9 +1228,9 @@ export default function AdminDashboardPage() {
                         }}
                         className="bg-transparent border border-[var(--line)] rounded px-1.5 py-0.5 text-[var(--fg)] text-xs"
                       >
-                        <option value={5} className="bg-[#0C1A58]">5</option>
-                        <option value={10} className="bg-[#0C1A58]">10</option>
-                        <option value={20} className="bg-[#0C1A58]">20</option>
+                        <option value={5} className="bg-brand-900">5</option>
+                        <option value={10} className="bg-brand-900">10</option>
+                        <option value={20} className="bg-brand-900">20</option>
                       </select>
                     </div>
                   </div>
@@ -1278,7 +1278,7 @@ export default function AdminDashboardPage() {
                       </thead>
                       <tbody className="divide-y divide-[var(--line)]">
                         {payments.map((p) => (
-                          <tr key={p.booking} className="hover:bg-[rgba(255,255,255,0.015)]">
+                          <tr key={p.booking} className="hover:bg-[rgb(var(--white-rgb)/0.015)]">
                             <td className="py-3 px-2 mono text-xs">{p.booking}</td>
                             <td className="py-3 px-2 font-medium">{p.attendee}</td>
                             <td className="py-3 px-2 text-[var(--muted)] text-xs">{p.event}</td>
@@ -1331,7 +1331,7 @@ export default function AdminDashboardPage() {
                       </thead>
                       <tbody className="divide-y divide-[var(--line)]">
                         {members.map((m, idx) => (
-                          <tr key={idx} className="hover:bg-[rgba(255,255,255,0.015)]">
+                          <tr key={idx} className="hover:bg-[rgb(var(--white-rgb)/0.015)]">
                             <td className="py-3 px-2 font-medium">{m.name}</td>
                             <td className="py-3 px-2 mono text-xs">
                               <span className="pill p-ok text-xs">{m.plan}</span>
@@ -1553,7 +1553,7 @@ function ImageUploader({
       )}
 
       {previewUrl ? (
-        <div className="relative group border border-[var(--line)] rounded-lg overflow-hidden bg-[rgba(0,0,0,0.3)]">
+        <div className="relative group border border-[var(--line)] rounded-lg overflow-hidden bg-[rgb(var(--black-rgb)/0.3)]">
           <img
             src={previewUrl}
             alt="Upload preview"
@@ -1581,7 +1581,7 @@ function ImageUploader({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="w-full border-2 border-dashed border-[var(--line)] hover:border-[var(--accent)] rounded-lg p-4 flex flex-col items-center justify-center gap-1.5 text-xs text-[var(--muted)] hover:text-white transition-colors bg-[rgba(255,255,255,0.01)]"
+          className="w-full border-2 border-dashed border-[var(--line)] hover:border-[var(--accent)] rounded-lg p-4 flex flex-col items-center justify-center gap-1.5 text-xs text-[var(--muted)] hover:text-white transition-colors bg-[rgb(var(--white-rgb)/0.01)]"
         >
           <span className="text-xl">📷</span>
           <span className="font-medium">
@@ -1793,7 +1793,7 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
               onChange={(e) => setFormData({ ...formData, wingNumber: Number(e.target.value) })}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n} className="bg-[#0C1A58]">
+                <option key={n} value={n} className="bg-brand-900">
                   Wing #{n}
                 </option>
               ))}
@@ -1808,7 +1808,7 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             >
               {['Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Career'].map((c) => (
-                <option key={c} value={c} className="bg-[#0C1A58]">
+                <option key={c} value={c} className="bg-brand-900">
                   {c}
                 </option>
               ))}
@@ -1845,8 +1845,8 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
               value={formData.mode || 'Offline'}
               onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
             >
-              <option value="Offline" className="bg-[#0C1A58]">Offline</option>
-              <option value="Online" className="bg-[#0C1A58]">Online</option>
+              <option value="Offline" className="bg-brand-900">Offline</option>
+              <option value="Online" className="bg-brand-900">Online</option>
             </select>
           </div>
 
@@ -1964,7 +1964,7 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             >
               {['Conferences', 'Masterclasses', 'Sports', 'Social'].map((c) => (
-                <option key={c} value={c} className="bg-[#0C1A58]">
+                <option key={c} value={c} className="bg-brand-900">
                   {c}
                 </option>
               ))}
@@ -2001,12 +2001,12 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
               value={formData.accentGradient || 'from-[#0C1A58] via-[#10298A] to-[#04081E]'}
               onChange={(e) => setFormData({ ...formData, accentGradient: e.target.value })}
             >
-              <option value="from-[#0C1A58] via-[#10298A] to-[#04081E]" className="bg-[#0C1A58]">Deep Navy / Blue</option>
-              <option value="from-[#2B0E4D] via-[#481E7F] to-[#0D0517]" className="bg-[#0C1A58]">Royal Purple / Violet</option>
-              <option value="from-[#0A3D36] via-[#12665C] to-[#031512]" className="bg-[#0C1A58]">Emerald Teal</option>
-              <option value="from-[#14307A] via-[#1D49BB] to-[#081333]" className="bg-[#0C1A58]">Cobalt Azure</option>
-              <option value="from-[#4D0D40] via-[#7B1968] to-[#140210]" className="bg-[#0C1A58]">Berry Magenta</option>
-              <option value="from-[#502208] via-[#853C12] to-[#170902]" className="bg-[#0C1A58]">Amber Copper</option>
+              <option value="from-[#0C1A58] via-[#10298A] to-[#04081E]" className="bg-brand-900">Deep Navy / Blue</option>
+              <option value="from-[#2B0E4D] via-[#481E7F] to-[#0D0517]" className="bg-brand-900">Royal Purple / Violet</option>
+              <option value="from-[#0A3D36] via-[#12665C] to-[#031512]" className="bg-brand-900">Emerald Teal</option>
+              <option value="from-[#14307A] via-[#1D49BB] to-[#081333]" className="bg-brand-900">Cobalt Azure</option>
+              <option value="from-[#4D0D40] via-[#7B1968] to-[#140210]" className="bg-brand-900">Berry Magenta</option>
+              <option value="from-[#502208] via-[#853C12] to-[#170902]" className="bg-brand-900">Amber Copper</option>
             </select>
           </div>
         </div>
@@ -2168,7 +2168,7 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             >
               {['Announcement', 'Community', 'Chapters', 'Regulatory'].map((c) => (
-                <option key={c} value={c} className="bg-[#0C1A58]">
+                <option key={c} value={c} className="bg-brand-900">
                   {c}
                 </option>
               ))}
@@ -2244,7 +2244,7 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             >
               {['Tax updates', 'Guides', 'Practice', 'Career', 'Webinars'].map((c) => (
-                <option key={c} value={c} className="bg-[#0C1A58]">
+                <option key={c} value={c} className="bg-brand-900">
                   {c}
                 </option>
               ))}
@@ -2279,7 +2279,7 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
       )}
 
       {/* PUBLISH STATUS TOGGLE */}
-      <div className="p-3.5 rounded-lg border border-[var(--line)] bg-[rgba(255,255,255,0.02)] flex items-center justify-between mt-2">
+      <div className="p-3.5 rounded-lg border border-[var(--line)] bg-[rgb(var(--white-rgb)/0.02)] flex items-center justify-between mt-2">
         <div>
           <b className="block text-xs text-[var(--fg)]">Publish Status (Live Visibility)</b>
           <span className="text-[11px] text-[var(--muted)]">
@@ -2298,7 +2298,7 @@ function ItemForm({ type, initialValues, isEditing, onSave, onCancel }: ItemForm
       </div>
 
       {/* STICKY BOTTOM ACTIONS TO PREVENT CLIPPING */}
-      <div className="sticky -bottom-4 sm:-bottom-6 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 p-3.5 sm:p-4 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--line)] flex items-center justify-end gap-3 z-30 shadow-[0_-8px_20px_rgba(0,0,0,0.4)]">
+      <div className="sticky -bottom-4 sm:-bottom-6 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 p-3.5 sm:p-4 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--line)] flex items-center justify-end gap-3 z-30 shadow-[0_-8px_20px_rgb(var(--black-rgb)/0.4)]">
         <button
           type="button"
           onClick={onCancel}

@@ -160,10 +160,10 @@ export default function AdminThemeStudioPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)] flex flex-col">
       {/* Admin Top Header */}
-      <header className="border-b border-[var(--line)] bg-[rgba(6,10,31,0.8)] backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-[var(--line)] bg-[rgb(var(--ink-rgb)/0.8)] backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A72FF] to-[#1F45D6] grid place-items-center text-white">
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center text-white">
               <AscendLogoMark size={18} />
             </span>
             <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export default function AdminThemeStudioPage() {
       {/* Main Studio Viewport */}
       <main className="max-w-[1400px] mx-auto w-full px-6 py-10 flex-1">
         {notification && (
-          <div className="mb-6 p-4 rounded-[var(--r)] bg-[rgba(18,144,127,0.2)] border border-[var(--teal)] text-[var(--teal)] font-medium text-[14px]">
+          <div className="mb-6 p-4 rounded-[var(--r)] bg-[rgb(var(--teal-rgb)/0.2)] border border-[var(--teal)] text-[var(--teal)] font-medium text-[14px]">
             {notification}
           </div>
         )}

@@ -7,10 +7,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        lime: 'bg-gradient-to-b from-[#4A72FF] via-[#2F5BFF] to-[#0F38C0] text-white shadow-[0_10px_28px_-12px_rgba(47,91,255,0.9)] border border-transparent hover:brightness-110 active:brightness-95',
-        dark: 'bg-gradient-to-b from-[#4A72FF] via-[#2F5BFF] to-[#0F38C0] text-white shadow-[0_10px_28px_-12px_rgba(47,91,255,0.9)] border border-transparent hover:brightness-110 active:brightness-95',
-        line: 'border border-[rgba(219,231,240,0.16)] bg-[rgba(219,231,240,0.04)] text-[var(--fg)] hover:border-[rgba(219,231,240,0.4)] hover:bg-[rgba(219,231,240,0.08)]',
-        ghost: 'border border-[#2A3366] text-white bg-transparent hover:border-[#666] hover:bg-[rgba(219,231,240,0.05)]',
+        lime: 'bg-gradient-to-b from-brand-400 via-brand-500 to-brand-700 text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] border border-transparent hover:brightness-110 active:brightness-95',
+        dark: 'bg-gradient-to-b from-brand-400 via-brand-500 to-brand-700 text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] border border-transparent hover:brightness-110 active:brightness-95',
+        line: 'border border-[rgb(var(--mist-rgb)/0.16)] bg-[rgb(var(--mist-rgb)/0.04)] text-[var(--fg)] hover:border-[rgb(var(--mist-rgb)/0.4)] hover:bg-[rgb(var(--mist-rgb)/0.08)]',
+        ghost: 'border border-line-solid-3 text-white bg-transparent hover:border-line-hover hover:bg-[rgb(var(--mist-rgb)/0.05)]',
         link: 'border-0 border-b border-current rounded-none bg-transparent p-0 text-[var(--fg)] hover:text-white pb-0.5 font-medium',
       },
       size: {

@@ -92,7 +92,7 @@ export default function EventRegisterPage() {
   return (
     <WebShell>
       {/* Header */}
-      <section className="py-12 md:py-16 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgba(15,56,192,0.38),transparent_70%)]">
+      <section className="py-12 md:py-16 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgb(var(--cobalt-rgb)/0.38),transparent_70%)]">
         <div className="max-w-[840px] mx-auto px-5 md:px-8">
           <button
             onClick={() => (step > 1 && step < 3 ? setStep((step - 1) as any) : router.push(`/events/${event.slug}`))}
@@ -293,7 +293,7 @@ export default function EventRegisterPage() {
               </div>
             )}
 
-            <div className="p-4 rounded-[var(--r)] bg-[rgba(15,56,192,0.1)] border border-[var(--line)] text-[13px] text-[var(--muted)]">
+            <div className="p-4 rounded-[var(--r)] bg-[rgb(var(--cobalt-rgb)/0.1)] border border-[var(--line)] text-[13px] text-[var(--muted)]">
               🔒 256-bit SSL encrypted checkout. Server-verified HMAC cryptographic token guarantees idempotent charge.
             </div>
 
@@ -330,7 +330,7 @@ export default function EventRegisterPage() {
             </p>
 
             {/* Pass Card */}
-            <div className="w-full max-w-[480px] p-6 rounded-[var(--r)] border border-[var(--line-strong)] bg-[linear-gradient(145deg,#070D28,#03050F)] text-left flex flex-col gap-5 shadow-2xl mb-8">
+            <div className="w-full max-w-[480px] p-6 rounded-[var(--r)] border border-[var(--line-strong)] bg-[linear-gradient(145deg,var(--panel),var(--bg))] text-left flex flex-col gap-5 shadow-2xl mb-8">
               <div className="flex justify-between items-start border-b border-[var(--line)] pb-4">
                 <div>
                   <span className="font-mono text-[11px] text-[var(--muted)] uppercase tracking-wider block">

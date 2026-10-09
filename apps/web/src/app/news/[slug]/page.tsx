@@ -31,7 +31,7 @@ export default function NewsDetailPage() {
   return (
     <WebShell>
       {/* Article Header */}
-      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgba(15,56,192,0.38),transparent_70%)]">
+      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgb(var(--cobalt-rgb)/0.38),transparent_70%)]">
         <div className="max-w-[860px] mx-auto px-5 md:px-8">
           <button
             onClick={() => router.push('/news')}

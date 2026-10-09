@@ -22,8 +22,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={cn(
-            'w-full py-3.2 px-4 rounded-[14px] border border-[rgba(219,231,240,0.12)] bg-[var(--card)] text-[var(--fg)] text-[14.5px] outline-none min-w-0 appearance-none cursor-pointer',
-            'focus:border-[var(--lime)] focus:ring-2 focus:ring-[rgba(47,91,255,0.25)]',
+            'w-full py-3.2 px-4 rounded-[14px] border border-[rgb(var(--mist-rgb)/0.12)] bg-[var(--card)] text-[var(--fg)] text-[14.5px] outline-none min-w-0 appearance-none cursor-pointer',
+            'focus:border-[var(--lime)] focus:ring-2 focus:ring-[rgb(var(--lime-rgb)/0.25)]',
             error && 'border-[var(--bad)]',
             className
           )}

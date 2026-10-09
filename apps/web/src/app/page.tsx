@@ -68,7 +68,7 @@ export default function HomePage() {
       title: e.title,
       wingNumber: e.wingNumber,
       wingName: wing?.name || '',
-      wingColor: wing?.color || '#2F5BFF',
+      wingColor: wing?.color || 'var(--brand-500)',
       category: e.category,
       date: e.date,
       time: e.time,
@@ -86,7 +86,7 @@ export default function HomePage() {
   return (
     <WebShell>
       {/* Hero Section */}
-      <section className="pt-14 md:pt-24 pb-0 bg-[radial-gradient(55%_45%_at_88%_0%,rgba(15,56,192,0.55)_0%,rgba(15,56,192,0)_70%)]">
+      <section className="pt-14 md:pt-24 pb-0 bg-[radial-gradient(55%_45%_at_88%_0%,rgb(var(--cobalt-rgb)/0.55)_0%,rgb(var(--cobalt-rgb)/0)_70%)]">
         <div className="max-w-[1200px] mx-auto px-5 md:px-8">
           <div className="flex justify-between items-start gap-6 flex-wrap">
             <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[var(--muted)]">
@@ -102,7 +102,7 @@ export default function HomePage() {
             className="text-[clamp(46px,6.6cqi,88px)] font-medium tracking-[-0.045em] leading-[1.02] max-w-[13ch] mt-7"
           >
             Where young CAs{' '}
-            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#9DB6FF] via-[#DBE7F0] to-[#FFFFFF]">
+            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-brand-200 via-mist to-white">
               rise together.
             </em>
           </Heading>
@@ -152,15 +152,15 @@ export default function HomePage() {
 
             <div className="flex gap-5 flex-wrap text-[13px] text-[var(--muted)] mt-3.5">
               <span className="flex items-center gap-2">
-                <i className="w-2.5 h-2.5 rounded-[2px] bg-[#6F95FF]" />
+                <i className="w-2.5 h-2.5 rounded-[2px] bg-brand-300" />
                 Registered members
               </span>
               <span className="flex items-center gap-2">
-                <i className="w-2.5 h-[2px] bg-[#DBE7F0]" />
+                <i className="w-2.5 h-[2px] bg-mist" />
                 Founding committee
               </span>
               <span className="flex items-center gap-2">
-                <i className="w-2.5 h-2.5 rounded-[2px] bg-[rgba(219,231,240,0.25)]" />
+                <i className="w-2.5 h-2.5 rounded-[2px] bg-[rgb(var(--mist-rgb)/0.25)]" />
                 Daily sign-ups
               </span>
             </div>
@@ -169,7 +169,7 @@ export default function HomePage() {
           {/* Tri-Panel Section */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr_0.9fr] gap-3 mt-14 md:mt-20">
             {/* 1. 2027 Calendar */}
-            <div className="p-7 md:p-8 rounded-[24px] border border-[var(--line)] flex flex-col justify-between gap-6 bg-[radial-gradient(90%_80%_at_0%_0%,rgba(47,91,255,0.55),transparent_60%),linear-gradient(180deg,#0C1A58,#060A1F)]">
+            <div className="p-7 md:p-8 rounded-[24px] border border-[var(--line)] flex flex-col justify-between gap-6 bg-[radial-gradient(90%_80%_at_0%_0%,rgb(var(--lime-rgb)/0.55),transparent_60%),linear-gradient(180deg,var(--brand-900),var(--brand-950))]">
               <div className="flex justify-between items-center gap-3">
                 <h3 className="font-display text-[19px] font-medium tracking-tight text-white">
                   2027 Calendar
@@ -188,24 +188,24 @@ export default function HomePage() {
 
               <CalendarPreview range={calRange} />
 
-              <div className="flex gap-4 flex-wrap text-[12.5px] text-[#AFC0EA] mt-auto">
+              <div className="flex gap-4 flex-wrap text-[12.5px] text-fg-subtle mt-auto">
                 <span className="flex items-center gap-2">
-                  <i className="w-2 h-2 rounded-[2px] bg-[#9DB6FF]" />
+                  <i className="w-2 h-2 rounded-[2px] bg-brand-200" />
                   Learning
                 </span>
                 <span className="flex items-center gap-2">
-                  <i className="w-2 h-2 rounded-[2px] bg-[#FFFFFF]" />
+                  <i className="w-2 h-2 rounded-[2px] bg-white" />
                   Summits
                 </span>
                 <span className="flex items-center gap-2">
-                  <i className="w-2 h-2 rounded-[2px] bg-[#2F5BFF]" />
+                  <i className="w-2 h-2 rounded-[2px] bg-brand-500" />
                   Networking
                 </span>
               </div>
             </div>
 
             {/* 2. Membership */}
-            <div className="p-7 md:p-8 rounded-[24px] border border-[var(--line)] flex flex-col justify-between gap-6 bg-[linear-gradient(180deg,#0B1335,#070C24)]">
+            <div className="p-7 md:p-8 rounded-[24px] border border-[var(--line)] flex flex-col justify-between gap-6 bg-[linear-gradient(180deg,var(--surface-hi),var(--surface-lo))]">
               <div className="flex justify-between items-center gap-3">
                 <h3 className="font-display text-[19px] font-medium tracking-tight text-[var(--fg)]">
                   Membership
@@ -220,9 +220,9 @@ export default function HomePage() {
 
               <div className="grid grid-cols-3 gap-3 flex-1 items-end mt-4">
                 {[
-                  { name: 'Core', who: 'CA professionals', price: '1,000', height: 100, grad: 'from-[#6F95FF] via-[#2F5BFF] to-[#0F38C0]' },
-                  { name: 'Associate', who: 'Allied professionals', price: '1,000', height: 78, grad: 'from-[#3B5BD6] via-[#1A3BB8] to-[#0C1A58]' },
-                  { name: 'Student', who: 'CA students', price: '499', height: 52, grad: 'from-[#5E5079] via-[#463958] to-[#2A2140]' },
+                  { name: 'Core', who: 'CA professionals', price: '1,000', height: 100, grad: 'from-brand-300 via-brand-500 to-brand-700' },
+                  { name: 'Associate', who: 'Allied professionals', price: '1,000', height: 78, grad: 'from-chart-2a via-chart-2b to-brand-900' },
+                  { name: 'Student', who: 'CA students', price: '499', height: 52, grad: 'from-chart-3a via-chart-3b to-chart-3c' },
                 ].map((plan, i) => (
                   <div key={i} className="flex flex-col gap-2 justify-end min-w-0">
                     <span className="font-display text-[18px] md:text-[21px] font-medium text-white tracking-tight">
@@ -242,7 +242,7 @@ export default function HomePage() {
             </div>
 
             {/* 3. At a glance */}
-            <div className="p-7 md:p-8 rounded-[24px] border border-[var(--line)] flex flex-col justify-between gap-6 bg-[linear-gradient(180deg,#0B1335,#070C24)]">
+            <div className="p-7 md:p-8 rounded-[24px] border border-[var(--line)] flex flex-col justify-between gap-6 bg-[linear-gradient(180deg,var(--surface-hi),var(--surface-lo))]">
               <h3 className="font-display text-[19px] font-medium tracking-tight text-[var(--fg)]">
                 At a glance
               </h3>
@@ -258,9 +258,9 @@ export default function HomePage() {
                   return (
                     <div
                       key={idx}
-                      className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 py-2.5 border-b border-[rgba(219,231,240,0.07)] last:border-0"
+                      className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 py-2.5 border-b border-[rgb(var(--mist-rgb)/0.07)] last:border-0"
                     >
-                      <i className="w-9 h-9 rounded-[11px] grid place-items-center bg-[rgba(47,91,255,0.14)] border border-[rgba(111,149,255,0.25)] text-[#9DB6FF]">
+                      <i className="w-9 h-9 rounded-[11px] grid place-items-center bg-[rgb(var(--lime-rgb)/0.14)] border border-[rgb(var(--brand-300-rgb)/0.25)] text-brand-200">
                         <Icon size={16} />
                       </i>
                       <span className="text-[13.5px] text-[var(--muted)]">{item.label}</span>
@@ -321,7 +321,7 @@ export default function HomePage() {
             <Eyebrow pill>10 wings</Eyebrow>
             <Heading level="h2" className="mt-5 max-w-[18ch]">
               Find your people by{' '}
-              <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#9DB6FF] to-[#DBE7F0]">
+              <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-brand-200 to-mist">
                 what you practise.
               </em>
             </Heading>
@@ -352,14 +352,14 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="pb-24 max-w-[1200px] mx-auto px-5 md:px-8">
-        <div className="rounded-[var(--r)] p-10 md:p-18 bg-[radial-gradient(90%_140%_at_100%_0%,#4A72FF_0%,#0F38C0_40%,#0C1A58_100%)] text-white border border-[rgba(157,182,255,0.25)] shadow-[0_40px_80px_-40px_rgba(47,91,255,0.7)] flex justify-between items-end gap-8 flex-wrap">
+        <div className="rounded-[var(--r)] p-10 md:p-18 bg-[radial-gradient(90%_140%_at_100%_0%,#4A72FF_0%,#0F38C0_40%,#0C1A58_100%)] text-white border border-[rgb(var(--sky-rgb)/0.25)] shadow-[0_40px_80px_-40px_rgb(var(--lime-rgb)/0.7)] flex justify-between items-end gap-8 flex-wrap">
           <Heading level="h2" className="text-white max-w-[16ch]">
             Your next step in the profession.
           </Heading>
           <Button
             variant="dark"
             onClick={() => router.push('/membership')}
-            className="bg-white text-[#0C1A58] shadow-none hover:brightness-105"
+            className="bg-white text-brand-900 shadow-none hover:brightness-105"
           >
             Become a member
           </Button>

@@ -48,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 w-full bg-[rgba(3,5,15,0.72)] backdrop-blur-[18px] saturate-[140%] border-b border-[var(--line)] text-[var(--on-ink)]',
+        'sticky top-0 z-40 w-full bg-[rgb(var(--bg-rgb)/0.72)] backdrop-blur-[18px] saturate-[140%] border-b border-[var(--line)] text-[var(--on-ink)]',
         className
       )}
     >
@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-2.5 bg-transparent border-0 p-0 text-inherit cursor-pointer select-none group"
           aria-label="ASCEND home"
         >
-          <span className="w-[30px] h-[30px] rounded-[8px] bg-gradient-to-br from-[#4A72FF] to-[#1F45D6] grid place-items-center text-white shadow-sm transition-transform group-hover:scale-105">
+          <span className="w-[30px] h-[30px] rounded-[8px] bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center text-white shadow-sm transition-transform group-hover:scale-105">
             <AscendLogoMark size={18} />
           </span>
           <b className="font-display font-semibold text-[15px] tracking-[0.16em] text-white">
@@ -79,8 +79,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={cn(
                   'bg-transparent border-0 py-2 px-3 cursor-pointer text-[14px] font-medium rounded-full transition-colors select-none',
                   isActive
-                    ? 'text-white font-medium bg-[rgba(219,231,240,0.06)]'
-                    : 'text-[var(--on-ink-muted)] hover:text-white hover:bg-[rgba(219,231,240,0.06)]'
+                    ? 'text-white font-medium bg-[rgb(var(--mist-rgb)/0.06)]'
+                    : 'text-[var(--on-ink-muted)] hover:text-white hover:bg-[rgb(var(--mist-rgb)/0.06)]'
                 )}
               >
                 {item.label}
@@ -103,13 +103,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onNavigate?.('dashboard')}
-                className="flex items-center gap-2.5 py-1.5 px-3 rounded-full bg-[rgba(219,231,240,0.06)] border border-[var(--line)] text-[var(--fg)] hover:border-[rgba(157,182,255,0.4)] hover:bg-[rgba(219,231,240,0.1)] transition-all cursor-pointer group"
+                className="flex items-center gap-2.5 py-1.5 px-3 rounded-full bg-[rgb(var(--mist-rgb)/0.06)] border border-[var(--line)] text-[var(--fg)] hover:border-[rgb(var(--sky-rgb)/0.4)] hover:bg-[rgb(var(--mist-rgb)/0.1)] transition-all cursor-pointer group"
                 title="Member Dashboard"
               >
-                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[#4A72FF] to-[#0F38C0] text-white text-[11px] font-semibold grid place-items-center shadow-sm">
+                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 text-white text-[11px] font-semibold grid place-items-center shadow-sm">
                   {user.initials}
                 </span>
-                <span className="text-[13.5px] font-medium hidden sm:inline text-white group-hover:text-[#9DB6FF] transition-colors">
+                <span className="text-[13.5px] font-medium hidden sm:inline text-white group-hover:text-brand-200 transition-colors">
                   {user.name}
                 </span>
               </button>
@@ -158,7 +158,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={onBurgerClick}
-            className="lg:hidden p-2 rounded-md border border-[#2A3366] text-white bg-transparent cursor-pointer flex items-center justify-center"
+            className="lg:hidden p-2 rounded-md border border-line-solid-3 text-white bg-transparent cursor-pointer flex items-center justify-center"
             aria-label="Open menu"
           >
             <MenuIcon size={20} />

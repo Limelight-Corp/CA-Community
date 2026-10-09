@@ -27,7 +27,7 @@ export function SegmentedControl<T extends string = string>({
     <div
       role="group"
       className={cn(
-        'inline-flex border border-[rgba(219,231,240,0.16)] rounded-full p-[3px] gap-[2px] bg-[rgba(219,231,240,0.02)]',
+        'inline-flex border border-[rgb(var(--mist-rgb)/0.16)] rounded-full p-[3px] gap-[2px] bg-[rgb(var(--mist-rgb)/0.02)]',
         fullWidth && 'w-full',
         className
       )}
@@ -45,7 +45,7 @@ export function SegmentedControl<T extends string = string>({
               size === 'sm' ? 'py-1 px-2.5 text-[12px]' : 'py-1.5 px-3.5 text-[13px]',
               fullWidth && 'flex-1',
               isSelected
-                ? 'bg-[var(--lime)] text-white shadow-[0_6px_16px_-8px_rgba(47,91,255,0.9)] font-medium'
+                ? 'bg-[var(--lime)] text-white shadow-[0_6px_16px_-8px_rgb(var(--lime-rgb)/0.9)] font-medium'
                 : 'bg-transparent text-[var(--fg)] hover:text-white'
             )}
           >

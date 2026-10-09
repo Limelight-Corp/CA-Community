@@ -73,7 +73,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         y={(pt + ch - h).toFixed(1)}
         width={bw.toFixed(1)}
         height={h.toFixed(1)}
-        fill="rgba(219,231,240,.12)"
+        className="fill-mist/[0.12]"
       />
     );
   }
@@ -87,7 +87,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
           x2={cw}
           y1={Y(v)}
           y2={Y(v)}
-          stroke="rgba(219,231,240,.06)"
+          className="stroke-mist/[0.06]"
         />
         <text
           x={W - 4}
@@ -134,8 +134,8 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
     >
       <defs>
         <linearGradient id="growthAreaGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#2F5BFF" stopOpacity="0.45" />
-          <stop offset="1" stopColor="#2F5BFF" stopOpacity="0" />
+          <stop offset="0" style={{ stopColor: 'var(--brand-500)' }} stopOpacity="0.45" />
+          <stop offset="1" style={{ stopColor: 'var(--brand-500)' }} stopOpacity="0" />
         </linearGradient>
       </defs>
 
@@ -145,23 +145,23 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
       <path
         d={seg(com)}
         fill="none"
-        stroke="#DBE7F0"
+        className="stroke-mist"
         strokeOpacity="0.55"
         strokeWidth="1.2"
       />
       <path
         d={seg(mem)}
         fill="none"
-        stroke="#6F95FF"
+        className="stroke-brand-300"
         strokeWidth="2.2"
-        style={{ filter: 'drop-shadow(0 0 6px rgba(47,91,255,0.9))' }}
+        style={{ filter: 'drop-shadow(0 0 6px rgb(var(--lime-rgb) / 0.9))' }}
       />
       <line
         x1={0}
         x2={cw}
         y1={ey}
         y2={ey}
-        stroke="#DBE7F0"
+        className="stroke-mist"
         strokeDasharray="2 4"
         strokeOpacity="0.3"
       />
@@ -170,7 +170,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         x2={ex}
         y1={ey}
         y2={pt + ch}
-        stroke="#DBE7F0"
+        className="stroke-mist"
         strokeWidth="1.5"
       />
       <rect
@@ -179,18 +179,18 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         width={14}
         height={14}
         transform={`rotate(45 ${ex} ${ey})`}
-        fill="#FFFFFF"
+        className="fill-white"
       />
-      <circle cx={ex} cy={ey} r={2} fill="#0F38C0" />
+      <circle cx={ex} cy={ey} r={2} className="fill-brand-700" />
 
       {/* Target Bubble */}
       <g transform={`translate(${ex - (isNarrow ? 112 : 124)} ${ey - 14})`}>
-        <rect width={isNarrow ? 100 : 110} height={28} rx={14} fill="#FFFFFF" />
-        <circle cx={14} cy={14} r={4} fill="#2F5BFF" />
+        <rect width={isNarrow ? 100 : 110} height={28} rx={14} className="fill-white" />
+        <circle cx={14} cy={14} r={4} className="fill-brand-500" />
         <text
           x={26}
           y={18.5}
-          className="font-sans text-[12px] font-medium fill-[#0C1A58]"
+          className="font-sans text-[12px] font-medium fill-brand-900"
         >
           {endV} members
         </text>

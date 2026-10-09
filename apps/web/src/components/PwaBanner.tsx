@@ -86,11 +86,11 @@ export const PwaBanner: React.FC = () => {
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full text-[13px] font-mono shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-4 bg-[rgba(7,13,40,0.95)] backdrop-blur-md border border-[#283570] text-white"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full text-[13px] font-mono shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-4 bg-[rgb(var(--panel-rgb)/0.95)] backdrop-blur-md border border-line-solid-2 text-white"
         >
           <span
             className={`w-2 h-2 rounded-full ${
-              isOffline ? 'bg-[#FF5555] animate-pulse' : 'bg-[var(--teal)]'
+              isOffline ? 'bg-alert animate-pulse' : 'bg-[var(--teal)]'
             }`}
           />
           <span>{offlineNotice}</span>
@@ -109,11 +109,11 @@ export const PwaBanner: React.FC = () => {
       {showBanner && deferredPrompt && (
         <aside
           aria-label="Install ASCEND CA App"
-          className="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:max-w-[420px] z-40 p-4 md:p-5 rounded-[16px] bg-[rgba(7,13,40,0.92)] backdrop-blur-[16px] border border-[#283570] shadow-[0_12px_36px_rgba(0,0,0,0.7)] text-white flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-6 duration-300"
+          className="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:max-w-[420px] z-40 p-4 md:p-5 rounded-[16px] bg-[rgb(var(--panel-rgb)/0.92)] backdrop-blur-[16px] border border-line-solid-2 shadow-[0_12px_36px_rgb(var(--black-rgb)/0.7)] text-white flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-6 duration-300"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-[10px] bg-[linear-gradient(135deg,#0C1A58,#173196)] border border-[#283570] flex items-center justify-center p-1.5 shadow-md shrink-0">
+              <div className="w-11 h-11 rounded-[10px] bg-[linear-gradient(135deg,var(--brand-900),var(--brand-800))] border border-line-solid-2 flex items-center justify-center p-1.5 shadow-md shrink-0">
                 <svg viewBox="0 0 24 24" className="w-full h-full text-[var(--lime)] fill-current">
                   <path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13H5.5L12 6.5z" />
                 </svg>
@@ -137,7 +137,7 @@ export const PwaBanner: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-1 border-t border-[rgba(30,39,86,0.6)]">
+          <div className="flex items-center justify-end gap-2.5 pt-1 border-t border-[rgb(var(--line-solid-1-rgb)/0.6)]">
             <button
               onClick={handleDismiss}
               className="text-[12px] font-mono text-[var(--muted)] hover:text-white bg-transparent border-0 px-2 py-1.5 cursor-pointer"

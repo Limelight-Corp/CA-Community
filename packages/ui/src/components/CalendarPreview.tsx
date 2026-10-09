@@ -31,10 +31,10 @@ export const CalendarPreview: React.FC<CalendarPreviewProps> = ({
     }
 
     const bgGradients = [
-      'linear-gradient(180deg,#C9D6FF,#6F95FF)',
-      'linear-gradient(180deg,#FFFFFF,#C9D6FF)',
-      'linear-gradient(180deg,#6F95FF,#0F38C0)',
-      'rgba(219,231,240,.12)',
+      'linear-gradient(180deg,var(--brand-100),var(--brand-300))',
+      'linear-gradient(180deg,white,var(--brand-100))',
+      'linear-gradient(180deg,var(--brand-300),var(--brand-700))',
+      'rgb(var(--mist-rgb)/.12)',
     ];
 
     barElements.push(
@@ -55,7 +55,7 @@ export const CalendarPreview: React.FC<CalendarPreviewProps> = ({
         <b className="font-display font-light text-[48px] md:text-[56px] leading-[0.85] tracking-[-0.05em] text-white">
           {totalEvents}
         </b>
-        <span className="text-[13px] leading-[1.35] text-[#AFC0EA] pb-0.5">
+        <span className="text-[13px] leading-[1.35] text-fg-subtle pb-0.5">
           events planned
           <br />
           {config.label}
@@ -71,7 +71,7 @@ export const CalendarPreview: React.FC<CalendarPreviewProps> = ({
       </div>
 
       {/* Month Axis */}
-      <div className="flex justify-between font-mono text-[11px] text-[#7F95C4] mt-2.5 pt-2.5 border-t border-[rgba(219,231,240,0.1)]">
+      <div className="flex justify-between font-mono text-[11px] text-muted mt-2.5 pt-2.5 border-t border-[rgb(var(--mist-rgb)/0.1)]">
         {config.months.map((m, idx) => (
           <span key={idx}>{m}</span>
         ))}

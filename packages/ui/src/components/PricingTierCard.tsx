@@ -30,8 +30,8 @@ export const PricingTierCard: React.FC<PricingTierProps> = ({
       className={cn(
         'border border-[var(--line)] rounded-[var(--r)] p-8 flex flex-col gap-5.5 transition-all duration-200',
         featured
-          ? 'bg-[radial-gradient(120%_90%_at_100%_0%,#2F5BFF_0%,#0F38C0_35%,#0C1A58_75%)] text-white border-[rgba(157,182,255,0.35)] shadow-[0_30px_60px_-30px_rgba(47,91,255,0.8)]'
-          : 'bg-[linear-gradient(180deg,rgba(219,231,240,0.05),rgba(219,231,240,0.015)),var(--card)] text-[var(--fg)]',
+          ? 'bg-[radial-gradient(120%_90%_at_100%_0%,#2F5BFF_0%,#0F38C0_35%,#0C1A58_75%)] text-white border-[rgb(var(--sky-rgb)/0.35)] shadow-[0_30px_60px_-30px_rgb(var(--lime-rgb)/0.8)]'
+          : 'bg-[linear-gradient(180deg,rgb(var(--mist-rgb)/0.05),rgb(var(--mist-rgb)/0.015)),var(--card)] text-[var(--fg)]',
         className
       )}
     >

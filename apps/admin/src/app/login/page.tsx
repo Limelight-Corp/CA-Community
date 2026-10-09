@@ -53,10 +53,10 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(50%_50%_at_50%_30%,rgba(15,56,192,0.35),transparent_70%),var(--bg)]">
-      <div className="w-full max-w-md bg-[linear-gradient(180deg,rgba(219,231,240,0.05),rgba(219,231,240,0.015)),var(--card)] border border-[var(--line)] rounded-[var(--r)] p-8 md:p-10 shadow-2xl flex flex-col gap-6">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(50%_50%_at_50%_30%,rgb(var(--cobalt-rgb)/0.35),transparent_70%),var(--bg)]">
+      <div className="w-full max-w-md bg-[linear-gradient(180deg,rgb(var(--mist-rgb)/0.05),rgb(var(--mist-rgb)/0.015)),var(--card)] border border-[var(--line)] rounded-[var(--r)] p-8 md:p-10 shadow-2xl flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <span className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#4A72FF] to-[#1F45D6] grid place-items-center text-white">
+          <span className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center text-white">
             <AscendLogoMark size={20} />
           </span>
           <div>
@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
         </div>
 
         {errorMessage && (
-          <div className="p-3.5 rounded-lg bg-[var(--bad-bg)] border border-[rgba(255,154,163,0.2)] text-[var(--bad)] text-[13.5px]">
+          <div className="p-3.5 rounded-lg bg-[var(--bad-bg)] border border-[rgb(var(--bad-rgb)/0.2)] text-[var(--bad)] text-[13.5px]">
             {errorMessage}
           </div>
         )}
@@ -104,8 +104,8 @@ export default function AdminLoginPage() {
           />
 
           {requires2FA && (
-            <div className="p-4 rounded-[14px] bg-[rgba(47,91,255,0.08)] border border-[rgba(111,149,255,0.25)] flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
-              <span className="font-mono text-[12px] text-[#C9D6FF] flex items-center gap-2">
+            <div className="p-4 rounded-[14px] bg-[rgb(var(--lime-rgb)/0.08)] border border-[rgb(var(--brand-300-rgb)/0.25)] flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
+              <span className="font-mono text-[12px] text-brand-100 flex items-center gap-2">
                 <LockIcon size={14} />
                 Two-Factor Verification
               </span>

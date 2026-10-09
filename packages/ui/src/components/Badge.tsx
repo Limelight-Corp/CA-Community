@@ -13,7 +13,7 @@ const badgeVariants = cva(
         mute: 'bg-[var(--soft)] text-[var(--muted)]',
         lime: 'bg-[var(--lime)] text-white',
         glass:
-          'bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.18)] backdrop-blur-md text-white rounded-full px-2.5 py-1.5 normal-case',
+          'bg-[rgb(var(--white-rgb)/0.12)] border border-[rgb(var(--white-rgb)/0.18)] backdrop-blur-md text-white rounded-full px-2.5 py-1.5 normal-case',
       },
     },
     defaultVariants: {

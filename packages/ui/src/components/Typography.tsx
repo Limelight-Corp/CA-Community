@@ -52,8 +52,8 @@ export const Eyebrow: React.FC<EyebrowProps> = ({ pill = false, className, child
       <span
         className={cn(
           'inline-flex items-center gap-2 py-1.5 px-3 rounded-full font-mono text-[11.5px] font-medium leading-none tracking-[0.06em] uppercase',
-          'text-[#C9D6FF] bg-[rgba(47,91,255,0.12)] border border-[rgba(111,149,255,0.28)]',
-          'before:content-[""] before:w-1.5 before:h-1.5 before:rounded-full before:bg-[#6F95FF] before:shadow-[0_0_8px_#6F95FF]',
+          'text-brand-100 bg-[rgb(var(--lime-rgb)/0.12)] border border-[rgb(var(--brand-300-rgb)/0.28)]',
+          'before:content-[""] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-300 before:shadow-[0_0_8px_var(--brand-300)]',
           className
         )}
         {...props}

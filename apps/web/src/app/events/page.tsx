@@ -120,7 +120,7 @@ export default function EventsPage() {
               const isSoldOut = leftSeats <= 0;
               const isFillingFast = !isSoldOut && leftSeats / e.seatsTotal < 0.15;
               const statusText = isSoldOut ? 'Sold out' : isFillingFast ? 'Filling fast' : 'Open';
-              const dotColor = isSoldOut ? '#FF9AA3' : isFillingFast ? '#FFD27A' : '#86EBB0';
+              const dotColor = isSoldOut ? 'var(--bad)' : isFillingFast ? 'var(--warn)' : 'var(--ok)';
               const fillPercent = Math.min(100, (e.seatsTaken / e.seatsTotal) * 100);
 
               const d = new Date(e.date + 'T00:00:00');

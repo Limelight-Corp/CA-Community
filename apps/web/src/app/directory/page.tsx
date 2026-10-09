@@ -115,12 +115,12 @@ export default function DirectoryPage() {
   return (
     <WebShell>
       {/* Header */}
-      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgba(15,56,192,0.38),transparent_70%)]">
+      <section className="py-16 md:py-24 border-b border-[var(--line)] bg-[radial-gradient(50%_80%_at_90%_0%,rgb(var(--cobalt-rgb)/0.38),transparent_70%)]">
         <div className="max-w-[1200px] mx-auto px-5 md:px-8">
           <Eyebrow pill>National Roll</Eyebrow>
           <Heading level="h1" className="text-[clamp(40px,5.5cqi,72px)] mt-6 max-w-[16ch]">
             Member{' '}
-            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#9DB6FF] to-[#DBE7F0]">
+            <em className="s font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-brand-200 to-mist">
               directory.
             </em>
           </Heading>
@@ -170,11 +170,11 @@ export default function DirectoryPage() {
               >
                 <div>
                   <div className="flex items-start justify-between gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-full bg-[linear-gradient(135deg,#0C1A58,#173196)] border border-[var(--line)] flex-shrink-0 grid place-items-center text-[18px] font-medium text-white shadow-sm">
+                    <div className="w-14 h-14 rounded-full bg-[linear-gradient(135deg,var(--brand-900),var(--brand-800))] border border-[var(--line)] flex-shrink-0 grid place-items-center text-[18px] font-medium text-white shadow-sm">
                       {getInitials(member.name)}
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-[rgba(18,144,127,0.15)] text-[var(--teal)] border border-[rgba(18,144,127,0.3)]">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-[rgb(var(--teal-rgb)/0.15)] text-[var(--teal)] border border-[rgb(var(--teal-rgb)/0.3)]">
                         ✓ ICAI Verified
                       </span>
                       <span className="font-mono text-[11px] text-[var(--faint)]">

@@ -115,7 +115,7 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
           <div className="flex flex-col gap-1 mt-4">
             <button
               onClick={() => handleNavigate('home')}
-              className="bg-transparent border-0 border-b border-[#1E2756] py-3 text-left text-[20px] font-light text-white cursor-pointer"
+              className="bg-transparent border-0 border-b border-line-solid-1 py-3 text-left text-[20px] font-light text-white cursor-pointer"
             >
               Home
             </button>
@@ -123,14 +123,14 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
               <button
                 key={n.id}
                 onClick={() => handleNavigate(n.id)}
-                className="bg-transparent border-0 border-b border-[#1E2756] py-3 text-left text-[20px] font-light text-white cursor-pointer"
+                className="bg-transparent border-0 border-b border-line-solid-1 py-3 text-left text-[20px] font-light text-white cursor-pointer"
               >
                 {n.label}
               </button>
             ))}
             <button
               onClick={() => handleNavigate('membership')}
-              className="bg-transparent border-0 border-b border-[#1E2756] py-3 text-left text-[20px] font-light text-white cursor-pointer"
+              className="bg-transparent border-0 border-b border-line-solid-1 py-3 text-left text-[20px] font-light text-white cursor-pointer"
             >
               Membership
             </button>
@@ -142,7 +142,7 @@ export const WebShell: React.FC<WebShellProps> = ({ children }) => {
                   className="bg-transparent border-0 py-3 text-left text-[20px] font-light text-[var(--lime-deep)] cursor-pointer flex items-center justify-between"
                 >
                   <span>Dashboard</span>
-                  <span className="text-[12px] font-mono px-2.5 py-1 rounded-full bg-[rgba(47,91,255,0.2)] text-[#9DB6FF] border border-[#2F5BFF]/30">
+                  <span className="text-[12px] font-mono px-2.5 py-1 rounded-full bg-[rgb(var(--lime-rgb)/0.2)] text-brand-200 border border-brand-500/30">
                     {user.name}
                   </span>
                 </button>

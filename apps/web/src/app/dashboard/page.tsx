@@ -198,7 +198,7 @@ export default function MemberDashboardPage() {
             {/* Header User Profile Banner */}
             <div className="p-6 md:p-8 rounded-[var(--r)] border border-[var(--line)] bg-[var(--surface)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               <div className="flex items-center gap-5">
-                <span className="w-18 h-18 rounded-full bg-[linear-gradient(135deg,#0C1A58,#173196)] text-white text-[24px] font-semibold grid place-items-center shadow-lg border border-[var(--line)]">
+                <span className="w-18 h-18 rounded-full bg-[linear-gradient(135deg,var(--brand-900),var(--brand-800))] text-white text-[24px] font-semibold grid place-items-center shadow-lg border border-[var(--line)]">
                   KR
                 </span>
                 <div>
@@ -206,7 +206,7 @@ export default function MemberDashboardPage() {
                     <Heading level="h1" className="text-[26px] md:text-[32px]">
                       {profileData.name}
                     </Heading>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono bg-[rgba(18,144,127,0.15)] text-[var(--teal)] border border-[rgba(18,144,127,0.3)]">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-mono bg-[rgb(var(--teal-rgb)/0.15)] text-[var(--teal)] border border-[rgb(var(--teal-rgb)/0.3)]">
                       ✓ ICAI Verified
                     </span>
                   </div>

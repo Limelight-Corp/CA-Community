@@ -117,20 +117,6 @@ export default function HomePage() {
             {/* Launch badge + countdown + next event */}
             <Reveal delay={200} className="relative">
               <div className="relative mx-auto w-full max-w-[460px]">
-                <div className="absolute -right-6 -top-10 hidden h-36 w-36 md:block" aria-hidden>
-                  <svg viewBox="0 0 200 200" className="spin-slow h-full w-full">
-                    <defs>
-                      <path id="badge-circle" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0" />
-                    </defs>
-                    <text className="fill-gold font-mono text-[15px] uppercase tracking-[0.32em]">
-                      <textPath href="#badge-circle">Launch · 01.01.2027 · Pan-India ·</textPath>
-                    </text>
-                  </svg>
-                  <span className="absolute inset-0 m-auto grid h-12 w-12 place-items-center rounded-full bg-grad-gold text-brand-950">
-                    <Sparkles className="h-5 w-5" />
-                  </span>
-                </div>
-
                 <div className="glass-panel float rounded-[32px] p-6 md:p-7">
                   <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Countdown to launch</p>
                   <Countdown to={`${ORG_POSITIONING.launchDate}T00:00:00+05:30`} className="mt-4" />
@@ -151,6 +137,23 @@ export default function HomePage() {
                       <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--muted)] transition group-hover:rotate-45 group-hover:text-gold" aria-hidden />
                     </Link>
                   )}
+                </div>
+                {/* Rotating launch badge — rendered after the card so it sits on top of the glass */}
+                <div className="pointer-events-none absolute -right-4 -top-14 z-20 hidden h-32 w-32 md:block" aria-hidden>
+                  <span className="absolute inset-0 rounded-full border border-gold/40 bg-bg shadow-[0_18px_40px_-18px_rgb(var(--gold-rgb)/0.7)]" />
+                  <svg viewBox="0 0 200 200" className="spin-slow relative h-full w-full">
+                    <defs>
+                      <path id="badge-circle" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0" />
+                    </defs>
+                    <text className="fill-gold font-mono text-[15px] font-medium uppercase">
+                      <textPath href="#badge-circle" textLength="458" lengthAdjust="spacing">
+                        Launch · 01.01.2027 · Pan-India ·
+                      </textPath>
+                    </text>
+                  </svg>
+                  <span className="absolute inset-0 m-auto grid h-11 w-11 place-items-center rounded-full bg-grad-gold text-brand-950 shadow-[0_0_24px_rgb(var(--gold-rgb)/0.6)]">
+                    <Sparkles className="h-5 w-5" />
+                  </span>
                 </div>
               </div>
             </Reveal>

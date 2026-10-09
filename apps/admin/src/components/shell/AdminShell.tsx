@@ -108,9 +108,14 @@ function Brand() {
   );
 }
 
-function AccountBar({ adminName }: { adminName: string | null }) {
+export interface ShellAdmin {
+  name: string;
+  role: 'super_admin' | 'admin';
+}
+
+function AccountBar({ admin }: { admin: ShellAdmin | null }) {
   const [busy, setBusy] = useState(false);
-  if (!adminName) {
+  if (!admin) {
     return <p className="text-[11.5px] leading-relaxed text-faint">Development mode · access gate is disabled on this machine.</p>;
   }
   const logout = async () => {
@@ -121,11 +126,18 @@ function AccountBar({ adminName }: { adminName: string | null }) {
   return (
     <div className="flex items-center gap-3">
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grad-primary font-mono text-[12px] font-semibold uppercase text-white ring-2 ring-gold/40">
-        {adminName.slice(0, 2)}
+        {admin.name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((w) => w[0])
+          .join('')}
       </span>
       <span className="min-w-0 flex-1 leading-tight">
-        <span className="block truncate text-[13.5px] font-medium text-[var(--fg)]">{adminName}</span>
-        <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-faint">Administrator</span>
+        <span className="block truncate text-[13.5px] font-medium text-[var(--fg)]">{admin.name}</span>
+        <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-faint">
+          {admin.role === 'super_admin' ? 'Super admin' : 'Administrator'}
+        </span>
       </span>
       <button
         type="button"
@@ -184,7 +196,7 @@ function NavList({ counts, pathname, onNavigate }: { counts: ShellCounts; pathna
   );
 }
 
-export function AdminShell({ counts, adminName, children }: { counts: ShellCounts; adminName: string | null; children: React.ReactNode }) {
+export function AdminShell({ counts, admin, children }: { counts: ShellCounts; admin: ShellAdmin | null; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -233,7 +245,7 @@ export function AdminShell({ counts, adminName, children }: { counts: ShellCount
             <NavList counts={counts} pathname={pathname} />
           </div>
           <div className="border-t border-mist/[0.08] px-4 py-4">
-            <AccountBar adminName={adminName} />
+            <AccountBar admin={admin} />
           </div>
         </aside>
 
@@ -280,7 +292,7 @@ export function AdminShell({ counts, adminName, children }: { counts: ShellCount
                 <NavList counts={counts} pathname={pathname} onNavigate={() => setOpen(false)} />
               </div>
               <div className="border-t border-mist/[0.08] px-4 py-4">
-                <AccountBar adminName={adminName} />
+                <AccountBar admin={admin} />
               </div>
             </div>
           </div>

@@ -53,42 +53,55 @@ npm run build --workspace=@ascend/admin && npm run start --workspace=@ascend/adm
 
 ## Admin access
 
-The admin console has its own sign-in page at `/login`. There is **no built-in
-password**: the username and password come from environment variables. Every admin page
-requires sign-in; when the variables are not set, nobody can sign in and the login page
-says that sign-in is not set up yet.
+The admin console has its own sign-in page at `/login`, and every admin page requires
+sign-in. There is **no built-in password**. Admins sign in with:
+
+1. **An admin account** stored in `data/admin-users.json` (gitignored; passwords are
+   scrypt-hashed). Create accounts with the seed command below.
+2. **Or, as a fallback**, `ADMIN_GATE_USER` / `ADMIN_GATE_PASSWORD` from the environment.
+
+When neither exists, nobody can sign in and the login page says sign-in is not set up yet.
 
 After a successful sign-in the admin gets a signed, httpOnly session cookie that lasts
 12 hours. **Log out** is at the bottom of the sidebar (or the navigation drawer on
 mobile). Failed sign-ins are limited to 5 attempts per 15 minutes.
+
+### Seed an admin account
+
+```bash
+npm run admin:seed -- --username admin --password 'Admin@Ascend2027!' --name 'ASCEND Admin'
+```
+
+- Re-running for an existing username updates it. Passing `--password` changes the
+  password and signs that admin out everywhere; leaving it out keeps the password.
+- Without `--password`, a new account gets a random password that is printed once.
+- `--role super_admin|admin` (the first account defaults to `super_admin`).
+- Values can also come from `ADMIN_SEED_USERNAME`, `ADMIN_SEED_PASSWORD`,
+  `ADMIN_SEED_NAME` and `ADMIN_SEED_ROLE`.
+- The first run also creates a random secret in the same file for signing session cookies.
 
 ### Local development credentials
 
 | Field | Value |
 |---|---|
 | URL | http://localhost:3001 |
-| Username | `preview` |
-| Password | `Preview-Gate-2026` |
+| Username | `admin` |
+| Password | `Admin@Ascend2027!` |
 
-These only work after you set them. Create `apps/admin/.env.local` (gitignored) with:
-
-```
-ADMIN_GATE_USER=preview
-ADMIN_GATE_PASSWORD=Preview-Gate-2026
-```
-
-Then start the admin, open http://localhost:3001 and sign in on the login page with the
-username and password above.
+These work after running the seed command above (the same password the API's Prisma seed
+uses for its Super Admin). The older environment login still works too: put
+`ADMIN_GATE_USER=preview` and `ADMIN_GATE_PASSWORD=Preview-Gate-2026` in
+`apps/admin/.env.local` (gitignored).
 
 > **Warning:** these are local development values. They are written in this README, so
-> treat them as public. Never use them on staging or production. For any deployed
-> environment, set `ADMIN_GATE_USER` and `ADMIN_GATE_PASSWORD` to a new username and a long
-> random password (for example `openssl rand -base64 24`) in that server's environment or
-> secret manager. `docker-compose.yml` refuses to start the admin without them. Also set
-> `ADMIN_SESSION_SECRET` to another long random value to sign session cookies; without it
-> the key is derived from the credentials, so changing the password signs everyone out.
-> Behind a reverse proxy, make sure it sends `X-Forwarded-For` so the sign-in attempt
-> limit is counted per visitor.
+> treat them as public. Never use them on staging or production. On a deployed server,
+> seed an admin with a long random password (for example `openssl rand -base64 24`), or
+> leave `--password` out to have one generated. If you use the environment fallback, set
+> `ADMIN_GATE_USER` / `ADMIN_GATE_PASSWORD` to new values in that server's secret manager.
+> `docker-compose.yml` currently refuses to start the admin without them. Optionally set
+> `ADMIN_SESSION_SECRET` to override the session signing secret. Behind a reverse proxy,
+> make sure it sends `X-Forwarded-For` so the sign-in attempt limit is counted per visitor.
+> `data/admin-users.json` must persist across deploys (keep the `data/` directory on a volume).
 
 Scripts can still call the admin with HTTP Basic credentials (`curl -u user:password`).
 

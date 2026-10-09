@@ -6,20 +6,23 @@ import {
   gateConfig,
   safeNextPath,
   verifySessionToken,
-  type GateConfig,
 } from './lib/admin-session';
+import { authenticateAdmin } from './lib/admin-users';
 
 /**
  * Admin access gate.
  *
  * The admin console does not yet use the API's real admin authentication (password + TOTP).
  * Every request — pages and `/api/*` routes alike — needs a signed session cookie issued by
- * the sign-in page at /login, which checks credentials from the environment:
+ * the sign-in page at /login, which checks admin accounts in data/admin-users.json (created
+ * with `npm run admin:seed`) and, as a fallback, credentials from the environment:
  *
  *   ADMIN_GATE_USER, ADMIN_GATE_PASSWORD  (optional: ADMIN_SESSION_SECRET)
  *
+ * Runs on the Node.js runtime so each session is checked against the account store.
+ *
  * HTTP Basic credentials are still accepted for scripted access, but the browser is no longer
- * prompted for them. The gate fails closed: when the credentials are not configured, nobody
+ * prompted for them. The gate fails closed: when no admin account or credentials exist, nobody
  * can sign in and every page redirects to /login. For local development only,
  * ADMIN_GATE_DISABLED=true bypasses the gate; it is ignored when NODE_ENV=production.
  */
@@ -39,12 +42,16 @@ function parseBasicAuth(header: string | null): { user: string; password: string
   }
 }
 
-function basicAuthOk(request: NextRequest, cfg: GateConfig): boolean {
+function basicAuthOk(request: NextRequest): boolean {
   const credentials = parseBasicAuth(request.headers.get('authorization'));
   if (!credentials) return false;
-  const userOk = constantTimeEqual(credentials.user, cfg.user);
-  const passwordOk = constantTimeEqual(credentials.password, cfg.password);
-  return userOk && passwordOk;
+  const cfg = gateConfig();
+  if (cfg) {
+    const userOk = constantTimeEqual(credentials.user, cfg.user);
+    const passwordOk = constantTimeEqual(credentials.password, cfg.password);
+    if (userOk && passwordOk) return true;
+  }
+  return authenticateAdmin(credentials.user, credentials.password) !== null;
 }
 
 function withHeaders(res: NextResponse): NextResponse {
@@ -69,13 +76,11 @@ export async function middleware(request: NextRequest) {
     return res;
   }
 
-  // Without configured credentials nobody can be signed in: every page leads to /login,
-  // which explains that sign-in is not set up yet.
-  const cfg = gateConfig();
+  // Without an admin account or credentials nobody can be signed in: every page leads to
+  // /login, which explains that sign-in is not set up yet.
   const authed =
-    cfg !== null &&
-    ((await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value, cfg)) !== null ||
-      basicAuthOk(request, cfg));
+    (await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) !== null ||
+    basicAuthOk(request);
 
   if (PUBLIC_PATHS.has(pathname)) {
     if (authed && pathname === '/login') {
@@ -107,6 +112,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  runtime: 'nodejs',
   // Everything except Next.js build assets.
   matcher: ['/((?!_next/static|_next/image).*)'],
 };

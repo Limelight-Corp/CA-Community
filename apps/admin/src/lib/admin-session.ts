@@ -1,19 +1,33 @@
 /**
- * Signed admin session cookie (Web Crypto, so it runs in middleware and route handlers).
+ * Signed admin session cookie (server-only: middleware runs on the Node.js runtime).
  *
- * Credentials still come from ADMIN_GATE_USER / ADMIN_GATE_PASSWORD. A successful sign-in sets
- * an httpOnly cookie `<payload>.<HMAC-SHA256>` where payload = base64url({ u, exp }).
+ * Admins sign in with an account from data/admin-users.json (created by `npm run admin:seed`)
+ * or, as a fallback, with ADMIN_GATE_USER / ADMIN_GATE_PASSWORD from the environment.
+ * A successful sign-in sets an httpOnly cookie `<payload>.<HMAC-SHA256>` where
+ * payload = base64url({ u, src, iat, exp }).
  *
- * The HMAC key is ADMIN_SESSION_SECRET when set (recommended in production). Otherwise it is
- * derived from the gate credentials, so changing the password signs everyone out.
+ * HMAC key, in order: ADMIN_SESSION_SECRET, the store's sessionSecret (written by the seed),
+ * or a key derived from the environment credentials.
  */
+import { findAdmin, hasAdminAccounts, readAdminStore, type AdminRole } from './admin-users';
 
 export const SESSION_COOKIE = 'ascend_admin_session';
 export const SESSION_TTL_SECONDS = 12 * 60 * 60;
 
 export interface AdminSession {
+  /** Username. */
   u: string;
+  /** Where the account lives: the admin store or the environment. */
+  src: 'db' | 'env';
+  iat: number;
   exp: number;
+}
+
+export interface AdminIdentity {
+  username: string;
+  name: string;
+  role: AdminRole;
+  source: 'db' | 'env';
 }
 
 export interface GateConfig {
@@ -27,6 +41,11 @@ export function gateConfig(): GateConfig | null {
   const user = process.env.ADMIN_GATE_USER;
   const password = process.env.ADMIN_GATE_PASSWORD;
   return user && password ? { user, password } : null;
+}
+
+/** True when at least one way to sign in exists (a stored admin or environment credentials). */
+export function signInConfigured(): boolean {
+  return hasAdminAccounts() || gateConfig() !== null;
 }
 
 /** Local development only: ADMIN_GATE_DISABLED=true. Ignored when NODE_ENV=production. */
@@ -56,52 +75,73 @@ function fromBase64Url(s: string): string {
   return atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4));
 }
 
-async function hmacKey(cfg: GateConfig): Promise<CryptoKey> {
-  const secret =
-    process.env.ADMIN_SESSION_SECRET ||
-    `ascend-admin-session\u0000${cfg.user}\u0000${cfg.password}`;
-  return crypto.subtle.importKey(
+function signingSecret(): string | null {
+  if (process.env.ADMIN_SESSION_SECRET) return process.env.ADMIN_SESSION_SECRET;
+  const stored = readAdminStore().sessionSecret;
+  if (stored) return stored;
+  const cfg = gateConfig();
+  return cfg ? `ascend-admin-session\u0000${cfg.user}\u0000${cfg.password}` : null;
+}
+
+async function sign(payload: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
     'raw',
     enc.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
   );
-}
-
-async function sign(payload: string, cfg: GateConfig): Promise<string> {
-  const sig = await crypto.subtle.sign('HMAC', await hmacKey(cfg), enc.encode(payload));
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(payload));
   return toBase64Url(new Uint8Array(sig));
 }
 
-export async function createSessionToken(cfg: GateConfig): Promise<string> {
-  const session: AdminSession = {
-    u: cfg.user,
-    exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
-  };
+export async function createSessionToken(
+  username: string,
+  src: AdminSession['src']
+): Promise<string> {
+  const secret = signingSecret();
+  if (!secret) throw new Error('No admin session signing secret is available');
+  const now = Math.floor(Date.now() / 1000);
+  const session: AdminSession = { u: username, src, iat: now, exp: now + SESSION_TTL_SECONDS };
   const payload = toBase64Url(enc.encode(JSON.stringify(session)));
-  return `${payload}.${await sign(payload, cfg)}`;
+  return `${payload}.${await sign(payload, secret)}`;
 }
 
-export async function verifySessionToken(
-  token: string | undefined,
-  cfg: GateConfig
-): Promise<AdminSession | null> {
+/** Verifies the cookie and that the account still exists, is active and kept its password. */
+export async function verifySessionToken(token: string | undefined): Promise<AdminIdentity | null> {
   if (!token) return null;
+  const secret = signingSecret();
+  if (!secret) return null;
   const dot = token.indexOf('.');
   if (dot <= 0) return null;
   const payload = token.slice(0, dot);
-  const sig = token.slice(dot + 1);
-  if (!constantTimeEqual(sig, await sign(payload, cfg))) return null;
+  if (!constantTimeEqual(token.slice(dot + 1), await sign(payload, secret))) return null;
+
+  let session: AdminSession;
   try {
-    const session = JSON.parse(fromBase64Url(payload)) as AdminSession;
-    if (typeof session.u !== 'string' || typeof session.exp !== 'number') return null;
-    if (session.exp <= Math.floor(Date.now() / 1000)) return null;
-    if (!constantTimeEqual(session.u, cfg.user)) return null;
-    return session;
+    session = JSON.parse(fromBase64Url(payload)) as AdminSession;
   } catch {
     return null;
   }
+  if (
+    typeof session.u !== 'string' ||
+    typeof session.exp !== 'number' ||
+    typeof session.iat !== 'number'
+  )
+    return null;
+  if (session.exp <= Math.floor(Date.now() / 1000)) return null;
+
+  if (session.src === 'db') {
+    const user = findAdmin(session.u);
+    if (!user || !user.active || session.iat < (user.passwordChangedAt ?? 0)) return null;
+    return { username: user.username, name: user.name, role: user.role, source: 'db' };
+  }
+  if (session.src === 'env') {
+    const cfg = gateConfig();
+    if (!cfg || !constantTimeEqual(session.u, cfg.user)) return null;
+    return { username: cfg.user, name: cfg.user, role: 'super_admin', source: 'env' };
+  }
+  return null;
 }
 
 /** Only same-site relative paths are allowed as post-login destinations. */

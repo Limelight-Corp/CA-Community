@@ -7,7 +7,9 @@ import {
   createSessionToken,
   gateConfig,
   safeNextPath,
+  signInConfigured,
 } from '../../../../lib/admin-session';
+import { authenticateAdmin, recordAdminLogin } from '../../../../lib/admin-users';
 import { sameOrigin } from '../same-origin';
 
 export const dynamic = 'force-dynamic';
@@ -46,8 +48,7 @@ function recordFailure(key: string) {
 export async function POST(request: NextRequest) {
   if (!sameOrigin(request)) return bad('Cross-site sign-in is not allowed.', 403);
 
-  const cfg = gateConfig();
-  if (!cfg) return bad('Admin sign-in is not configured on this server.', 503);
+  if (!signInConfigured()) return bad('Admin sign-in is not configured on this server.', 503);
 
   const key = clientKey(request);
   const minutes = lockedFor(key);
@@ -69,9 +70,15 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const userOk = constantTimeEqual(username, cfg.user);
-  const passwordOk = constantTimeEqual(password, cfg.password);
-  if (!userOk || !passwordOk) {
+  // Accounts in the admin store first, then the environment credentials as a fallback.
+  const dbUser = authenticateAdmin(username, password);
+  const cfg = gateConfig();
+  const envOk =
+    !dbUser &&
+    cfg !== null &&
+    constantTimeEqual(username, cfg.user) &&
+    constantTimeEqual(password, cfg.password);
+  if (!dbUser && !envOk) {
     recordFailure(key);
     await new Promise((r) => setTimeout(r, 400));
     const left = MAX_FAILURES - (failures.get(key)?.count ?? 0);
@@ -84,11 +91,15 @@ export async function POST(request: NextRequest) {
   }
 
   failures.delete(key);
+  if (dbUser) recordAdminLogin(dbUser.id);
+  const token = dbUser
+    ? await createSessionToken(dbUser.username, 'db')
+    : await createSessionToken(cfg!.user, 'env');
   const res = NextResponse.json({
     success: true,
     data: { next: safeNextPath(typeof body.next === 'string' ? body.next : null) },
   });
-  res.cookies.set(SESSION_COOKIE, await createSessionToken(cfg), {
+  res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production' && request.nextUrl.protocol === 'https:',

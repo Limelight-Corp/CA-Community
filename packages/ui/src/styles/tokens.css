@@ -1526,3 +1526,85 @@ footer .wrap {
   --chart-grid: rgb(var(--mist-rgb) / 0.07);
   --chart-axis: rgb(var(--mist-rgb) / 0.14);
 }
+
+/* ==========================================================================================
+ * Home "wow" layer: rotating word, cursor spotlight, wings orbit, scroll progress
+ * ========================================================================================== */
+.word-swap {
+  display: inline-grid;
+  vertical-align: bottom;
+}
+.word-swap > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  filter: blur(14px);
+  transform: translateY(0.35em) scale(0.96);
+  transition: opacity 0.7s var(--ease-out-expo), filter 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+}
+.word-swap > span[data-active='true'] {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+
+/* Cursor spotlight: parent sets --mx / --my in px */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--spot-opacity, 0);
+  transition: opacity 0.4s;
+  background: radial-gradient(520px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--lime-rgb) / 0.22), transparent 60%);
+}
+.spotlight-card {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--gold-rgb) / 0.16), transparent 55%);
+}
+.spotlight-card:hover::after { opacity: 1; }
+
+/* Wings orbit */
+.orbit-ring {
+  animation: orbit-spin 70s linear infinite;
+}
+.orbit-node {
+  animation: orbit-spin 70s linear infinite reverse;
+}
+.orbit-paused .orbit-ring,
+.orbit-paused .orbit-node {
+  animation-play-state: paused;
+}
+@keyframes orbit-spin { to { transform: rotate(360deg); } }
+
+/* Scroll progress */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 70;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--progress, 0));
+  background: var(--grad-gold);
+  box-shadow: 0 0 12px rgb(var(--gold-rgb) / 0.6);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word-swap > span { transition: none; }
+  .orbit-ring, .orbit-node { animation: none !important; }
+}

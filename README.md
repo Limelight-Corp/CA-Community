@@ -54,8 +54,9 @@ npm run build --workspace=@ascend/admin && npm run start --workspace=@ascend/adm
 ## Admin access
 
 The admin console has its own sign-in page at `/login`. There is **no built-in
-password**: the username and password come from environment variables, and the admin
-answers `503 Admin console is locked` when they are not set.
+password**: the username and password come from environment variables. Every admin page
+requires sign-in; when the variables are not set, nobody can sign in and the login page
+says that sign-in is not set up yet.
 
 After a successful sign-in the admin gets a signed, httpOnly session cookie that lasts
 12 hours. **Log out** is at the bottom of the sidebar (or the navigation drawer on

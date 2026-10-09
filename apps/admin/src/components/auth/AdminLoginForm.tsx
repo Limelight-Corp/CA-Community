@@ -135,7 +135,7 @@ function Field({
   );
 }
 
-export function AdminLoginForm({ next }: { next: string }) {
+export function AdminLoginForm({ next, configured }: { next: string; configured: boolean }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [reveal, setReveal] = useState(false);
@@ -199,7 +199,7 @@ export function AdminLoginForm({ next }: { next: string }) {
 
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>) =>
     setCapsLock(e.getModifierState?.('CapsLock') ?? false);
-  const busy = status.kind === 'loading' || status.kind === 'success';
+  const busy = !configured || status.kind === 'loading' || status.kind === 'success';
 
   return (
     <div className="relative min-h-[100svh] overflow-hidden bg-bg">
@@ -299,6 +299,19 @@ export function AdminLoginForm({ next }: { next: string }) {
                   ? 'Opening the console…'
                   : 'Sign in to manage the ASCEND website.'}
               </p>
+
+              {!configured && (
+                <p
+                  role="status"
+                  className="relative mt-6 flex items-start gap-2 rounded-2xl border border-warn/30 bg-warn/10 px-4 py-3 text-[13.5px] leading-relaxed text-warn"
+                >
+                  <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    Admin sign-in is not set up on this server yet. Set <code className="font-mono">ADMIN_GATE_USER</code>{' '}
+                    and <code className="font-mono">ADMIN_GATE_PASSWORD</code> and restart the admin.
+                  </span>
+                </p>
+              )}
 
               <form onSubmit={onSubmit} noValidate className="relative mt-7 flex flex-col gap-5">
                 <Field id="username" label="Username" icon={User} error={fieldErrors.username}>

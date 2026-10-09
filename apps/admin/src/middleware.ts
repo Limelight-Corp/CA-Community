@@ -19,9 +19,9 @@ import {
  *   ADMIN_GATE_USER, ADMIN_GATE_PASSWORD  (optional: ADMIN_SESSION_SECRET)
  *
  * HTTP Basic credentials are still accepted for scripted access, but the browser is no longer
- * prompted for them. The gate fails closed: when the credentials are not configured, the
- * admin app answers 503. For local development only, ADMIN_GATE_DISABLED=true bypasses the
- * gate; it is ignored when NODE_ENV=production.
+ * prompted for them. The gate fails closed: when the credentials are not configured, nobody
+ * can sign in and every page redirects to /login. For local development only,
+ * ADMIN_GATE_DISABLED=true bypasses the gate; it is ignored when NODE_ENV=production.
  */
 
 const NO_INDEX = 'noindex, nofollow, noarchive, nosnippet';
@@ -69,16 +69,13 @@ export async function middleware(request: NextRequest) {
     return res;
   }
 
+  // Without configured credentials nobody can be signed in: every page leads to /login,
+  // which explains that sign-in is not set up yet.
   const cfg = gateConfig();
-  if (!cfg) {
-    return new NextResponse('Admin console is locked: access gate is not configured.', {
-      status: 503,
-      headers: { 'X-Robots-Tag': NO_INDEX, 'Cache-Control': 'no-store' },
-    });
-  }
-
-  const session = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value, cfg);
-  const authed = session !== null || basicAuthOk(request, cfg);
+  const authed =
+    cfg !== null &&
+    ((await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value, cfg)) !== null ||
+      basicAuthOk(request, cfg));
 
   if (PUBLIC_PATHS.has(pathname)) {
     if (authed && pathname === '/login') {

@@ -97,10 +97,18 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                     as="article"
                     max={6}
                     className={cn(
-                      'group flex h-full flex-col gap-5 rounded-[28px] border p-3',
-                      plan.featured ? 'border-gold/40 bg-gold/[0.04]' : 'border-mist/[0.1] bg-grad-surface'
+                      'group flex h-full flex-col gap-5 rounded-[28px] p-3',
+                      plan.featured
+                        ? 'border border-transparent [background:var(--grad-surface)_padding-box,linear-gradient(160deg,rgb(var(--gold-rgb)/0.75),rgb(var(--brand-300-rgb)/0.35)_45%,rgb(var(--gold-rgb)/0.5))_border-box] shadow-[0_30px_80px_-45px_rgb(var(--gold-rgb)/0.7)]'
+                        : 'border border-mist/[0.1] bg-grad-surface'
                     )}
                   >
+                    {plan.featured && (
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent"
+                      />
+                    )}
                     {/* The plan as a membership card */}
                     <div
                       className={cn(
@@ -195,7 +203,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                       </div>
 
                       <div className="mt-auto pt-1">
-                        <PillLink href={`/join?plan=${plan.key}#register`} variant={plan.featured ? 'gold' : 'ghost'} className="w-full">
+                        <PillLink href={`/join?plan=${plan.key}#register`} variant={plan.featured ? 'gold' : 'ghost'} className="w-full whitespace-nowrap text-[14px]">
                           Choose {plan.name}
                         </PillLink>
                       </div>

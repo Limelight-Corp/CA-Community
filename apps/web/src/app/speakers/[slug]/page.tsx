@@ -331,7 +331,7 @@ export default async function SpeakerPage({ params }: { params: Params }) {
               </Link>
             </div>
           ) : (
-            <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {upcoming.map((e, i) => (
                 <Reveal as="li" key={e.id} delay={(i % 3) * 80} className="flex">
                   <EventTile event={e} wing={eventWing(e, wings)} speakers={eventSpeakers(e, allSpeakers)} className="w-full" />

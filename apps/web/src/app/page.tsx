@@ -361,15 +361,8 @@ export default function HomePage() {
           {featured.length > 0 ? (
             <div className="-mx-5 mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
               {featured.map((e, i) => (
-                <Reveal key={e.id} delay={i * 90} className="w-[86%] shrink-0 snap-start md:w-auto">
-                  <FxCard className="h-full rounded-[28px]" max={5}>
-                    <EventTile
-                      event={e}
-                      wing={eventWing(e, wings)}
-                      speakers={eventSpeakers(e, speakers)}
-                      className="h-full"
-                    />
-                  </FxCard>
+                <Reveal key={e.id} delay={i * 90} className="w-[86%] min-w-0 shrink-0 snap-start md:w-auto">
+                  <EventTile event={e} wing={eventWing(e, wings)} speakers={eventSpeakers(e, speakers)} className="h-full" />
                 </Reveal>
               ))}
             </div>

@@ -282,7 +282,7 @@ export function EventsExplorer({ events, wings, speakers, initialCategory, initi
                 Coming up
                 <span className="font-mono text-[12px] tracking-[0.1em] text-gold">{String(upcoming.length).padStart(2, '0')}</span>
               </h2>
-              <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {upcoming.map((e, i) => (
                   <Reveal as="li" key={e.id} delay={Math.min(i, 5) * 70} className="flex">
                     <EventTile className="w-full" event={e} wing={eventWing(e, wings)} speakers={eventSpeakers(e, speakers)} />
@@ -298,7 +298,7 @@ export function EventsExplorer({ events, wings, speakers, initialCategory, initi
                 Past events
                 <span className="font-mono text-[12px] tracking-[0.1em]">{String(past.length).padStart(2, '0')}</span>
               </h2>
-              <ul className="grid gap-5 opacity-80 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid grid-cols-1 gap-5 opacity-80 sm:grid-cols-2 lg:grid-cols-3">
                 {past.map((e) => (
                   <li key={e.id} className="flex">
                     <EventTile className="w-full" event={e} wing={eventWing(e, wings)} speakers={eventSpeakers(e, speakers)} />

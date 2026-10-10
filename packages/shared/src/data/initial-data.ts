@@ -206,7 +206,41 @@ export interface CommunityStoreData {
   team: CommunityTeamMember[];
   testimonials: CommunityTestimonial[];
   initiatives: CommunityInitiative[];
+  jobs: CommunityJob[];
   settings: SiteSettings;
+}
+
+/** Job / articleship opening posted by the admin (Phase 2 job board). */
+export interface CommunityJob {
+  id: string;
+  slug: string;
+  title: string;
+  /** Firm or company offering the role. */
+  organisation: string;
+  /** One of JOB_TYPES (e.g. Articleship). */
+  type: string;
+  location: string;
+  /** One of WORK_MODES. */
+  workMode: string;
+  /** e.g. "CA Inter cleared" or "0–2 years". */
+  experience?: string;
+  /** Stipend / salary as shown, e.g. "₹15,000 per month". */
+  compensation?: string;
+  description: string;
+  requirements?: string[];
+  applyUrl?: string;
+  applyEmail?: string;
+  /** Last date to apply (YYYY-MM-DD); the post hides after it. */
+  deadline?: string;
+  /** Wing name (ORG_WINGS) when the opening belongs to a wing's domain. */
+  wing?: string;
+  logoUrl?: string;
+  /** How to apply is shown to active members only. */
+  isMembersOnly: boolean;
+  featured?: boolean;
+  isPublished: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /** Editable list collections of the content store. */
@@ -219,7 +253,8 @@ export type CommunityContentType =
   | 'resources'
   | 'team'
   | 'testimonials'
-  | 'initiatives';
+  | 'initiatives'
+  | 'jobs';
 
 export const COMMUNITY_CONTENT_TYPES: readonly CommunityContentType[] = [
   'events',
@@ -231,6 +266,7 @@ export const COMMUNITY_CONTENT_TYPES: readonly CommunityContentType[] = [
   'team',
   'testimonials',
   'initiatives',
+  'jobs',
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -524,5 +560,6 @@ export const INITIAL_COMMUNITY_DATA: CommunityStoreData = {
   team: SEED_TEAM.map((t) => ({ ...t, createdAt: now() })),
   testimonials: [],
   initiatives: SEED_INITIATIVES.map((i) => ({ ...i, createdAt: now() })),
+  jobs: [],
   settings: DEFAULT_SITE_SETTINGS,
 };

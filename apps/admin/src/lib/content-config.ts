@@ -6,8 +6,10 @@
  */
 import {
   GALLERY_CATEGORIES,
+  JOB_TYPES,
   NEWS_CATEGORIES,
   ORG_WINGS,
+  WORK_MODES,
   RESOURCE_CATEGORIES,
   type CommunityContentType,
 } from '@ascend/shared';
@@ -228,6 +230,37 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
     ],
   },
+  jobs: {
+    type: 'jobs',
+    label: 'Jobs & articleship',
+    singular: 'Opening',
+    description: 'Articleship, jobs and internships shown on the Careers board. Posts hide automatically after their last date.',
+    titleField: 'title',
+    subtitleFields: ['organisation', 'type', 'location'],
+    imageField: 'logoUrl',
+    allowCreate: true,
+    allowDelete: true,
+    fields: [
+      { name: 'title', label: 'Role / title', kind: 'text', required: true, max: 160, full: true, placeholder: 'Articled Assistant — Direct Tax' },
+      { name: 'slug', label: 'URL slug', kind: 'slug', slugFrom: 'title', required: true, hint: 'Used in the link: /careers/your-slug' },
+      { name: 'organisation', label: 'Firm / company', kind: 'text', required: true, max: 160 },
+      { name: 'type', label: 'Type', kind: 'select', options: JOB_TYPES, required: true },
+      { name: 'location', label: 'City / location', kind: 'text', required: true, max: 120 },
+      { name: 'workMode', label: 'Work mode', kind: 'select', options: WORK_MODES, required: true },
+      { name: 'experience', label: 'Eligibility / experience', kind: 'text', max: 120, placeholder: 'CA Inter cleared · 0–2 years' },
+      { name: 'compensation', label: 'Stipend / salary', kind: 'text', max: 120, placeholder: 'As per ICAI norms / ₹… per month' },
+      { name: 'deadline', label: 'Last date to apply', kind: 'date', hint: 'The post is hidden from the board after this date' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'Optional — related wing' },
+      { name: 'description', label: 'About the role', kind: 'richtext', required: true, max: 8000, full: true, hint: 'Plain text; blank lines separate paragraphs.' },
+      { name: 'requirements', label: 'Requirements', kind: 'lines', full: true, hint: 'One per line' },
+      { name: 'applyUrl', label: 'Apply link', kind: 'url', hint: 'Application form or careers page (https://…)' },
+      { name: 'applyEmail', label: 'Apply by email', kind: 'text', max: 200, placeholder: 'careers@firm.com', hint: 'Used when there is no apply link' },
+      { name: 'logoUrl', label: 'Firm logo', kind: 'image', aspect: 'square', full: true },
+      { name: 'isMembersOnly', label: 'How to apply visible to members only', kind: 'toggle', defaultValue: false },
+      { name: 'featured', label: 'Featured', kind: 'toggle', defaultValue: false },
+      { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
+    ],
+  },
   wings: {
     type: 'wings',
     label: 'Wings',
@@ -256,6 +289,7 @@ export const CONTENT_TYPE_ORDER: ManagedContentType[] = [
   'team',
   'testimonials',
   'initiatives',
+  'jobs',
   'wings',
 ];
 

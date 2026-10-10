@@ -88,7 +88,7 @@ export function SiteHeader({
   const pathname = usePathname() || '/';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, isLoading: authLoading, logout } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -175,7 +175,10 @@ export function SiteHeader({
             >
               <Search className="h-[18px] w-[18px]" />
             </Link>
-            {user ? (
+            {authLoading ? (
+              // Keeps the slot while the session is checked, so "Log in" doesn't flash for signed-in members.
+              <span className="hidden h-10 w-24 rounded-full bg-mist/[0.06] sm:block" aria-hidden />
+            ) : user ? (
               <UserMenu user={user} onLogout={handleLogout} />
             ) : (
               <Link
@@ -186,7 +189,7 @@ export function SiteHeader({
                 Log in
               </Link>
             )}
-            {!user && (
+            {!user && !authLoading && (
               <Link
                 href="/join"
                 className="hidden h-10 items-center rounded-full border border-gold/40 px-4 text-[13.5px] font-semibold text-gold transition hover:border-gold hover:bg-gold/10 lg:flex"

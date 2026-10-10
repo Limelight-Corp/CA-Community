@@ -78,6 +78,7 @@ function normalize(data: Partial<CommunityStoreData>): CommunityStoreData {
     team: data.team ?? INITIAL_COMMUNITY_DATA.team,
     testimonials: data.testimonials ?? [],
     initiatives: data.initiatives ?? INITIAL_COMMUNITY_DATA.initiatives,
+    jobs: data.jobs ?? [],
     settings: {
       ...DEFAULT_SITE_SETTINGS,
       ...(data.settings ?? {}),

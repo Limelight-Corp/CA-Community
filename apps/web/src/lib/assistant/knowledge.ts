@@ -32,6 +32,7 @@ export interface EventCard {
 export const SITE_PAGES: (LinkCard & { keywords: string })[] = [
   { title: 'Home', href: '/', description: 'Overview, launch countdown and highlights', keywords: 'home start overview launch countdown' },
   { title: 'About Us', href: '/about', description: 'Vision, mission, leadership and the ten wings', keywords: 'about vision mission leadership team founders organisation structure' },
+  { title: 'Careers & Articleship', href: '/careers', description: 'Articleship, jobs and internships shared with the community', keywords: 'career careers job jobs articleship articled assistant internship industrial training opening vacancy hiring naukri' },
   { title: 'Events', href: '/events', description: 'All upcoming and past events with filters', keywords: 'events calendar summit masterclass workshop seminar webinar meetup register' },
   { title: 'Wings', href: '/wings', description: 'The ten wings and what each one does', keywords: 'wings verticals groups tax audit technology wellness' },
   { title: 'Speakers', href: '/speakers', description: 'Speakers at ASCEND events', keywords: 'speakers experts faculty' },

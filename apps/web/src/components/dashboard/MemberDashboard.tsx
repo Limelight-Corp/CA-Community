@@ -16,6 +16,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  HeartHandshake,
   KeyRound,
   LayoutGrid,
   Loader2,
@@ -32,8 +33,9 @@ import {
 import type { DashboardBooking, DashboardData } from '../../lib/member-dashboard';
 import { getInitials, useAuth } from '../../context/AuthContext';
 import { payWithRazorpay, type PaymentInit } from '../events/razorpay-client';
+import { MentorshipTab } from './MentorshipTab';
 
-type Tab = 'overview' | 'events' | 'receipts' | 'certificates' | 'resources' | 'profile';
+type Tab = 'overview' | 'events' | 'receipts' | 'certificates' | 'resources' | 'mentorship' | 'profile';
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'overview', label: 'Overview', icon: LayoutGrid },
@@ -41,6 +43,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'receipts', label: 'Receipts', icon: Receipt },
   { id: 'certificates', label: 'Certificates', icon: Award },
   { id: 'resources', label: 'Member resources', icon: BookOpen },
+  { id: 'mentorship', label: 'Mentorship', icon: HeartHandshake },
   { id: 'profile', label: 'Profile & security', icon: UserRound },
 ];
 
@@ -249,6 +252,8 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
               )}
             </section>
           )}
+
+          {tab === 'mentorship' && <MentorshipTab data={data} />}
 
           {tab === 'profile' && <ProfileTab data={data} />}
         </div>

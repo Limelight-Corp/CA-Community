@@ -3,8 +3,19 @@
  * only once that email is verified — otherwise anyone could sign up with someone else's email
  * and see their bookings.
  */
-import { MEMBERSHIP_PLANS, membershipState, ORG_WINGS, wingSlug, type CommunityEvent, type CommunityResource, type MembershipState } from '@ascend/shared';
+import {
+  MEMBERSHIP_PLANS,
+  membershipState,
+  ORG_WINGS,
+  wingSlug,
+  type CommunityEvent,
+  type CommunityResource,
+  type MembershipState,
+  type MentorProfile,
+  type MentorshipRequest,
+} from '@ascend/shared';
 import { feeFor } from './membership';
+import { activeMenteeCount, approvedMentors, wingName } from './mentorship';
 import { razorpayConfig } from '../app/api/registrations/_lib/server';
 import { getItems, getSettings, readPrivate } from './community-store';
 import { certificatePdfPath, isCertificateValid, verifyUrl } from './certificates';
@@ -60,6 +71,70 @@ export interface DashboardData {
   siteName: string;
   /** SMTP is set up; otherwise emails only land in data/outbox/. */
   mailEnabled: boolean;
+  /** Mentorship programme (active members only; null otherwise). */
+  mentorship: MentorshipData | null;
+}
+
+export interface MentorshipData {
+  profile: (Omit<MentorProfile, 'accountId'> & { activeMentees: number }) | null;
+  requests: {
+    id: string;
+    stage: string;
+    goals: string;
+    wings: string[];
+    status: MentorshipRequest['status'];
+    createdAt: string;
+    adminNote?: string;
+    mentor?: { name: string; headline: string; email: string; mobile?: string; linkedinUrl?: string };
+  }[];
+  mentees: { id: string; name: string; email: string; mobile?: string; stage: string; goals: string; matchedAt?: string; status: MentorshipRequest['status'] }[];
+  mentors: { id: string; name: string; headline: string; expertise: string[]; wings: string[]; modes: string[]; city?: string; spotsLeft: number; self: boolean }[];
+}
+
+function mentorshipData(account: MemberAccount): MentorshipData {
+  const data = readPrivate();
+  const mine = data.mentors.find((m) => m.accountId === account.id);
+  const byId = new Map(data.mentors.map((m) => [m.id, m]));
+  let profile: MentorshipData['profile'] = null;
+  if (mine) {
+    const { accountId: _accountId, ...rest } = mine;
+    profile = { ...rest, activeMentees: activeMenteeCount(mine.id, data.mentorshipRequests) };
+  }
+  return {
+    profile,
+    requests: data.mentorshipRequests
+      .filter((r) => r.accountId === account.id)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .map((r) => {
+        const m = r.status === 'matched' && r.mentorId ? byId.get(r.mentorId) : undefined;
+        return {
+          id: r.id,
+          stage: r.stage,
+          goals: r.goals,
+          wings: r.wings.map(wingName),
+          status: r.status,
+          createdAt: r.createdAt,
+          adminNote: r.adminNote,
+          mentor: m ? { name: m.name, headline: m.headline, email: m.email, mobile: m.mobile, linkedinUrl: m.linkedinUrl } : undefined,
+        };
+      }),
+    mentees: mine
+      ? data.mentorshipRequests
+          .filter((r) => r.mentorId === mine.id && (r.status === 'matched' || r.status === 'closed'))
+          .map((r) => ({ id: r.id, name: r.name, email: r.email, mobile: r.mobile, stage: r.stage, goals: r.goals, matchedAt: r.matchedAt, status: r.status }))
+      : [],
+    mentors: approvedMentors().map((m) => ({
+      id: m.id,
+      name: m.name,
+      headline: m.headline,
+      expertise: m.expertise,
+      wings: m.wings.map(wingName),
+      modes: m.modes,
+      city: m.city,
+      spotsLeft: Math.max(0, m.capacity - m.activeMentees),
+      self: m.accountId === account.id,
+    })),
+  };
 }
 
 export function dashboardData(account: MemberAccount): DashboardData {
@@ -153,6 +228,7 @@ export function dashboardData(account: MemberAccount): DashboardData {
       : [],
     membersOnlyCount: membersOnly.length,
     siteName: getSettings().siteName,
+    mentorship: isMember ? mentorshipData(account) : null,
     mailEnabled: mailConfigured(),
   };
 }

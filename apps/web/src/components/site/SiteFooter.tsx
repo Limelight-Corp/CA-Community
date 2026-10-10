@@ -15,6 +15,7 @@ const IMPORTANT_LINKS = [
   { label: 'News & Updates', href: '/news' },
   { label: 'Gallery', href: '/gallery' },
   { label: 'Careers & Articleship', href: '/careers' },
+  { label: 'Mentorship', href: '/mentorship' },
 ];
 
 const ABOUT_LINKS = [

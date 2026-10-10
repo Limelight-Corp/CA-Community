@@ -558,3 +558,82 @@ export function adminMembershipPaidEmail(
     }),
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Mentorship emails
+// ---------------------------------------------------------------------------------------------
+
+export function mentorApprovedEmail(brand: EmailBrand, m: { name: string; dashboardUrl: string }): EmailMessage {
+  return {
+    subject: `You're now a mentor — ${brand.siteName}`,
+    ...render({
+      brand,
+      preheader: 'Your mentor profile is live for members.',
+      heading: 'Thank you for mentoring!',
+      intro: [`Hi ${m.name},`, 'Your mentor profile has been approved and is now visible to members. When we match you with a mentee, we will introduce you both by email.'],
+      cta: { label: 'Open my mentorship dashboard', url: m.dashboardUrl },
+    }),
+  };
+}
+
+export function mentorshipRequestReceivedEmail(brand: EmailBrand, m: { name: string; dashboardUrl: string }): EmailMessage {
+  return {
+    subject: `We received your mentorship request — ${brand.siteName}`,
+    ...render({
+      brand,
+      preheader: 'Our team will match you with a mentor.',
+      heading: 'Request received',
+      intro: [`Hi ${m.name},`, 'Thank you for your mentorship request. Our team will match you with a suitable mentor and introduce you both by email.'],
+      cta: { label: 'Track my request', url: m.dashboardUrl },
+    }),
+  };
+}
+
+/** Introduction sent to both sides when the team matches a mentee with a mentor. */
+export function mentorshipMatchedEmail(
+  brand: EmailBrand,
+  m: { to: 'mentor' | 'mentee'; recipientName: string; otherName: string; otherEmail: string; otherMobile?: string; otherLinkedIn?: string; otherHeadline?: string; goals: string; dashboardUrl: string }
+): EmailMessage {
+  const isMentee = m.to === 'mentee';
+  return {
+    subject: isMentee ? `Meet your mentor: ${m.otherName}` : `New mentee: ${m.otherName}`,
+    ...render({
+      brand,
+      preheader: isMentee ? `${m.otherName} has agreed to mentor you.` : `${m.otherName} would like your guidance.`,
+      heading: isMentee ? 'You have a mentor!' : 'You have a new mentee',
+      intro: [
+        `Hi ${m.recipientName},`,
+        isMentee
+          ? `We have matched you with ${m.otherName}. Please introduce yourself by email and suggest a time to connect.`
+          : `We have matched you with ${m.otherName}, who will reach out to you. Their goals are below.`,
+      ],
+      rows: [
+        [isMentee ? 'Mentor' : 'Mentee', m.otherName],
+        ['About', m.otherHeadline],
+        ['Email', m.otherEmail],
+        ['Mobile', m.otherMobile],
+        ['LinkedIn', m.otherLinkedIn],
+        ['Goals', m.goals],
+      ],
+      cta: { label: 'Open my dashboard', url: m.dashboardUrl },
+      outro: ['Please be respectful of each other’s time. If something doesn’t work out, reply to this email and we’ll help.'],
+    }),
+  };
+}
+
+export function adminMentorshipEmail(brand: EmailBrand, m: { kind: 'mentor' | 'request'; name: string; email: string; summary: string }, adminUrl?: string): EmailMessage {
+  return {
+    subject: m.kind === 'mentor' ? `New mentor application: ${m.name}` : `New mentorship request: ${m.name}`,
+    ...render({
+      brand,
+      preheader: m.summary.slice(0, 120),
+      heading: m.kind === 'mentor' ? 'New mentor application' : 'New mentorship request',
+      intro: [m.summary],
+      rows: [
+        ['Name', m.name],
+        ['Email', m.email],
+      ],
+      ...(adminUrl ? { cta: { label: 'Open mentorship', url: adminUrl } } : {}),
+    }),
+  };
+}

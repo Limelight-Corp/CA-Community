@@ -377,9 +377,68 @@ export interface PrivateStoreData {
   registrations: CommunityRegistration[];
   members: CommunityMemberApplication[];
   messages: CommunityContactMessage[];
+  mentors: MentorProfile[];
+  mentorshipRequests: MentorshipRequest[];
+}
+
+// ---------------------------------------------------------------------------------------------
+// Mentorship programme (Phase 2) — Mentor Match / MentorHer / Teach & Mentor formats
+// ---------------------------------------------------------------------------------------------
+
+export type MentorStatus = 'pending' | 'approved' | 'paused' | 'rejected';
+
+export interface MentorProfile {
+  id: string;
+  /** Member account (verified email) that owns this profile. */
+  accountId: string;
+  name: string;
+  email: string;
+  mobile?: string;
+  /** e.g. "Partner, Garg & Co · 12 years in direct tax" */
+  headline: string;
+  expertise: string[];
+  /** Wing numbers (ORG_WINGS). */
+  wings: number[];
+  /** How they mentor. */
+  modes: ('Online' | 'In person')[];
+  city?: string;
+  /** Maximum mentees at a time (1–5). */
+  capacity: number;
+  bio: string;
+  linkedinUrl?: string;
+  status: MentorStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type MentorshipStage = 'CA student' | 'Newly qualified CA' | 'Practising CA' | 'Industry professional' | 'Other';
+export const MENTORSHIP_STAGES: readonly MentorshipStage[] = ['CA student', 'Newly qualified CA', 'Practising CA', 'Industry professional', 'Other'];
+
+export type MentorshipRequestStatus = 'open' | 'matched' | 'closed' | 'declined';
+
+export interface MentorshipRequest {
+  id: string;
+  accountId: string;
+  name: string;
+  email: string;
+  mobile?: string;
+  stage: MentorshipStage;
+  goals: string;
+  /** Wing numbers of interest. */
+  wings: number[];
+  preferredMentorId?: string;
+  status: MentorshipRequestStatus;
+  mentorId?: string;
+  matchedAt?: string;
+  /** Note from the team (e.g. why a request was declined). */
+  adminNote?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const INITIAL_PRIVATE_DATA: PrivateStoreData = {
+  mentors: [],
+  mentorshipRequests: [],
   registrations: [],
   members: [],
   messages: [],

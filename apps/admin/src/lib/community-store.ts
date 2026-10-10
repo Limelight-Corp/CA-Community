@@ -166,6 +166,8 @@ export function readPrivate(): PrivateStoreData {
     registrations: data.registrations ?? [],
     members: data.members ?? [],
     messages: data.messages ?? [],
+    mentors: data.mentors ?? [],
+    mentorshipRequests: data.mentorshipRequests ?? [],
   };
 }
 

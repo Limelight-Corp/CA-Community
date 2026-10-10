@@ -70,4 +70,5 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 - [x] Paid membership via Razorpay: pay after approval, 12 months from payment, early renewal extends, renewal reminder 14 days before expiry, offline payments, fees in Site Settings (Core ₹1,000 · Associate ₹1,000 · Student ₹499)
 - [x] Real member directory: approved members who opt in; members-only; search + city / wing / plan filters; no contact details exposed
 - [x] Job & articleship board (/careers): admin-posted openings, filters, members-only apply option, auto-expiry, Google JobPosting data
-- [ ] Mentorship programme, forum, online courses, referral programme
+- [x] Mentorship programme (/mentorship + dashboard tab + admin matching): mentor applications, requests, capacity-aware matching, email introductions
+- [ ] Forum, online courses, referral programme

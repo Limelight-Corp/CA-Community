@@ -25,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/news', priority: 0.7, changeFrequency: 'daily' as const },
     { path: '/gallery', priority: 0.5, changeFrequency: 'weekly' as const },
     { path: '/careers', priority: 0.7, changeFrequency: 'daily' as const },
+    { path: '/mentorship', priority: 0.6, changeFrequency: 'monthly' as const },
     ...openJobs().map((j) => ({ path: `/careers/${j.slug}`, priority: 0.6, changeFrequency: 'weekly' as const })),
     { path: '/join', priority: 0.9, changeFrequency: 'monthly' as const },
     { path: '/contact', priority: 0.5, changeFrequency: 'yearly' as const },

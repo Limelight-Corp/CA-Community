@@ -11,6 +11,7 @@ import { certificatePdfPath, isCertificateValid } from '../../../lib/certificate
 import { checkinPayload, checkinQrSvg, ensureCheckinCode } from '../../../lib/checkin';
 import { findEventById, findRegistrationWithToken, razorpayConfig } from '../../api/registrations/_lib/server';
 import { mapsLink } from '../../../components/events/event-time';
+import { mailConfigured } from '../../../lib/mailer';
 import {
   AddToCalendarButton,
   CopyBookingId,
@@ -98,7 +99,7 @@ export default async function RegistrationPage({
   // Entry QR only for confirmed bookings (pending / cancelled bookings are not valid for entry).
   const qrSvg = view === 'confirmed' ? await checkinQrSvg(checkinPayload(reg, ensureCheckinCode(reg))) : null;
   const gatewayOn = !!razorpayConfig();
-  const emailOn = !!process.env.SMTP_HOST;
+  const emailOn = mailConfigured();
   const feeLabel = priceLabel(reg.fee);
   const d = event ? dateParts(event) : null;
   const maps = event ? mapsLink(event) : null;

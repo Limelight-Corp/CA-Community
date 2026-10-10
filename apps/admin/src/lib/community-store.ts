@@ -54,6 +54,11 @@ function writeJsonAtomic(file: string, data: unknown): void {
   fs.renameSync(tmp, file);
 }
 
+/** Absolute path of the shared data directory. */
+export function dataDir(): string {
+  return findDataDir();
+}
+
 const contentFile = () => path.join(findDataDir(), 'community-store.json');
 const privateFile = () => path.join(findDataDir(), 'private-store.json');
 

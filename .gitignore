@@ -49,3 +49,6 @@ data/*.tmp
 
 # Uploaded resource files (served via /api/resources/[id]/download)
 data/resource-files/
+
+# Local email outbox (used when SMTP is not configured) - contains personal data
+data/outbox/

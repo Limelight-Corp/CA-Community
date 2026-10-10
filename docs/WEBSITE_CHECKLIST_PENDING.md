@@ -18,10 +18,10 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 - [x] Unpaid bookings never expire → abandoned payment blocks re-registration — §6
 
 ## Step 2 — Email notifications (§5, §6, §17)
-- [ ] Mailer (SMTP via env; without SMTP, emails are written to a local outbox so it can be tested)
-- [ ] User: registration received, payment confirmation + receipt, payment failure, booking cancelled
-- [ ] Admin: new registration, successful payment, contact form submission, new member application
-- [ ] Remove the misleading "confirmation email will be sent" text unless mail is configured
+- [x] Mailer (SMTP via env; without SMTP, emails are written to a local outbox so it can be tested)
+- [x] User: registration confirmed / complete-payment, payment receipt, payment failure, booking cancelled/refunded, membership application received
+- [x] Admin: new registration, successful payment, contact form submission, new member application
+- [x] Remove the misleading "confirmation email will be sent" text unless mail is configured
 - [ ] SMTP credentials **(client)**
 
 ## Step 3 — Payments hardening (§6, §15)

@@ -1,5 +1,6 @@
 import type { CommunityContactMessage } from '@ascend/shared';
 import { mutatePrivate, newId } from './community-store';
+import { notifyContactMessage } from './notifications';
 import type { contactMessageSchema } from './form-schemas';
 import type { z } from 'zod';
 
@@ -8,7 +9,7 @@ import type { z } from 'zod';
  * admin console under Messages. Shared by the contact form and the support assistant.
  */
 export function saveContactMessage(input: z.output<typeof contactMessageSchema>): CommunityContactMessage {
-  return mutatePrivate((data) => {
+  const saved = mutatePrivate((data) => {
     const message: CommunityContactMessage = {
       id: newId('msg'),
       ...input,
@@ -18,4 +19,6 @@ export function saveContactMessage(input: z.output<typeof contactMessageSchema>)
     data.messages.push(message);
     return message;
   });
+  notifyContactMessage(saved);
+  return saved;
 }

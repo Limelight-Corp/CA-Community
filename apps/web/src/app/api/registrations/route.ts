@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { CommunityRegistration } from '@ascend/shared';
 import { mutatePrivate, newId, newSecret } from '../../../lib/community-store';
 import { canRegister, seatsLeft } from '../../../lib/events';
+import { notifyRegistrationCreated } from '../../../lib/notifications';
 import {
   clientIp,
   findPublishedEvent,
@@ -150,6 +151,7 @@ export async function POST(req: Request) {
   const reg = outcome.reg;
   // Free registrations take their seat immediately (synchronously after the private write).
   if (outcome.kind === 'created' && reg.status === 'confirmed') takeSeat(event.id);
+  if (outcome.kind === 'created') notifyRegistrationCreated(reg, event);
 
   // Paid bookings are paid on the separate payment page (which requires a member login).
   return json(

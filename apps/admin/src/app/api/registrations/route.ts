@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { readPrivate } from '../../../lib/community-store';
 import { applyRegistrationAction, publicRegistration } from '../../../lib/admin-data';
 import { byNewest, filterRegistrations } from '../../../lib/filters';
+import { notifyRegistrationAction } from '../../../lib/notifications';
 import { bad, handleError, isPlainObject } from '../../../lib/api-helpers';
 
 /**
@@ -41,6 +42,7 @@ export async function PATCH(request: NextRequest) {
     if (!parsed.success) return bad('Unknown or invalid registration action', 422);
     const { id, ...action } = parsed.data;
     const updated = applyRegistrationAction(id, action);
+    notifyRegistrationAction(updated, action.action);
     return NextResponse.json({ success: true, item: publicRegistration(updated) });
   } catch (error) {
     return handleError(error, 'Registrations PATCH');

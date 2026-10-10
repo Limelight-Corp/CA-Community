@@ -3,7 +3,7 @@
  * Lives in a private (`_lib`) folder so it is never routed.
  */
 import crypto from 'crypto';
-import type { CommunityEvent, CommunityRegistration } from '@ascend/shared';
+import { clientIpFromHeaders, type CommunityEvent, type CommunityRegistration } from '@ascend/shared';
 import { getItems, readPrivate, updateItem } from '../../../../lib/community-store';
 
 export type PaymentInit =
@@ -51,11 +51,34 @@ export function findEventById(id: string): CommunityEvent | undefined {
   return getItems<CommunityEvent>('events').find((e) => e.id === id);
 }
 
+/**
+ * Seat holds. A paid booking only takes its seat (`seatsTaken`) once the payment succeeds, so an
+ * unpaid booking that is actively paying holds a seat for this long. Without holds, several
+ * people could pay for the last seat at the same time and all be confirmed.
+ */
+export const SEAT_HOLD_MS = 30 * 60 * 1000;
+
+export function holdsSeat(r: CommunityRegistration, now = Date.now()): boolean {
+  return r.status === 'pending_payment' && r.paymentStatus !== 'paid' && now - Date.parse(r.updatedAt || r.createdAt) < SEAT_HOLD_MS;
+}
+
+/** Seats that can still be booked: free seats minus active holds (optionally ignoring one booking's own hold). */
+export function seatsAvailable(event: CommunityEvent, registrations: CommunityRegistration[], exceptBookingId?: string): number {
+  const held = registrations.filter((r) => r.eventId === event.id && r.bookingId !== exceptBookingId && holdsSeat(r)).length;
+  return Math.max(0, (event.seatsTotal || 0) - (event.seatsTaken || 0) - held);
+}
+
 /** Counts one more seat on the event. Synchronous, so call it right after the private write. */
 export function takeSeat(eventId: string): void {
   const event = findEventById(eventId);
   if (!event) return;
-  updateItem('events', eventId, { seatsTaken: (event.seatsTaken || 0) + 1 });
+  const taken = (event.seatsTaken || 0) + 1;
+  // Only possible when a payment lands after its 30-minute hold lapsed and the seat was resold:
+  // the attendee has paid, so they are confirmed, and the team is told to review capacity.
+  if (event.seatsTotal > 0 && taken > event.seatsTotal) {
+    console.warn(`[seats] ${event.slug}: ${taken}/${event.seatsTotal} after a late payment — review capacity`);
+  }
+  updateItem('events', eventId, { seatsTaken: taken });
 }
 
 /** Looks up a registration and checks its access token. */
@@ -91,9 +114,9 @@ export function generateBookingId(event: CommunityEvent, existing: CommunityRegi
 
 const buckets = new Map<string, number[]>();
 
+/** The caller's IP as seen by our proxy — never the client-supplied part of X-Forwarded-For. */
 export function clientIp(req: Request): string {
-  const fwd = req.headers.get('x-forwarded-for');
-  return (fwd?.split(',')[0] || req.headers.get('x-real-ip') || 'unknown').trim();
+  return clientIpFromHeaders(req.headers);
 }
 
 /** Returns true when the key is still within `limit` hits per `windowMs`. */

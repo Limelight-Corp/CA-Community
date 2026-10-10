@@ -3,6 +3,7 @@
  * In-memory, per-process only — good enough for the interim single-instance deployment.
  */
 import type { NextRequest } from 'next/server';
+import { clientIpFromHeaders } from '@ascend/shared';
 
 type Bucket = { count: number; resetAt: number };
 const buckets = new Map<string, Bucket>();
@@ -22,9 +23,9 @@ export function rateLimit(key: string, limit: number, windowMs: number): boolean
   return bucket.count <= limit;
 }
 
+/** The caller's IP as seen by our proxy — never the client-supplied part of X-Forwarded-For. */
 export function clientIp(request: NextRequest): string {
-  const fwd = request.headers.get('x-forwarded-for');
-  return (fwd?.split(',')[0] || request.headers.get('x-real-ip') || 'unknown').trim();
+  return clientIpFromHeaders(request.headers);
 }
 
 /** Reads a JSON body, refusing anything over `maxBytes`. Returns null when invalid. */

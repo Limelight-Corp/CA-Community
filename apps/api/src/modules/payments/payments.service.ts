@@ -5,6 +5,7 @@ import { AuditService } from '../audit/audit.service';
 import { NotFoundError, BadRequestError } from '../../errors/AppError';
 import { OrderItemType, PaymentMethod } from '@prisma/client';
 import crypto from 'crypto';
+import { newBookingCode } from '../events/events.service';
 
 export class PaymentsService {
   constructor(
@@ -173,10 +174,7 @@ export class PaymentsService {
       const event = await this.eventsRepository.getEventBySlug(order.itemId);
       if (event) {
         const attendeeInfo = (order.billingAddress as any) || {};
-        const prefix = 'ASC27';
-        const slugCode = event.slug.substring(0, 3).toUpperCase();
-        const sequence = String(event.seatsTaken + 1).padStart(4, '0');
-        const bookingCode = `${prefix}-${slugCode}-${sequence}`;
+        const bookingCode = newBookingCode(event.slug);
         const qrPayload = `ASCEND:EVENT:${event.slug}:${bookingCode}:${attendeeInfo.email || order.userId}`;
 
         registration = await this.eventsRepository.createRegistration({

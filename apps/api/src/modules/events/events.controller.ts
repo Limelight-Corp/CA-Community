@@ -68,7 +68,7 @@ export class EventsController {
 
   getRegistration = async (req: Request, res: Response) => {
     const bookingCode = req.params.bookingCode as string;
-    const registration = await this.eventsService.getRegistration(bookingCode);
+    const registration = await this.eventsService.getRegistration(bookingCode, { id: req.user!.id, role: req.user!.role });
 
     const response: ApiResponse<typeof registration> = {
       success: true,

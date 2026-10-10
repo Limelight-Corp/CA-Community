@@ -100,7 +100,14 @@ export class MembersService {
       throw new NotFoundError('Member profile not found');
     }
 
-    const updated = await this.membersRepository.updateProfile(userId, data);
+    // Defence in depth: copy only whitelisted scalar fields, whatever the caller passed.
+    const allowed = ['firmName', 'city', 'bio', 'specialization', 'linkedinUrl', 'avatarUrl'] as const;
+    const safe: Record<string, string> = {};
+    for (const key of allowed) {
+      const value = (data as Record<string, unknown>)[key];
+      if (typeof value === 'string') safe[key] = value;
+    }
+    const updated = await this.membersRepository.updateProfile(userId, safe);
 
     await this.auditService.log({
       userId,

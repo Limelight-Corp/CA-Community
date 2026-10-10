@@ -1,6 +1,18 @@
 import { EventsRepository } from './events.repository';
 import { AuditService } from '../audit/audit.service';
+import { randomBytes } from 'crypto';
 import { NotFoundError, BadRequestError } from '../../errors/AppError';
+
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Booking code like ASC27-LAU-7K2M9QXD: the random part makes codes unguessable. */
+export function newBookingCode(slug: string): string {
+  const bytes = randomBytes(8);
+  const random = Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
+  return `ASC27-${slug.substring(0, 3).toUpperCase()}-${random}`;
+}
+
+const STAFF_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'MODERATOR']);
 
 export class EventsService {
   constructor(
@@ -38,8 +50,6 @@ export class EventsService {
       attendeeMno?: string;
       attendeeCity: string;
       attendeeOrg?: string;
-      feePaid?: number;
-      orderId?: string;
     },
     userId?: string
   ) {
@@ -52,13 +62,14 @@ export class EventsService {
       throw new BadRequestError('This event is fully booked');
     }
 
-    // Generate prototype-accurate booking code: e.g. ASC27-LAU-0613
-    const prefix = 'ASC27';
-    const slugCode = event.slug.substring(0, 3).toUpperCase();
-    const sequence = String(event.seatsTaken + 1).padStart(4, '0');
-    const bookingCode = `${prefix}-${slugCode}-${sequence}`;
+    const bookingCode = newBookingCode(event.slug);
 
-    const fee = attendeeData.feePaid ?? (userId ? event.memberFee : event.fee);
+    // The fee is always the server's price. Paid tickets are only issued by the payment flow
+    // (payments.service verifyPayment), so this endpoint books free events only.
+    const fee = userId ? event.memberFee : event.fee;
+    if (Number(fee) > 0) {
+      throw new BadRequestError('This is a paid event — complete the payment to register');
+    }
 
     // QR code data string
     const qrPayload = `ASCEND:EVENT:${event.slug}:${bookingCode}:${attendeeData.attendeeEmail}`;
@@ -67,7 +78,6 @@ export class EventsService {
       bookingCode,
       eventId: event.id,
       userId,
-      orderId: attendeeData.orderId,
       attendeeName: attendeeData.attendeeName,
       attendeeEmail: attendeeData.attendeeEmail,
       attendeeMobile: attendeeData.attendeeMobile,
@@ -81,9 +91,14 @@ export class EventsService {
     return registration;
   }
 
-  async getRegistration(bookingCode: string) {
+  /** A registration is visible only to the member who owns it and to staff. */
+  async getRegistration(bookingCode: string, viewer: { id: string; role: string }) {
     const registration = await this.eventsRepository.getRegistrationByBookingCode(bookingCode);
     if (!registration) {
+      throw new NotFoundError(`Registration code "${bookingCode}" not found`);
+    }
+    if (registration.userId !== viewer.id && !STAFF_ROLES.has(viewer.role)) {
+      // Same answer as a missing code, so codes cannot be probed.
       throw new NotFoundError(`Registration code "${bookingCode}" not found`);
     }
     return registration;

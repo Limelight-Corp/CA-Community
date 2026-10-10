@@ -5,6 +5,7 @@ import { eventStatus, seatsLeft } from '../../../../lib/events';
 import {
   clientIp,
   createRazorpayOrder,
+  seatsAvailable,
   findEventById,
   findRegistrationWithToken,
   rateLimit,
@@ -46,6 +47,22 @@ export async function POST(req: Request) {
   const status = event ? eventStatus(event) : 'closed';
   if (!event || status === 'past' || status === 'closed' || status === 'cancelled' || seatsLeft(event) <= 0) {
     return json({ ...base, error: 'Payments for this event are closed. Please contact us for help.' }, 409);
+  }
+
+  // Claim (or renew) this booking's seat hold atomically before opening a payment, so two people
+  // cannot both start paying for the last seat.
+  const claimed = mutatePrivate((data) => {
+    const r = data.registrations.find((x) => x.bookingId === reg.bookingId);
+    if (!r || r.paymentStatus === 'paid') return false;
+    if (seatsAvailable(event, data.registrations, reg.bookingId) <= 0) return false;
+    r.updatedAt = new Date().toISOString();
+    return true;
+  });
+  if (!claimed) {
+    return json(
+      { ...base, error: 'All remaining seats are taken or held by people completing their payment. Please try again in about 30 minutes.' },
+      409
+    );
   }
 
   const payment = await createRazorpayOrder(reg);

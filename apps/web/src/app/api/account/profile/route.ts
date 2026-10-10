@@ -30,6 +30,7 @@ const Input = z.object({
   designation: text(120),
   linkedinUrl: text(300).refine((v) => !v || /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+/i.test(v), 'Enter a full LinkedIn URL (https://linkedin.com/in/…)'),
   bio: text(600),
+  directoryOptIn: z.boolean().optional(),
 });
 
 /** Updates the signed-in member's profile. Email changes are not supported here. */

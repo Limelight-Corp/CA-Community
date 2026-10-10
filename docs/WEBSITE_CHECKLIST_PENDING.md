@@ -67,5 +67,5 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 ## Phase 2 / future (§18, §26)
 - [ ] WhatsApp Business API confirmations/reminders **(client: WhatsApp API account)**
 - [ ] Paid membership via Razorpay (plans are marked "proposed" — prices need confirmation)
-- [ ] Real member directory (current /directory page uses sample data)
+- [x] Real member directory: approved members who opt in; members-only; search + city / wing / plan filters; no contact details exposed
 - [ ] Job board, mentorship programme, forum, online courses, referral programme

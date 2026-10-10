@@ -27,6 +27,7 @@ import {
   Sparkles,
   Ticket,
   UserRound,
+  Users,
 } from 'lucide-react';
 import type { DashboardBooking, DashboardData } from '../../lib/member-dashboard';
 import { getInitials, useAuth } from '../../context/AuthContext';
@@ -379,6 +380,11 @@ function MembershipCard({ membership, isMember, verified }: { membership: Dashbo
           </div>
         </div>
       )}
+      {isMember && (
+        <Link href="/directory" className="mt-5 inline-flex h-10 items-center gap-2 rounded-full border border-mist/[0.16] px-4 text-[13.5px] font-semibold text-[var(--fg)] transition hover:border-brand-300/60 hover:bg-brand-500/10">
+          <Users className="h-4 w-4 text-gold" aria-hidden /> Browse the member directory
+        </Link>
+      )}
     </section>
   );
 }
@@ -516,6 +522,7 @@ function ProfileTab({ data }: { data: DashboardData }) {
     linkedinUrl: account.profile.linkedinUrl ?? '',
     bio: account.profile.bio ?? '',
   });
+  const [directoryOptIn, setDirectoryOptIn] = useState(!!account.profile.directoryOptIn);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -524,7 +531,7 @@ function ProfileTab({ data }: { data: DashboardData }) {
     setSaving(true);
     setErrors({});
     try {
-      const res = await fetch('/api/account/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const res = await fetch('/api/account/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, directoryOptIn }) });
       const d = (await res.json().catch(() => ({}))) as { error?: string; fieldErrors?: Record<string, string> };
       if (!res.ok) {
         setErrors(d.fieldErrors ?? {});
@@ -577,6 +584,22 @@ function ProfileTab({ data }: { data: DashboardData }) {
             {errors.bio && <span className="text-[12px] text-bad">{errors.bio}</span>}
           </label>
         </div>
+        <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-2xl border border-mist/[0.12] bg-mist/[0.03] p-4">
+          <input
+            type="checkbox"
+            checked={directoryOptIn}
+            onChange={(e) => setDirectoryOptIn(e.target.checked)}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--lime)]"
+          />
+          <span>
+            <span className="block text-[14px] font-medium text-[var(--fg)]">Show me in the member directory</span>
+            <span className="mt-0.5 block text-[12.5px] leading-relaxed text-[var(--muted)]">
+              Other approved members can see your name, photo, designation, firm, city, area of practice, qualification year, bio, wings and
+              LinkedIn. Your email, phone and membership number are never shown.
+              {!data.isMember && ' Your listing appears once your membership is approved.'}
+            </span>
+          </span>
+        </label>
         <button
           type="submit"
           disabled={saving}

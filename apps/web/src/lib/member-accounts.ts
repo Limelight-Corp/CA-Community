@@ -23,6 +23,8 @@ export interface MemberProfile {
   bio?: string;
   /** /api/account/photo/<file> */
   photoUrl?: string;
+  /** Listed in the members-only directory (approved members only; off by default). */
+  directoryOptIn?: boolean;
 }
 
 export interface MemberAccount {
@@ -89,6 +91,11 @@ export const normaliseEmail = (email: string) => email.trim().toLowerCase();
 export function findAccountByEmail(email: string): MemberAccount | undefined {
   const e = normaliseEmail(email);
   return readRaw().accounts.find((a) => a.email === e);
+}
+
+/** All accounts (read-only snapshot). */
+export function readAccounts(): MemberAccount[] {
+  return readRaw().accounts;
 }
 
 export function findAccountById(id: string): MemberAccount | undefined {

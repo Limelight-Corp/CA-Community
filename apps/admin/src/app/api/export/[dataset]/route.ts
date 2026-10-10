@@ -12,7 +12,7 @@ import { MEMBER_STATUS_LABEL, PAYMENT_STATUS_LABEL, REGISTRATION_STATUS_LABEL, s
 import { bad, handleError } from '../../../../lib/api-helpers';
 
 /**
- * Data exports: GET /api/export/{registrations|payments|members}?format=csv|xls&<filters>
+ * Data exports: GET /api/export/{registrations|payments|members}?format=csv|xlsx&<filters>
  *
  * Filters mirror the admin tables (q, event, payment, status, plan, city) so the file contains
  * what the admin sees. Protected by the admin access gate (src/middleware.ts).
@@ -33,8 +33,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
     if (!(DATASETS as readonly string[]).includes(dataset)) return bad('Unknown export', 404);
     const sp = request.nextUrl.searchParams;
     const formatParam = sp.get('format') ?? 'csv';
-    if (formatParam !== 'csv' && formatParam !== 'xls') return bad('Format must be csv or xls');
-    const format = formatParam as ExportFormat;
+    if (formatParam !== 'csv' && formatParam !== 'xlsx' && formatParam !== 'xls') return bad('Format must be csv or xlsx');
+    // "xls" (old links) now gets the modern .xlsx file too.
+    const format: ExportFormat = formatParam === 'csv' ? 'csv' : 'xlsx';
 
     const priv = readPrivate();
     const events = readStore().events;

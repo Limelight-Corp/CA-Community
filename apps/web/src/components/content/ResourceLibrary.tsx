@@ -7,6 +7,7 @@ import { EmptyState, cn, fieldInputClass } from '@ascend/ui';
 import { chipClass } from './ui';
 import { FxCard } from '../home/Interactive';
 import { useAuth } from '../../context/AuthContext';
+import { ResourceShare } from './ResourceShare';
 
 export interface ResourceCardData {
   id: string;
@@ -119,6 +120,8 @@ function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; 
         r.isMembersOnly ? 'holo border-gold/30 bg-gold/[0.05]' : 'border-mist/[0.1] bg-grad-surface'
       )}
     >
+      {/* Target for shared links (/resources#resource-<id>) */}
+      <span id={`resource-${r.id}`} className="block h-0 w-0 scroll-mt-32" aria-hidden />
       {/* Cover strip */}
       <div className={cn('grain relative shrink-0 overflow-hidden bg-brand-950', wide ? 'h-[140px] md:h-auto md:w-[42%]' : 'h-[96px]')}>
         <div
@@ -162,7 +165,7 @@ function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; 
             {r.title}
           </h2>
         </div>
-        <div className="mt-auto border-t border-[var(--line)] pt-4">
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--line)] pt-4">
           {r.isMembersOnly && !(isMember && r.fileUrl) ? (
             <span className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-1">
               <Link href="/join" className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-gold hover:text-gold-soft">
@@ -189,6 +192,7 @@ function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; 
           ) : (
             <span className="text-[13.5px] text-[var(--muted)]">Coming soon</span>
           )}
+          <ResourceShare id={r.id} title={r.title} />
         </div>
       </div>
     </FxCard>

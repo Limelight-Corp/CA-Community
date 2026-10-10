@@ -83,7 +83,9 @@ export function CookieConsent({ enabled }: { enabled: boolean }) {
           <Cookie className="h-5 w-5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-display text-[18px] font-medium tracking-[-0.02em] text-[var(--fg)]">Cookies on this site</p>
+          <p className="font-display text-[18px] font-medium tracking-[-0.02em] text-[var(--fg)]">
+            Cookies on this site
+          </p>
           <p className="mt-1.5 text-[13.5px] leading-relaxed text-[var(--muted)]">
             We use essential cookies to keep you signed in and the site secure.
             {enabled

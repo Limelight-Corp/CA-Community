@@ -175,6 +175,8 @@ export interface SiteSettings {
   heroHeadline: string;
   heroHeadlineAccent: string;
   heroIntro: string;
+  /** Optional background photo behind the homepage hero (darkened automatically). */
+  heroImageUrl?: string;
   /** Optional strip shown above the header (e.g. founding member registration). */
   announcement?: string;
   contact: {

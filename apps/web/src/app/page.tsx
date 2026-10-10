@@ -32,6 +32,7 @@ import {
 import { Avatar, Container, Kicker, SectionHeading, AccentText } from '@ascend/ui';
 import { CountUp, Countdown, Marquee, Reveal } from '../components/ui-client';
 import { getItems, getSettings } from '../lib/community-store';
+import { safeUrl } from '../lib/content';
 import { canRegister, eventSpeakers, eventWing, isUpcoming, sortByDate } from '../lib/events';
 import { EventTile } from '../components/events/EventTile';
 import {
@@ -65,6 +66,7 @@ const WHY_ICONS = {
 
 export default function HomePage() {
   const settings = getSettings();
+  const heroImage = safeUrl(settings.heroImageUrl);
   const events = sortByDate(getItems<CommunityEvent>('events', true));
   const wings = getItems<CommunityWing>('wings', true).sort((a, b) => a.number - b.number);
   const speakers = getItems<CommunitySpeaker>('speakers', true);
@@ -87,6 +89,14 @@ export default function HomePage() {
       {/* ------------------------------------------------------------------ HERO */}
       <ScrollProgress />
       <Spotlight as="section" className="grain relative -mt-[72px] overflow-hidden pt-[72px]">
+        {heroImage && (
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={heroImage} alt="" className="h-full w-full object-cover opacity-35" fetchPriority="high" />
+            <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/85 to-bg/40" />
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-bg to-transparent" />
+          </div>
+        )}
         <div className="aurora" aria-hidden>
           <i />
         </div>

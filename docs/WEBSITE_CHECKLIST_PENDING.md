@@ -52,10 +52,11 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 - [ ] GA4 / Meta Pixel IDs, if used **(client)**
 
 ## Step 7 — Smaller improvements
-- [ ] Speakers linked to events by id, so renaming a speaker doesn't break events — §9
-- [ ] Excel export as real .xlsx (today SpreadsheetML .xls) — §16
-- [ ] Share buttons on resources — §14
-- [ ] Homepage banner image upload in Site Settings — §15
+- [x] Renaming a speaker's URL (or deleting a speaker) updates every event that lists them — §9
+- [x] Excel export is a real .xlsx (bold frozen header, filters, column widths) — §16
+- [x] Share button on every resource (native share / LinkedIn / WhatsApp / X / Facebook / copy link) — §14
+- [x] Homepage banner background photo upload in Site Settings — §15
+- [x] Fix: images uploaded after a build were not served (404) — now served by /uploads route in both apps
 
 ## Content the organisation must provide (no code needed) — §29
 - [ ] Testimonials (none yet, so the section is hidden)

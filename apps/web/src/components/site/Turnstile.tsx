@@ -38,7 +38,15 @@ export function useCaptchaEnabled(): boolean {
  * Cloudflare Turnstile widget. Renders nothing unless TURNSTILE_* keys are configured.
  * Tokens are single-use: bump `resetKey` after every submit attempt to get a fresh one.
  */
-export function Turnstile({ onToken, resetKey = 0, className }: { onToken: (token: string) => void; resetKey?: number; className?: string }) {
+export function Turnstile({
+  onToken,
+  resetKey = 0,
+  className,
+}: {
+  onToken: (token: string) => void;
+  resetKey?: number;
+  className?: string;
+}) {
   const siteKey = useSiteConfig().turnstileSiteKey;
   const box = useRef<HTMLDivElement>(null);
   const widget = useRef<string | null>(null);

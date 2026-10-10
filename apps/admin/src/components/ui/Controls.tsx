@@ -619,7 +619,7 @@ export function ExportButtons({
   params?: Record<string, string | undefined>;
   label?: string;
 }) {
-  const href = (format: 'csv' | 'xls') => {
+  const href = (format: 'csv' | 'xlsx') => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v) sp.set(k, v);
     sp.set('format', format);
@@ -633,7 +633,7 @@ export function ExportButtons({
         <Download className="h-4 w-4" aria-hidden />
         CSV
       </a>
-      <a href={href('xls')} className={cls} download>
+      <a href={href('xlsx')} className={cls} download>
         <FileSpreadsheet className="h-4 w-4 text-ok" aria-hidden />
         Excel
       </a>

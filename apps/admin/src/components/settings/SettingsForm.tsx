@@ -7,7 +7,7 @@ import type { SiteSettings } from '@ascend/shared';
 import { Button, useToast } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { Panel } from '../ui/Display';
-import { TextAreaField, TextField } from '../ui/Controls';
+import { ImageUpload, TextAreaField, TextField } from '../ui/Controls';
 
 interface State {
   siteName: string;
@@ -16,6 +16,7 @@ interface State {
   heroHeadline: string;
   heroHeadlineAccent: string;
   heroIntro: string;
+  heroImageUrl: string;
   announcement: string;
   contact: { email: string; phone: string; address: string; mapUrl: string };
   social: { linkedin: string; instagram: string; facebook: string; youtube: string; x: string };
@@ -29,6 +30,7 @@ function toState(s: SiteSettings): State {
     heroHeadline: s.heroHeadline ?? '',
     heroHeadlineAccent: s.heroHeadlineAccent ?? '',
     heroIntro: s.heroIntro ?? '',
+    heroImageUrl: s.heroImageUrl ?? '',
     announcement: s.announcement ?? '',
     contact: {
       email: s.contact?.email ?? '',
@@ -101,6 +103,14 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
           <TextField label="Headline" required value={s.heroHeadline} onChange={(v) => set('heroHeadline', v)} error={errors.heroHeadline} maxLength={160} />
           <TextField label="Headline accent" value={s.heroHeadlineAccent} onChange={(v) => set('heroHeadlineAccent', v)} error={errors.heroHeadlineAccent} maxLength={120} hint="Highlighted words after the headline" />
           <TextAreaField label="Intro paragraph" value={s.heroIntro} onChange={(v) => set('heroIntro', v)} error={errors.heroIntro} maxLength={600} className="md:col-span-2" />
+          <ImageUpload
+            label="Background photo (optional)"
+            value={s.heroImageUrl}
+            onChange={(v) => set('heroImageUrl', v)}
+            error={errors.heroImageUrl}
+            hint="Wide photo, ideally 1920px or more. It is darkened automatically so the text stays readable. PNG, JPEG or WebP · up to 5 MB"
+            className="md:col-span-2"
+          />
         </div>
         <div className="mt-6 rounded-2xl border border-mist/[0.08] bg-bg/60 p-5" aria-hidden>
           <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-200">{s.heroEyebrow || 'Eyebrow'}</p>

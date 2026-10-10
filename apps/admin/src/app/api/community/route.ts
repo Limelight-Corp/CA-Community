@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { COMMUNITY_CONTENT_TYPES, type CommunityEvent } from '@ascend/shared';
 import {
   readStore,
+  writeStore,
   readPrivate,
   getItems,
   addItem,
@@ -166,6 +167,10 @@ export async function PUT(request: NextRequest) {
 
     const updated = updateItem(type, id, data);
     if (!updated) return bad('Item not found', 404);
+    // Events reference speakers by slug: follow a renamed slug so their speaker lists stay intact.
+    if (type === 'speakers' && typeof existing.slug === 'string' && 'slug' in data && data.slug !== existing.slug) {
+      relinkSpeaker(existing.slug, String(data.slug));
+    }
     // Date / time / venue changes are emailed to registered attendees unless the admin opts out.
     let notified = 0;
     if (type === 'events' && body.notifyAttendees !== false) {
@@ -175,6 +180,19 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     return serverError(error);
   }
+}
+
+/** Replaces (or, with `to = null`, removes) a speaker slug in every event's speaker list. */
+function relinkSpeaker(from: string, to: string | null): void {
+  const store = readStore();
+  let changed = false;
+  for (const e of store.events) {
+    if (!e.speakerSlugs?.includes(from)) continue;
+    const next = e.speakerSlugs.map((s) => (s === from ? to : s)).filter((s): s is string => !!s);
+    e.speakerSlugs = Array.from(new Set(next));
+    changed = true;
+  }
+  if (changed) writeStore(store);
 }
 
 export async function DELETE(request: NextRequest) {
@@ -205,8 +223,10 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
+    const speakerSlug = type === 'speakers' ? (getItems('speakers') as { id: string; slug?: string }[]).find((s) => s.id === id)?.slug : undefined;
     const deleted = deleteItem(type, id);
     if (!deleted) return bad('Item not found', 404);
+    if (speakerSlug) relinkSpeaker(speakerSlug, null);
 
     return NextResponse.json({ success: true, deleted: true, id });
   } catch (error) {

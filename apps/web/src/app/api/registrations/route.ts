@@ -9,6 +9,7 @@ import {
   findPublishedEvent,
   generateBookingId,
   rateLimit,
+  seatsAvailable,
   takeSeat,
 } from './_lib/server';
 import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstile';
@@ -83,6 +84,12 @@ export async function POST(req: Request) {
   const event = findPublishedEvent(input.eventSlug);
   if (!event) return json({ error: 'This event could not be found.' }, 404);
 
+  // Per-recipient cap: each new booking emails the address given, so limit bookings per email
+  // address however many IPs they come from (stops using the form to flood someone's inbox).
+  if (!rateLimit(`reg-to:${input.email.toLowerCase()}`, 5, 60 * 60_000)) {
+    return json({ error: 'Too many registrations for this email address. Please try again in an hour.' }, 429);
+  }
+
 
   type Outcome =
     | { kind: 'existing'; reg: CommunityRegistration }
@@ -110,6 +117,13 @@ export async function POST(req: Request) {
 
     if (!canRegister(event) || seatsLeft(event) <= 0) {
       return { kind: 'closed', message: 'Registrations for this event are closed.' };
+    }
+    // Checked inside the same write as the insert, so two requests cannot both take the last seat.
+    if (seatsAvailable(event, data.registrations) <= 0) {
+      return {
+        kind: 'closed',
+        message: 'All remaining seats are held by people completing their payment. Please try again in about 30 minutes.',
+      };
     }
 
     const stamp = new Date().toISOString();

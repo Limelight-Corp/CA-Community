@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { FailureThrottle, clientIpFromHeaders } from '@ascend/shared';
 import { bad, isPlainObject } from '../../../../lib/api-helpers';
 import {
   SESSION_COOKIE,
@@ -14,35 +15,21 @@ import { sameOrigin } from '../same-origin';
 
 export const dynamic = 'force-dynamic';
 
-/** In-memory brute-force brake: 5 failed attempts per client per 15 minutes. */
+/**
+ * In-memory brute-force brake, counted both per username (5 failures / 15 min) and per client IP
+ * (20 / 15 min). The IP comes from our proxy, so a forged X-Forwarded-For cannot reset it.
+ */
 const WINDOW_MS = 15 * 60 * 1000;
-const MAX_FAILURES = 5;
-const failures = new Map<string, { count: number; first: number }>();
+const byUser = new FailureThrottle(5, WINDOW_MS);
+const byIp = new FailureThrottle(20, WINDOW_MS);
 
-function clientKey(request: NextRequest): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'local'
-  );
+function isHttps(request: NextRequest): boolean {
+  const proto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  return proto ? proto === 'https' : request.nextUrl.protocol === 'https:';
 }
 
-function lockedFor(key: string): number {
-  const entry = failures.get(key);
-  if (!entry) return 0;
-  const elapsed = Date.now() - entry.first;
-  if (elapsed > WINDOW_MS) {
-    failures.delete(key);
-    return 0;
-  }
-  return entry.count >= MAX_FAILURES ? Math.ceil((WINDOW_MS - elapsed) / 60000) : 0;
-}
-
-function recordFailure(key: string) {
-  const entry = failures.get(key);
-  if (!entry || Date.now() - entry.first > WINDOW_MS)
-    failures.set(key, { count: 1, first: Date.now() });
-  else entry.count += 1;
+function tooMany(minutes: number) {
+  return bad(`Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`, 429);
 }
 
 export async function POST(request: NextRequest) {
@@ -50,14 +37,9 @@ export async function POST(request: NextRequest) {
 
   if (!signInConfigured()) return bad('Admin sign-in is not configured on this server.', 503);
 
-  const key = clientKey(request);
-  const minutes = lockedFor(key);
-  if (minutes > 0) {
-    return bad(
-      `Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
-      429
-    );
-  }
+  const ipKey = clientIpFromHeaders(request.headers);
+  const ipMinutes = byIp.lockedFor(ipKey);
+  if (ipMinutes > 0) return tooMany(ipMinutes);
 
   const body = await request.json().catch(() => null);
   if (!isPlainObject(body)) return bad('Invalid request.');
@@ -69,6 +51,9 @@ export async function POST(request: NextRequest) {
       ...(password ? {} : { password: 'Password is required' }),
     });
   }
+  const userKey = username.toLowerCase();
+  const userMinutes = byUser.lockedFor(userKey);
+  if (userMinutes > 0) return tooMany(userMinutes);
 
   // Accounts in the admin store first, then the environment credentials as a fallback.
   const dbUser = authenticateAdmin(username, password);
@@ -79,18 +64,13 @@ export async function POST(request: NextRequest) {
     constantTimeEqual(username, cfg.user) &&
     constantTimeEqual(password, cfg.password);
   if (!dbUser && !envOk) {
-    recordFailure(key);
+    byIp.fail(ipKey);
+    const left = byUser.fail(userKey);
     await new Promise((r) => setTimeout(r, 400));
-    const left = MAX_FAILURES - (failures.get(key)?.count ?? 0);
-    return bad(
-      left > 0
-        ? `Incorrect username or password. ${left} attempt${left === 1 ? '' : 's'} left.`
-        : 'Too many failed attempts. Try again in 15 minutes.',
-      left > 0 ? 401 : 429
-    );
+    return left > 0 ? bad('Incorrect username or password.', 401) : tooMany(15);
   }
 
-  failures.delete(key);
+  byUser.clear(userKey);
   if (dbUser) recordAdminLogin(dbUser.id);
   const token = dbUser
     ? await createSessionToken(dbUser.username, 'db')
@@ -102,7 +82,8 @@ export async function POST(request: NextRequest) {
   res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production' && request.nextUrl.protocol === 'https:',
+    // Behind the TLS-terminating proxy the request URL is http:, so trust nginx's X-Forwarded-Proto.
+    secure: isHttps(request),
     path: '/',
     maxAge: SESSION_TTL_SECONDS,
   });

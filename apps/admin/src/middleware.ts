@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { FailureThrottle, clientIpFromHeaders } from '@ascend/shared';
 import {
   SESSION_COOKIE,
   constantTimeEqual,
@@ -42,16 +43,30 @@ function parseBasicAuth(header: string | null): { user: string; password: string
   }
 }
 
+/** Basic-auth guessing brake (per client IP and per username), checked before any password hashing. */
+const basicByIp = new FailureThrottle(20, 15 * 60 * 1000);
+const basicByUser = new FailureThrottle(5, 15 * 60 * 1000);
+
 function basicAuthOk(request: NextRequest): boolean {
   const credentials = parseBasicAuth(request.headers.get('authorization'));
   if (!credentials) return false;
+  const ip = clientIpFromHeaders(request.headers);
+  const user = credentials.user.toLowerCase();
+  if (basicByIp.lockedFor(ip) > 0 || basicByUser.lockedFor(user) > 0) return false;
   const cfg = gateConfig();
+  let ok = false;
   if (cfg) {
     const userOk = constantTimeEqual(credentials.user, cfg.user);
     const passwordOk = constantTimeEqual(credentials.password, cfg.password);
-    if (userOk && passwordOk) return true;
+    ok = userOk && passwordOk;
   }
-  return authenticateAdmin(credentials.user, credentials.password) !== null;
+  if (!ok) ok = authenticateAdmin(credentials.user, credentials.password) !== null;
+  if (ok) basicByUser.clear(user);
+  else {
+    basicByIp.fail(ip);
+    basicByUser.fail(user);
+  }
+  return ok;
 }
 
 function withHeaders(res: NextResponse): NextResponse {

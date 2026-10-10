@@ -10,7 +10,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-ascend_ca}
     ports:
-      - '5432:5432'
+      # Host-only: nginx reaches this over the Docker network; never expose it publicly.
+      - '127.0.0.1:5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -27,7 +28,8 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispassword}
     ports:
-      - '6379:6379'
+      # Host-only: nginx reaches this over the Docker network; never expose it publicly.
+      - '127.0.0.1:6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
@@ -65,7 +67,8 @@ services:
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-placeholder_secret}
       RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-placeholder_webhook_secret}
     ports:
-      - '4000:4000'
+      # Host-only: nginx reaches this over the Docker network; never expose it publicly.
+      - '127.0.0.1:4000:4000'
     networks:
       - ascend_network
 
@@ -84,7 +87,8 @@ services:
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       NEXT_PUBLIC_RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_placeholder}
     ports:
-      - '3000:3000'
+      # Host-only: nginx reaches this over the Docker network; never expose it publicly.
+      - '127.0.0.1:3000:3000'
     networks:
       - ascend_network
 
@@ -104,7 +108,8 @@ services:
       ADMIN_GATE_USER: ${ADMIN_GATE_USER:?ADMIN_GATE_USER must be set}
       ADMIN_GATE_PASSWORD: ${ADMIN_GATE_PASSWORD:?ADMIN_GATE_PASSWORD must be set}
     ports:
-      - '3001:3001'
+      # Host-only: nginx reaches this over the Docker network; never expose it publicly.
+      - '127.0.0.1:3001:3001'
     networks:
       - ascend_network
 

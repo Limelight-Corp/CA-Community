@@ -19,9 +19,10 @@ export function seatsLeft(e: CommunityEvent): number {
   return Math.max(0, (e.seatsTotal || 0) - (e.seatsTaken || 0));
 }
 
-export type EventStatus = 'open' | 'filling' | 'soldout' | 'closed' | 'past';
+export type EventStatus = 'open' | 'filling' | 'soldout' | 'closed' | 'past' | 'cancelled';
 
 export function eventStatus(e: CommunityEvent, today = new Date()): EventStatus {
+  if (e.cancelledAt) return 'cancelled';
   if (!isUpcoming(e, today)) return 'past';
   if (e.registrationOpen === false) return 'closed';
   const left = seatsLeft(e);
@@ -36,6 +37,7 @@ export const STATUS_LABEL: Record<EventStatus, string> = {
   soldout: 'Sold out',
   closed: 'Registrations closed',
   past: 'Event concluded',
+  cancelled: 'Event cancelled',
 };
 
 export function canRegister(e: CommunityEvent): boolean {

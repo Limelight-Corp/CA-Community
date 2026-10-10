@@ -33,6 +33,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
         revenue: s.revenue,
         isPublished: e.isPublished !== false,
         registrationOpen: e.registrationOpen !== false,
+        cancelled: !!e.cancelledAt,
         featured: Boolean(e.featured),
         imageUrl: e.imageUrl,
       };

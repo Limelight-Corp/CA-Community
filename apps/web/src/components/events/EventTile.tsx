@@ -20,6 +20,7 @@ const STATUS_STYLE = {
   soldout: 'bg-bad/15 text-bad border-bad/30',
   closed: 'bg-mist/10 text-[var(--muted)] border-mist/20',
   past: 'bg-mist/10 text-[var(--muted)] border-mist/20',
+  cancelled: 'bg-bad/15 text-bad border-bad/30',
 } as const;
 
 export interface EventTileProps {

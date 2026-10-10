@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { COMMUNITY_CONTENT_TYPES } from '@ascend/shared';
+import { COMMUNITY_CONTENT_TYPES, type CommunityEvent } from '@ascend/shared';
 import {
   readStore,
   readPrivate,
@@ -10,6 +10,7 @@ import {
   ContentType,
 } from '../../../lib/community-store';
 import { CONTENT_TYPES } from '../../../lib/content-config';
+import { eventChanges, notifyEventUpdated } from '../../../lib/notifications';
 import {
   contentSchema,
   eventBaseSchema,
@@ -165,7 +166,12 @@ export async function PUT(request: NextRequest) {
 
     const updated = updateItem(type, id, data);
     if (!updated) return bad('Item not found', 404);
-    return NextResponse.json({ success: true, item: updated });
+    // Date / time / venue changes are emailed to registered attendees unless the admin opts out.
+    let notified = 0;
+    if (type === 'events' && body.notifyAttendees !== false) {
+      notified = notifyEventUpdated(updated as CommunityEvent, eventChanges(existing as unknown as CommunityEvent, updated as CommunityEvent));
+    }
+    return NextResponse.json({ success: true, item: updated, notified });
   } catch (error) {
     return serverError(error);
   }

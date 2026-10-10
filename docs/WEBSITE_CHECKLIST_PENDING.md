@@ -39,8 +39,8 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 - [ ] Mobile OTP login — needs an SMS provider (e.g. MSG91) **(client)**
 
 ## Step 5 — Event lifecycle (§17, §27)
-- [ ] Event reminder emails (scheduled endpoint, e.g. 1 day before)
-- [ ] Admin: cancel / reschedule an event → notify registered attendees
+- [x] Event reminder emails (day before / same day; hourly in-server + /api/cron/reminders, never sent twice)
+- [x] Admin: cancel (with message) / undo cancel / reschedule an event → registered attendees emailed; cancelled events shown on the site
 
 ## Step 6 — Security & compliance (§23, §24, §25)
 - [ ] Security headers (CSP, HSTS, X-Frame-Options, Permissions-Policy) in Next config

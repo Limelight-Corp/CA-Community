@@ -391,3 +391,74 @@ export function passwordResetEmail(brand: EmailBrand, a: { name: string; url: st
     }),
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Event lifecycle emails
+// ---------------------------------------------------------------------------------------------
+
+/** Reminder before the event (sent once per booking). */
+export function eventReminderEmail(
+  brand: EmailBrand,
+  b: EmailBooking,
+  opts: { today: boolean; mapUrl?: string; online?: boolean }
+): EmailMessage {
+  const when = opts.today ? 'today' : 'tomorrow';
+  return {
+    subject: `Reminder: ${b.eventTitle} is ${when}`,
+    ...render({
+      brand,
+      preheader: `${b.when ?? ''} · ${b.where ?? ''}`.replace(/^ · | · $/g, ''),
+      heading: `See you ${when}!`,
+      intro: [
+        `Hi ${b.name},`,
+        `This is a reminder that ${b.eventTitle} is ${when}.`,
+        opts.online
+          ? 'This is an online event — the joining details are on your booking page and will be shared by the organisers.'
+          : 'Please carry your entry pass: show the QR code on your booking page at the entrance.',
+      ],
+      rows: [...bookingRows(b), ...(opts.mapUrl ? ([['Directions', opts.mapUrl]] as Row[]) : [])],
+      cta: { label: opts.online ? 'Open my booking' : 'Open my entry pass', url: b.bookingUrl },
+    }),
+  };
+}
+
+/** The organisers cancelled the event. */
+export function eventCancelledEmail(brand: EmailBrand, b: EmailBooking, opts: { note?: string; paid: boolean }): EmailMessage {
+  return {
+    subject: `Event cancelled: ${b.eventTitle}`,
+    ...render({
+      brand,
+      preheader: `${b.eventTitle} will not take place as planned.`,
+      heading: 'This event has been cancelled',
+      intro: [
+        `Hi ${b.name},`,
+        `We are sorry to let you know that ${b.eventTitle}${b.when ? ` (${b.when})` : ''} has been cancelled by the organisers.`,
+        ...(opts.note ? [opts.note] : []),
+        ...(opts.paid ? [`Our team will contact you about your payment of ${formatInr(b.fee)} for booking ${b.bookingId}.`] : []),
+      ],
+      rows: bookingRows(b),
+      cta: { label: 'Explore other events', url: `${brand.siteUrl}/events` },
+      outro: ['If you have questions, reply to this email or contact us.'],
+    }),
+  };
+}
+
+/** Date, time or venue changed after the attendee booked. */
+export function eventUpdatedEmail(brand: EmailBrand, b: EmailBooking, changes: { label: string; from: string; to: string }[]): EmailMessage {
+  return {
+    subject: `Updated details: ${b.eventTitle}`,
+    ...render({
+      brand,
+      preheader: changes.map((c) => `${c.label}: ${c.to}`).join(' · '),
+      heading: 'The event details have changed',
+      intro: [
+        `Hi ${b.name},`,
+        `The organisers have updated ${b.eventTitle}. Your booking ${b.bookingId} stays valid — here is what changed:`,
+        ...changes.map((c) => `${c.label}: ${c.to} (was ${c.from || '—'})`),
+      ],
+      rows: bookingRows(b),
+      cta: { label: 'View my booking', url: b.bookingUrl },
+      outro: ['If the new details don’t work for you, reply to this email or contact us.'],
+    }),
+  };
+}

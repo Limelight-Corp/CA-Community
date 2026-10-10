@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
   const event = findEventById(reg.eventId);
   const status = event ? eventStatus(event) : 'closed';
-  if (!event || status === 'past' || status === 'closed' || seatsLeft(event) <= 0) {
+  if (!event || status === 'past' || status === 'closed' || status === 'cancelled' || seatsLeft(event) <= 0) {
     return json({ ...base, error: 'Payments for this event are closed. Please contact us for help.' }, 409);
   }
 

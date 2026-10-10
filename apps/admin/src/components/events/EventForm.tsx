@@ -105,6 +105,8 @@ export function EventForm({
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  /** Email registered attendees when the date, time or venue changes. */
+  const [notifyAttendees, setNotifyAttendees] = useState(true);
   const [speakerQuery, setSpeakerQuery] = useState('');
   const taken = useMemo(() => new Set(takenSlugs), [takenSlugs]);
 
@@ -183,7 +185,7 @@ export function EventForm({
       agenda: form.agenda.map((a) => ({ time: a.time.trim(), title: a.title.trim(), speaker: a.speaker?.trim() || undefined })),
     };
     const res = isEdit
-      ? await api<CommunityEvent>('/api/community', { method: 'PUT', body: { type: 'events', id: event!.id, updates: payload } })
+      ? await api<CommunityEvent>('/api/community', { method: 'PUT', body: { type: 'events', id: event!.id, updates: payload, notifyAttendees } })
       : await api<CommunityEvent>('/api/community', { method: 'POST', body: { type: 'events', item: payload } });
     setSaving(false);
     if (!res.ok) {
@@ -191,7 +193,8 @@ export function EventForm({
       toast(res.error ?? 'Could not save the event');
       return;
     }
-    toast(isEdit ? 'Event saved' : 'Event created');
+    const notified = Number(res.raw?.notified) || 0;
+    toast(isEdit ? (notified ? `Event saved — ${notified} registered attendee${notified === 1 ? '' : 's'} emailed about the change` : 'Event saved') : 'Event created');
     if (!isEdit && res.data?.id) router.push(`/events/${res.data.id}`);
     router.refresh();
   };
@@ -424,12 +427,18 @@ export function EventForm({
       </div>
 
       <div className="sticky bottom-3 z-20 flex flex-col-reverse gap-3 rounded-token-lg border border-mist/[0.12] bg-panel/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           {isEdit && (
             <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(true)} className="text-bad">
               <Trash2 className="h-4 w-4" aria-hidden />
               Delete event
             </Button>
+          )}
+          {isEdit && (
+            <label className="flex cursor-pointer items-center gap-2 px-2 text-[12.5px] text-[var(--muted)]">
+              <input type="checkbox" checked={notifyAttendees} onChange={(e) => setNotifyAttendees(e.target.checked)} className="h-4 w-4 accent-[var(--lime)]" />
+              Email registered attendees if the date, time or venue changes
+            </label>
           )}
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">

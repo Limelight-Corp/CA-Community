@@ -42,6 +42,10 @@ export interface CommunityEvent {
   imageUrl?: string;
   /** Registrations accepted when true or unset. */
   registrationOpen?: boolean;
+  /** Set when the organisers cancel the event (registrations close, attendees are emailed). */
+  cancelledAt?: string;
+  /** Optional note from the organisers shown on the event page and in the email. */
+  cancellationNote?: string;
   featured?: boolean;
   isPublished: boolean;
   createdAt?: string;
@@ -267,6 +271,8 @@ export interface CommunityRegistration {
   certificateId?: string;
   /** Random code in the ticket QR (separate from accessToken, so a QR photo can't open the booking). */
   checkinCode?: string;
+  /** When the event reminder email was sent (cleared when the event is rescheduled). */
+  reminderSentAt?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -27,6 +27,7 @@ export interface EventRow {
   revenue: number;
   isPublished: boolean;
   registrationOpen: boolean;
+  cancelled?: boolean;
   featured: boolean;
   imageUrl?: string;
 }
@@ -182,10 +183,16 @@ export function EventsTable({ rows, initialStatus = '' }: { rows: EventRow[]; in
                 <td className="whitespace-nowrap">
                   <span className="block text-[var(--fg)]">{formatDate(r.date)}</span>
                   <span className="text-[12px] text-[var(--muted)]">{r.time}</span>
-                  {r.date < today && (
+                  {r.cancelled ? (
                     <div className="mt-1">
-                      <Chip>Past</Chip>
+                      <span className="inline-flex rounded-full border border-bad/30 bg-bad/10 px-2 py-0.5 text-[11px] font-semibold text-bad">Cancelled</span>
                     </div>
+                  ) : (
+                    r.date < today && (
+                      <div className="mt-1">
+                        <Chip>Past</Chip>
+                      </div>
+                    )
                   )}
                 </td>
                 <td className="whitespace-nowrap font-mono text-[13px] tabular-nums">{formatFee(r.fee)}</td>

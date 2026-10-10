@@ -277,6 +277,8 @@ export interface CommunityRegistration {
   checkinCode?: string;
   /** When the event reminder email was sent (cleared when the event is rescheduled). */
   reminderSentAt?: string;
+  /** The registrant opted in to booking updates on WhatsApp. */
+  whatsappOptIn?: boolean;
   createdAt: string;
   updatedAt: string;
 }

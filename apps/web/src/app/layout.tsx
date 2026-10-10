@@ -9,6 +9,7 @@ import { SiteFooter } from '../components/site/SiteFooter';
 import { Providers } from '../components/site/Providers';
 import { SupportChat } from '../components/site/SupportChat';
 import { jsonLd, siteUrl } from '../lib/seo';
+import { whatsappEnabled } from '../lib/whatsapp';
 import './globals.css';
 
 const inter = Inter({
@@ -116,7 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <AuthProvider>
-          <Providers gaId={gaId} metaPixelId={metaPixelId} config={{ turnstileSiteKey }}>
+          <Providers gaId={gaId} metaPixelId={metaPixelId} config={{ turnstileSiteKey, whatsappEnabled: whatsappEnabled() }}>
             <SiteHeader siteName={settings.siteName} announcement={settings.announcement} />
             <main id="main" className="relative overflow-x-clip">
               {children}

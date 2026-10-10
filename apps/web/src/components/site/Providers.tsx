@@ -10,6 +10,8 @@ import { CookieConsent, useConsent } from './CookieConsent';
 export interface SiteConfig {
   /** Cloudflare Turnstile site key — when set, public forms show the CAPTCHA. */
   turnstileSiteKey?: string;
+  /** WhatsApp booking updates are available (the registration form offers the opt-in). */
+  whatsappEnabled?: boolean;
 }
 const SiteConfigContext = createContext<SiteConfig>({});
 export const useSiteConfig = () => useContext(SiteConfigContext);

@@ -40,6 +40,7 @@ const RegistrationInput = z.object({
   organisation: optionalText(120),
   designation: optionalText(120),
   requirements: optionalText(1000),
+  whatsappOptIn: z.boolean().optional(),
   acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Please accept the event terms' }) }),
   /** Honeypot: real users never see or fill this. */
   website: z.string().optional(),
@@ -129,6 +130,7 @@ export async function POST(req: Request) {
       organisation: input.organisation,
       designation: input.designation,
       requirements: input.requirements,
+      whatsappOptIn: input.whatsappOptIn === true || undefined,
       fee,
       status: fee > 0 ? 'pending_payment' : 'confirmed',
       paymentStatus: fee > 0 ? 'pending' : 'not_required',

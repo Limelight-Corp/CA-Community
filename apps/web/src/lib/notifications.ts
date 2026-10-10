@@ -10,6 +10,7 @@ import {
   paymentFailedEmail,
   paymentPendingEmail,
   registrationConfirmedEmail,
+  waBookingConfirmed,
   type CommunityContactMessage,
   type CommunityEvent,
   type CommunityMemberApplication,
@@ -17,6 +18,7 @@ import {
 } from '@ascend/shared';
 import { getItems } from './community-store';
 import { adminRecipients, adminUrl, emailBrand, queueMail } from './mailer';
+import { queueWhatsApp } from './whatsapp';
 import { siteUrl } from './seo';
 
 /**
@@ -37,6 +39,7 @@ export function notifyRegistrationCreated(reg: CommunityRegistration, event?: Co
   const brand = emailBrand();
   const booking = emailBookingFrom(reg, event ?? eventFor(reg), siteUrl());
   queueMail(reg.email, reg.status === 'confirmed' ? registrationConfirmedEmail(brand, booking) : paymentPendingEmail(brand, booking));
+  if (reg.status === 'confirmed' && reg.whatsappOptIn) queueWhatsApp(reg.mobile, waBookingConfirmed(booking));
   queueMail(adminRecipients(), adminNewRegistrationEmail(brand, booking, adminRegistrationsUrl(reg)), { replyTo: reg.email });
 }
 
@@ -45,6 +48,7 @@ export function notifyPaymentConfirmed(reg: CommunityRegistration): void {
   const brand = emailBrand();
   const booking = emailBookingFrom(reg, eventFor(reg), siteUrl());
   queueMail(reg.email, paymentConfirmedEmail(brand, booking));
+  if (reg.whatsappOptIn) queueWhatsApp(reg.mobile, waBookingConfirmed(booking));
   queueMail(adminRecipients(), adminPaymentReceivedEmail(brand, booking, adminRegistrationsUrl(reg)), { replyTo: reg.email });
 }
 

@@ -7,6 +7,9 @@ import {
   membershipApprovedEmail,
   membershipPaidEmail,
   paymentConfirmedEmail,
+  waBookingConfirmed,
+  waEventCancelled,
+  waEventUpdated,
   type CommunityEvent,
   type CommunityMemberApplication,
   type CommunityRegistration,
@@ -14,6 +17,7 @@ import {
 } from '@ascend/shared';
 import { getItems, mutatePrivate, readPrivate } from './community-store';
 import { emailBrand, queueMail, siteUrl } from './mailer';
+import { queueWhatsApp } from './whatsapp';
 
 /** Attendee emails triggered by admin actions on a registration (checklist §17). */
 export function notifyRegistrationAction(reg: CommunityRegistration, action: string): void {
@@ -24,6 +28,7 @@ export function notifyRegistrationAction(reg: CommunityRegistration, action: str
     case 'mark_paid':
       // Payment recorded by the team (e.g. bank transfer) — the attendee gets the receipt.
       queueMail(reg.email, paymentConfirmedEmail(brand, booking));
+      if (reg.whatsappOptIn) queueWhatsApp(reg.mobile, waBookingConfirmed(booking));
       break;
     case 'cancel':
       queueMail(reg.email, bookingCancelledEmail(brand, booking));
@@ -44,7 +49,9 @@ export function notifyEventCancelled(event: CommunityEvent, note?: string): numb
   const brand = emailBrand();
   const regs = activeRegistrations(event.id);
   for (const r of regs) {
-    queueMail(r.email, eventCancelledEmail(brand, emailBookingFrom(r, event, siteUrl()), { note, paid: r.paymentStatus === 'paid' }));
+    const booking = emailBookingFrom(r, event, siteUrl());
+    queueMail(r.email, eventCancelledEmail(brand, booking, { note, paid: r.paymentStatus === 'paid' }));
+    if (r.whatsappOptIn) queueWhatsApp(r.mobile, waEventCancelled(booking, note, r.paymentStatus === 'paid'));
   }
   return regs.length;
 }
@@ -81,7 +88,11 @@ export function notifyEventUpdated(event: CommunityEvent, changes: EventChange[]
     });
   }
   const brand = emailBrand();
-  for (const r of regs) queueMail(r.email, eventUpdatedEmail(brand, emailBookingFrom(r, event, siteUrl()), changes));
+  for (const r of regs) {
+    const booking = emailBookingFrom(r, event, siteUrl());
+    queueMail(r.email, eventUpdatedEmail(brand, booking, changes));
+    if (r.whatsappOptIn) queueWhatsApp(r.mobile, waEventUpdated(booking, changes));
+  }
   return regs.length;
 }
 

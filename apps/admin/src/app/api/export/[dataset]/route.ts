@@ -64,6 +64,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
           { header: 'Designation', value: (r) => r.designation },
           { header: 'Membership No.', value: (r) => r.membershipNo },
           { header: 'Special requirements', value: (r) => r.requirements },
+          { header: 'WhatsApp opt-in', value: (r) => (r.whatsappOptIn ? 'Yes' : 'No') },
           { header: 'Fee (INR)', value: (r) => Number(r.fee) || 0 },
           { header: 'Registration status', value: (r) => REGISTRATION_STATUS_LABEL[r.status] ?? r.status },
           { header: 'Payment status', value: (r) => PAYMENT_STATUS_LABEL[r.paymentStatus] ?? r.paymentStatus },

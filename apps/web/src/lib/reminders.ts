@@ -17,12 +17,14 @@ import {
   membershipRenewalEmail,
   membershipState,
   RENEWAL_REMINDER_DAYS,
+  waEventReminder,
   type CommunityEvent,
   type CommunityMemberApplication,
   type CommunityRegistration,
 } from '@ascend/shared';
 import { getItems, getSettings, mutatePrivate } from './community-store';
 import { emailBrand, queueMail } from './mailer';
+import { queueWhatsApp } from './whatsapp';
 import { siteUrl } from './seo';
 
 const IST_OFFSET_MS = 5.5 * 3600_000;
@@ -82,10 +84,9 @@ export function sendDueReminders(now = new Date()): ReminderRun {
       event.mode === 'Offline'
         ? event.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([event.venue, event.city].filter(Boolean).join(', '))}`
         : undefined;
-    queueMail(
-      r.email,
-      eventReminderEmail(brand, emailBookingFrom(r, event, siteUrl()), { today: event.date === today, mapUrl, online: event.mode === 'Online' })
-    );
+    const booking = emailBookingFrom(r, event, siteUrl());
+    queueMail(r.email, eventReminderEmail(brand, booking, { today: event.date === today, mapUrl, online: event.mode === 'Online' }));
+    if (r.whatsappOptIn) queueWhatsApp(r.mobile, waEventReminder(booking, event.date === today, event.time));
   }
   return { checkedEvents: events.length, sent: due.length, bookings: due.map((r) => r.bookingId) };
 }

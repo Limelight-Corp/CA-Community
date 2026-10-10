@@ -10,6 +10,7 @@ import { eventDate, formatEventDate, locationLabel } from './events';
 import { isApprovedMember, membershipFor, type MemberAccount } from './member-accounts';
 import { receiptKind, receiptPdfPath } from './receipts';
 import { resourceDownloadUrl, safeUrl } from './content';
+import { mailConfigured } from './mailer';
 
 export interface DashboardBooking {
   bookingId: string;
@@ -42,6 +43,8 @@ export interface DashboardData {
   bookings: DashboardBooking[];
   resources: { id: string; title: string; category: string; format: string; url?: string }[];
   membersOnlyCount: number;
+  /** SMTP is set up; otherwise emails only land in data/outbox/. */
+  mailEnabled: boolean;
 }
 
 export function dashboardData(account: MemberAccount): DashboardData {
@@ -120,5 +123,6 @@ export function dashboardData(account: MemberAccount): DashboardData {
         }))
       : [],
     membersOnlyCount: membersOnly.length,
+    mailEnabled: mailConfigured(),
   };
 }

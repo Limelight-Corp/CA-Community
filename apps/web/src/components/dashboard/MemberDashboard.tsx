@@ -59,7 +59,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
     <div className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 md:px-8 md:pt-14">
       <Header data={data} />
 
-      {!account.emailVerified && <VerifyBanner email={account.email} />}
+      {!account.emailVerified && <VerifyBanner email={account.email} mailEnabled={data.mailEnabled} />}
 
       <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
         <nav aria-label="Dashboard" className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] lg:sticky lg:top-24 lg:mx-0 lg:flex-col lg:px-0">
@@ -288,7 +288,7 @@ function Avatar({ name, photoUrl, size = 'md' }: { name: string; photoUrl?: stri
   );
 }
 
-function VerifyBanner({ email }: { email: string }) {
+function VerifyBanner({ email, mailEnabled }: { email: string; mailEnabled: boolean }) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
   const resend = async () => {
@@ -296,7 +296,7 @@ function VerifyBanner({ email }: { email: string }) {
     try {
       const res = await fetch('/api/auth/resend-verification', { method: 'POST' });
       const d = (await res.json().catch(() => ({}))) as { error?: string };
-      toast(res.ok ? `New link sent to ${email}` : d.error || 'Could not send the link.');
+      toast(!res.ok ? d.error || 'Could not send the link.' : mailEnabled ? `New link sent to ${email}` : 'New link created — email sending is not set up yet, so it is saved in the server outbox.');
     } finally {
       setBusy(false);
     }
@@ -306,7 +306,17 @@ function VerifyBanner({ email }: { email: string }) {
       <p className="flex items-start gap-3 text-[14px] text-[var(--fg)]">
         <MailWarning className="mt-0.5 h-5 w-5 shrink-0 text-gold" aria-hidden />
         <span>
-          Confirm your email <strong>{email}</strong> — we sent you a link. Your bookings, receipts and certificates appear here once it’s confirmed.
+          {mailEnabled ? (
+            <>
+              Confirm your email <strong>{email}</strong> — we sent you a link. Your bookings, receipts and certificates appear here once it’s
+              confirmed.
+            </>
+          ) : (
+            <>
+              Confirm your email <strong>{email}</strong>. Email sending isn’t set up on this server yet, so the confirmation link was saved to
+              the server’s outbox (data/outbox) instead of your inbox. Your bookings, receipts and certificates appear here once it’s confirmed.
+            </>
+          )}
         </span>
       </p>
       <button type="button" onClick={resend} disabled={busy} className={cn(pillBtn, 'shrink-0 border-gold/40 text-gold')}>

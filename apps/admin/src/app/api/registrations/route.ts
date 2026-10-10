@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { readPrivate } from '../../../lib/community-store';
-import { applyRegistrationAction, publicRegistration } from '../../../lib/admin-data';
+import { applyRegistrationAction, publicRegistration, refundRegistration } from '../../../lib/admin-data';
 import { byNewest, filterRegistrations } from '../../../lib/filters';
 import { notifyRegistrationAction } from '../../../lib/notifications';
 import { bad, handleError, isPlainObject } from '../../../lib/api-helpers';
@@ -31,6 +31,7 @@ const actionSchema = z.discriminatedUnion('action', [
   z.object({ id: z.string().min(1), action: z.literal('mark_paid') }),
   z.object({ id: z.string().min(1), action: z.literal('cancel') }),
   z.object({ id: z.string().min(1), action: z.literal('mark_refunded') }),
+  z.object({ id: z.string().min(1), action: z.literal('refund') }),
   z.object({ id: z.string().min(1), action: z.literal('set_attended'), value: z.boolean() }),
 ]);
 
@@ -41,6 +42,11 @@ export async function PATCH(request: NextRequest) {
     const parsed = actionSchema.safeParse(body);
     if (!parsed.success) return bad('Unknown or invalid registration action', 422);
     const { id, ...action } = parsed.data;
+    if (action.action === 'refund') {
+      const refunded = await refundRegistration(id);
+      notifyRegistrationAction(refunded, 'mark_refunded');
+      return NextResponse.json({ success: true, item: publicRegistration(refunded) });
+    }
     const updated = applyRegistrationAction(id, action);
     notifyRegistrationAction(updated, action.action);
     return NextResponse.json({ success: true, item: publicRegistration(updated) });

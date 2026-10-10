@@ -255,6 +255,11 @@ export interface CommunityRegistration {
   gatewayOrderId?: string;
   gatewayPaymentId?: string;
   paidAt?: string;
+  /** Razorpay refund ID when refunded through the gateway. */
+  refundId?: string;
+  refundedAt?: string;
+  /** Refunded amount in rupees (defaults to the full fee). */
+  refundAmount?: number;
   attended?: boolean;
   /** First check-in time (ISO). */
   attendedAt?: string;

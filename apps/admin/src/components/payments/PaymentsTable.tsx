@@ -6,7 +6,7 @@ import { filterPayments, type AdminRegistration } from '../../lib/filters';
 import { formatDateTime, formatINR } from '../../lib/format';
 import { DataTable, EmptyRow, PaymentChip, RegistrationChip } from '../ui/Display';
 import { ExportButtons, FilterSelect, SearchInput, Toolbar } from '../ui/Controls';
-import { canMarkPaid, canRefund, useRegistrationAction } from '../registrations/useRegistrationAction';
+import { canGatewayRefund, canMarkPaid, canRefund, useRegistrationAction } from '../registrations/useRegistrationAction';
 
 const PAYMENT_OPTIONS = [
   { value: 'paid', label: 'Successful' },
@@ -22,10 +22,13 @@ export function PaymentsTable({
   rows,
   events,
   initial = {},
+  gatewayRefunds = false,
 }: {
   rows: AdminRegistration[];
   events: { id: string; title: string }[];
   initial?: { q?: string; event?: string; payment?: string };
+  /** Razorpay keys are configured on the server, so "Refund" can call the gateway. */
+  gatewayRefunds?: boolean;
 }) {
   const [q, setQ] = useState(initial.q ?? '');
   const [eventId, setEventId] = useState(initial.event ?? '');
@@ -103,10 +106,21 @@ export function PaymentsTable({
                       Mark paid
                     </button>
                   )}
-                  {canRefund(r) && (
-                    <button type="button" className={actionBtn} onClick={() => request('mark_refunded', r)} disabled={busy === r.id}>
+                  {gatewayRefunds && canGatewayRefund(r) && (
+                    <button type="button" className={actionBtn} onClick={() => request('refund', r)} disabled={busy === r.id}>
                       <RotateCcw className="h-3.5 w-3.5 text-gold" aria-hidden />
-                      Refunded
+                      Refund
+                    </button>
+                  )}
+                  {canRefund(r) && (
+                    <button
+                      type="button"
+                      className={actionBtn}
+                      onClick={() => request('mark_refunded', r)}
+                      disabled={busy === r.id}
+                      title="Record a refund made outside this console"
+                    >
+                      Mark refunded
                     </button>
                   )}
                 </div>

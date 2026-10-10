@@ -4,6 +4,7 @@ import { publicRegistration } from '../../../lib/admin-data';
 import { byNewest, paymentRows } from '../../../lib/filters';
 import { formatINR } from '../../../lib/format';
 import { PageHeader, Panel, StatCard } from '../../../components/ui/Display';
+import { razorpayConfigured } from '../../../lib/razorpay';
 import { PaymentsTable } from '../../../components/payments/PaymentsTable';
 
 export const dynamic = 'force-dynamic';
@@ -32,7 +33,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
         <StatCard label="Refunded" value={formatINR(sum('refunded'))} tone="mute" icon={<RotateCcw />} hint={`${count('refunded')} refunds`} />
       </section>
       <Panel>
-        <PaymentsTable rows={rows.map(publicRegistration)} events={events} initial={{ q: sp.q, event: sp.event, payment: sp.payment }} />
+        <PaymentsTable rows={rows.map(publicRegistration)} events={events} initial={{ q: sp.q, event: sp.event, payment: sp.payment }} gatewayRefunds={razorpayConfigured()} />
       </Panel>
     </>
   );

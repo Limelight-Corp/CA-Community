@@ -25,9 +25,10 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 - [ ] SMTP credentials **(client)**
 
 ## Step 3 — Payments hardening (§6, §15)
-- [ ] Razorpay webhook (`payment.captured` / `payment.failed`) so a closed browser still confirms
-- [ ] Downloadable PDF payment receipt (instead of browser print)
-- [ ] Refund through Razorpay API from admin (today: manual "Mark refunded" only)
+- [x] Razorpay webhook (`payment.captured` / `order.paid` / `payment.failed`) so a closed browser still confirms
+- [x] Downloadable PDF payment receipt (free bookings get a PDF confirmation)
+- [x] Refund through Razorpay API from admin ("Mark refunded" kept for offline refunds)
+- [ ] Webhook secret + admin Razorpay keys in env **(client)**
 
 ## Step 4 — Real member login & dashboard (§7, §8, §23)
 - [ ] Real member accounts: hashed passwords, server-signed httpOnly session (today: mock login)

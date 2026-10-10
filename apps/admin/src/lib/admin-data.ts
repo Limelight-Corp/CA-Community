@@ -11,6 +11,7 @@ import type {
 } from '@ascend/shared';
 import { mutatePrivate, readPrivate, readStore, writeStore } from './community-store';
 import { todayISO } from './format';
+import { razorpayConfigured, refundPayment } from './razorpay';
 
 // ---------------------------------------------------------------------------------------------
 // Statistics
@@ -156,6 +157,8 @@ export function applyRegistrationAction(id: string, input: RegistrationAction): 
         reg.paymentStatus = 'refunded';
         reg.status = 'cancelled';
         reg.attended = false;
+        reg.refundedAt = now;
+        reg.refundAmount = reg.refundAmount ?? reg.fee;
         break;
       }
       case 'set_attended': {
@@ -188,6 +191,34 @@ export function applyRegistrationAction(id: string, input: RegistrationAction): 
     }
   }
   return updated;
+}
+
+/**
+ * Refunds a paid booking in full through Razorpay, then records it like `mark_refunded`
+ * (booking cancelled, seat released) plus the gateway refund ID.
+ */
+export async function refundRegistration(id: string): Promise<CommunityRegistration> {
+  const reg = readPrivate().registrations.find((r) => r.id === id);
+  if (!reg) throw new ActionError('Registration not found', 404);
+  if (reg.paymentStatus !== 'paid') throw new ActionError('Only paid registrations can be refunded', 409);
+  if (!reg.gatewayPaymentId) {
+    throw new ActionError('This payment was recorded offline — refund it outside the gateway, then use "Mark refunded".', 409);
+  }
+  if (!razorpayConfigured()) {
+    throw new ActionError('Razorpay keys are not configured for the admin console. Refund from the Razorpay dashboard, then use "Mark refunded".', 409);
+  }
+
+  const result = await refundPayment(reg.gatewayPaymentId, reg.fee, reg.bookingId);
+  if (!result.ok) throw new ActionError(result.error, 502);
+
+  applyRegistrationAction(id, { action: 'mark_refunded' });
+  return mutatePrivate((data) => {
+    const r = data.registrations.find((x) => x.id === id)!;
+    r.refundId = result.refundId;
+    r.refundAmount = r.fee;
+    r.updatedAt = new Date().toISOString();
+    return { ...r };
+  });
 }
 
 // ---------------------------------------------------------------------------------------------

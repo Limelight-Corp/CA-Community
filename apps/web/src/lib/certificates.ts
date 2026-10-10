@@ -34,7 +34,7 @@ export const certificatePdfPath = (certificateId: string, token: string) =>
 
 /** Standard PDF fonts only cover Windows-1252; replace anything else so generation never fails. */
 const CP1252_EXTRA = new Set('€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ');
-function safe(text: string): string {
+export function safe(text: string): string {
   return Array.from(text)
     .map((c) => (c.charCodeAt(0) <= 0xff || CP1252_EXTRA.has(c) ? c : c === '₹' ? 'Rs.' : '?'))
     .join('');

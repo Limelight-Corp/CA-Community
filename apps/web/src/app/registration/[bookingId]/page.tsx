@@ -12,6 +12,7 @@ import { checkinPayload, checkinQrSvg, ensureCheckinCode } from '../../../lib/ch
 import { findEventById, findRegistrationWithToken, razorpayConfig } from '../../api/registrations/_lib/server';
 import { mapsLink } from '../../../components/events/event-time';
 import { mailConfigured } from '../../../lib/mailer';
+import { receiptKind, receiptPdfPath } from '../../../lib/receipts';
 import {
   AddToCalendarButton,
   CopyBookingId,
@@ -265,6 +266,14 @@ export default async function RegistrationPage({
                   url: eventUrl,
                 }}
               />
+            )}
+            {receiptKind(reg) && token && (
+              <a
+                href={receiptPdfPath(reg.bookingId, token)}
+                className="inline-flex h-12 items-center gap-2 rounded-full border border-mist/[0.16] px-5 text-[14.5px] font-semibold text-[var(--fg)] transition hover:border-brand-300/60 hover:bg-brand-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+              >
+                <Download className="h-4 w-4" aria-hidden /> {reg.fee > 0 ? 'Download receipt (PDF)' : 'Download confirmation (PDF)'}
+              </a>
             )}
             <PrintButton />
           </div>

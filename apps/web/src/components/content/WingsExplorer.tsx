@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowUpRight, Plus } from 'lucide-react';
+import { wingSlug } from '@ascend/shared';
 import { cn } from '@ascend/ui';
 
 export interface WingView {
@@ -110,6 +112,13 @@ export function WingsExplorer({ wings }: { wings: WingView[] }) {
                       </li>
                     ))}
                   </ol>
+                  <Link
+                    href={`/wings/${wingSlug(wing.name)}`}
+                    className="group mt-2 inline-flex w-fit items-center gap-2 rounded-full bg-grad-primary px-4 py-2 text-[13.5px] font-semibold text-white hover:brightness-110"
+                  >
+                    Open the {wing.name} wing
+                    <ArrowUpRight className="h-4 w-4 transition-transform group-hover:rotate-45" aria-hidden />
+                  </Link>
                 </div>
               </div>
             </div>

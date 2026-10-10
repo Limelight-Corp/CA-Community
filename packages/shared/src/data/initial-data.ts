@@ -103,6 +103,8 @@ export interface CommunityNews {
 export interface CommunityResource {
   id: string;
   title: string;
+  /** Wing name (ORG_WINGS) when the resource belongs to a wing. */
+  wing?: string;
   category: string;
   format: string;
   isMembersOnly: boolean;
@@ -117,6 +119,8 @@ export interface CommunityTeamMember {
   name: string;
   designation: string;
   group: 'Leadership' | 'Core Team' | 'Advisory Board' | 'Wing Conveners';
+  /** Wing name (ORG_WINGS) for conveners and wing committee members. */
+  wing?: string;
   background?: string;
   photoUrl?: string;
   linkedinUrl?: string;

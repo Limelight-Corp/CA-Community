@@ -7,6 +7,7 @@
 import {
   GALLERY_CATEGORIES,
   NEWS_CATEGORIES,
+  ORG_WINGS,
   RESOURCE_CATEGORIES,
   type CommunityContentType,
 } from '@ascend/shared';
@@ -106,6 +107,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'title', label: 'Title', kind: 'text', required: true, max: 200, full: true },
       { name: 'category', label: 'Category', kind: 'select', options: RESOURCE_CATEGORIES, allowCustom: true, required: true },
       { name: 'format', label: 'Format', kind: 'text', required: true, max: 80, placeholder: 'PDF · 18 pages' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'Optional — shows this resource on the wing’s page' },
       { name: 'fileUrl', label: 'Cover image', kind: 'image', full: true },
       { name: 'isMembersOnly', label: 'Members only', kind: 'toggle', defaultValue: false },
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
@@ -169,6 +171,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'name', label: 'Full name', kind: 'text', required: true, max: 120 },
       { name: 'designation', label: 'Designation', kind: 'text', required: true, max: 160 },
       { name: 'group', label: 'Group', kind: 'select', options: TEAM_GROUPS, required: true, defaultValue: 'Core Team' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'For wing conveners and committee members — shows them on the wing’s page' },
       { name: 'order', label: 'Display order', kind: 'number', min: 0, max: 999, defaultValue: 10, hint: 'Lower numbers appear first' },
       { name: 'photoUrl', label: 'Photo', kind: 'image', aspect: 'square', full: true },
       { name: 'linkedinUrl', label: 'LinkedIn profile', kind: 'url', full: true },

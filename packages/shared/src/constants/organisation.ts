@@ -75,6 +75,15 @@ export interface OrgWing {
 }
 
 /** The 10 professional wings with their focus areas and proposed activities (verbatim). */
+/** URL slug for a wing page, e.g. "Tax & Regulatory" → "tax-regulatory". */
+export function wingSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, ' ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export const ORG_WINGS: OrgWing[] = [
   {
     number: 1,

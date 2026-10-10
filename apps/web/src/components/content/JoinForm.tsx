@@ -12,6 +12,8 @@ export interface JoinFormProps {
   plans: { key: PlanKey; name: string; audience: string; priceLabel: string }[];
   wings: { number: number; name: string; color: string }[];
   initialPlan?: PlanKey;
+  /** Wing numbers to pre-select, e.g. from a wing page's “Join this Wing”. */
+  initialWings?: number[];
 }
 
 type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'done'; duplicate: boolean; message?: string } | { kind: 'error'; message: string };
@@ -28,9 +30,9 @@ const TEXT_FIELDS = [
   { name: 'linkedinUrl', label: 'LinkedIn profile', type: 'url', placeholder: 'https://linkedin.com/in/…' },
 ] as const;
 
-export function JoinForm({ plans, wings, initialPlan }: JoinFormProps) {
+export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormProps) {
   const [plan, setPlan] = useState<PlanKey | ''>(initialPlan ?? '');
-  const [interests, setInterests] = useState<number[]>([]);
+  const [interests, setInterests] = useState<number[]>(initialWings ?? []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const formRef = useRef<HTMLFormElement>(null);
@@ -117,7 +119,7 @@ export function JoinForm({ plans, wings, initialPlan }: JoinFormProps) {
             <Link href="/events" className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-primary px-5 text-[14px] font-semibold text-white">
               Explore events <ArrowUpRight className="h-4 w-4" aria-hidden />
             </Link>
-            <Link href="/about#wings" className="inline-flex h-11 items-center rounded-full border border-mist/[0.18] px-5 text-[14px] font-semibold text-[var(--fg)]">
+            <Link href="/wings" className="inline-flex h-11 items-center rounded-full border border-mist/[0.18] px-5 text-[14px] font-semibold text-[var(--fg)]">
               Meet the wings
             </Link>
           </div>

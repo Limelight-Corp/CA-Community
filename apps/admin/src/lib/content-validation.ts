@@ -55,7 +55,8 @@ function fieldSchema(field: FieldDef): z.ZodTypeAny {
         const s = z.string().trim().max(80);
         return field.required ? s.min(1, `${field.label} is required`) : s;
       }
-      return z.string().refine((v) => opts.includes(v), `Choose a valid ${field.label.toLowerCase()}`);
+      // Optional selects may be left empty.
+      return z.string().refine((v) => opts.includes(v) || (!field.required && v === ''), `Choose a valid ${field.label.toLowerCase()}`);
     }
     case 'toggle':
       return z.boolean();

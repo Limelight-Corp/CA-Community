@@ -7,6 +7,7 @@ import {
   MEMBER_JOURNEY,
   ORG_POSITIONING,
   ORG_WINGS,
+  wingSlug,
   WHY_JOIN,
   type CommunityWing,
   type MembershipPlan,
@@ -46,6 +47,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const requested = typeof sp.plan === 'string' ? sp.plan : undefined;
   const initialPlan = MEMBERSHIP_PLANS.some((p) => p.key === requested) ? (requested as PlanKey) : undefined;
+  const requestedWing = typeof sp.wing === 'string' ? ORG_WINGS.find((w) => wingSlug(w.name) === sp.wing) : undefined;
 
   const storeWings = getItems<CommunityWing>('wings', true);
   const wings = ORG_WINGS.map((w) => ({
@@ -356,8 +358,9 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           </div>
           <div className="rounded-[32px] border border-mist/[0.1] bg-grad-surface p-6 sm:p-8 md:p-12">
             <JoinForm
-              key={initialPlan ?? "none"}
+              key={`${initialPlan ?? 'none'}-${requestedWing?.number ?? 0}`}
               initialPlan={initialPlan}
+              initialWings={requestedWing ? [requestedWing.number] : undefined}
               wings={wings}
               plans={MEMBERSHIP_PLANS.map((p) => ({ key: p.key, name: p.name, audience: p.audience, priceLabel: priceLabel(p) }))}
             />

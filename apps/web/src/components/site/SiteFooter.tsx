@@ -18,7 +18,7 @@ const IMPORTANT_LINKS = [
 const ABOUT_LINKS = [
   { label: 'About Us', href: '/about' },
   { label: 'Leadership', href: '/about#leadership' },
-  { label: '10 Wings', href: '/about#wings' },
+  { label: '10 Wings', href: '/wings' },
   { label: 'Membership Plans', href: '/join#plans' },
   { label: 'Contact', href: '/contact' },
 ];

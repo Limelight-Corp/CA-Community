@@ -77,14 +77,20 @@ export async function sendMail(to: string | string[], msg: EmailMessage, opts: {
     writeOutbox(recipients, msg, opts.replyTo);
     return;
   }
-  await smtp().sendMail({
-    from: fromAddress(),
-    to: recipients.join(', '),
-    replyTo: opts.replyTo,
-    subject: msg.subject,
-    text: msg.text,
-    html: msg.html,
-  });
+  try {
+    await smtp().sendMail({
+      from: fromAddress(),
+      to: recipients.join(', '),
+      replyTo: opts.replyTo,
+      subject: msg.subject,
+      text: msg.text,
+      html: msg.html,
+    });
+  } catch (err) {
+    // Keep a copy so a failed send (e.g. wrong SMTP password) can still be recovered.
+    writeOutbox(recipients, msg, opts.replyTo);
+    throw err;
+  }
 }
 
 /** Fire-and-forget send: failures are logged, never thrown into the request. */

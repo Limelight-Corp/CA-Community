@@ -1,6 +1,7 @@
 # Database design — moving from JSON files to PostgreSQL
 
-Status: **schema designed and validated; not applied to any database yet.** The web and admin
+Status: **schema designed, validated and dry-run tested on an in-memory PostgreSQL (PGlite) with a
+copy of the real data — 72/72 checks passed; not applied to any real database yet.** The web and admin
 apps still read and write `data/*.json`. Moving them over is a separate, approved step (see
 [Migration plan](#migration-plan)).
 
@@ -149,6 +150,12 @@ Nothing below has been done; each step needs sign-off.
 3. Write a one-off import script: read `data/*.json`, map ids, hash the plaintext booking tokens
    and check-in codes, resolve wing names/numbers to wing ids, insert in one transaction per file.
    Run it against a copy first and compare counts.
+   The dry run (PGlite, all 72 checks passing) found data the database rules reject; the import
+   must fix these and report them:
+   - an event ("dummy") with an empty description;
+   - 14 bookings marked attended with no check-in time;
+   - 8 paid/refunded bookings with no payment date and 9 refunded bookings with no refund date
+     (seed/test data).
 4. Replace `lib/community-store.ts` / `member-accounts.ts` / `admin-users.ts` in both apps with
    Prisma calls (same function names, so most callers do not change), and move session secrets to
    env vars.

@@ -169,7 +169,7 @@ model SiteSettings {
   socialFacebook     String?  @map("social_facebook") @db.VarChar(500)
   socialYoutube      String?  @map("social_youtube") @db.VarChar(500)
   socialX            String?  @map("social_x") @db.VarChar(500)
-  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   updatedById        String?  @map("updated_by_id")
 
   @@map("site_settings")
@@ -204,7 +204,7 @@ model Wing {
   activities  String[] @default([])
   isPublished Boolean  @default(true) @map("is_published")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   events      Event[]
   resources   Resource[]
@@ -247,7 +247,7 @@ model Event {
   cancelledAt      DateTime? @map("cancelled_at") @db.Timestamptz(3)
   cancellationNote String?   @map("cancellation_note") @db.VarChar(1000)
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   wing          Wing                @relation(fields: [wingId], references: [id], onDelete: Restrict)
   speakers      EventSpeaker[]
@@ -295,7 +295,7 @@ model Speaker {
   linkedinUrl   String?  @map("linkedin_url") @db.VarChar(500)
   isPublished   Boolean  @default(true) @map("is_published")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   events EventSpeaker[]
 
@@ -331,7 +331,7 @@ model NewsArticle {
   coverImageUrl String?  @map("cover_image_url") @db.VarChar(500)
   isPublished   Boolean  @default(true) @map("is_published")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([isPublished, publishedOn(sort: Desc)])
   @@index([category])
@@ -350,7 +350,7 @@ model Resource {
   downloads     Int      @default(0)
   isPublished   Boolean  @default(true) @map("is_published")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   wing Wing? @relation(fields: [wingId], references: [id], onDelete: Restrict)
 
@@ -370,7 +370,7 @@ model GalleryItem {
   videoUrl       String?  @map("video_url") @db.VarChar(2000)
   isPublished    Boolean  @default(true) @map("is_published")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([isPublished, category])
   @@map("gallery_items")
@@ -388,7 +388,7 @@ model TeamMember {
   sortOrder   Int       @default(10) @map("sort_order")
   isPublished Boolean   @default(true) @map("is_published")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   wing Wing? @relation(fields: [wingId], references: [id], onDelete: Restrict)
 
@@ -405,7 +405,7 @@ model Testimonial {
   photoUrl    String?  @map("photo_url") @db.VarChar(500)
   isPublished Boolean  @default(true) @map("is_published")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([isPublished, createdAt])
   @@map("testimonials")
@@ -422,7 +422,7 @@ model Initiative {
   imageUrl    String?   @map("image_url") @db.VarChar(500)
   isPublished Boolean   @default(true) @map("is_published")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([isPublished, date])
   @@map("initiatives")
@@ -450,7 +450,7 @@ model Job {
   featured      Boolean   @default(false)
   isPublished   Boolean   @default(true) @map("is_published")
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   wing Wing? @relation(fields: [wingId], references: [id], onDelete: Restrict)
 
@@ -478,7 +478,7 @@ model MemberAccount {
   sessionVersion  Int       @default(1) @map("session_version")
   lastLoginAt     DateTime? @map("last_login_at") @db.Timestamptz(3)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile            MemberProfile?
   tokens             AuthToken[]
@@ -503,7 +503,7 @@ model MemberProfile {
   photoUrl          String?  @map("photo_url") @db.VarChar(500)
   /// Listed in the members-only directory (off by default).
   directoryOptIn    Boolean  @default(false) @map("directory_opt_in")
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   account MemberAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
@@ -542,7 +542,7 @@ model AdminUser {
   totpSecretEnc     String?   @map("totp_secret_enc") @db.VarChar(255)
   lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz(3)
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   auditLogs AuditLog[]
 
@@ -602,7 +602,7 @@ model EventRegistration {
   reminderSentAt   DateTime?          @map("reminder_sent_at") @db.Timestamptz(3)
   createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
   /// Also the seat-hold clock for unpaid bookings (30-minute hold).
-  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   event   Event          @relation(fields: [eventId], references: [id], onDelete: Restrict)
   account MemberAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
@@ -642,7 +642,7 @@ model Membership {
   /// The validUntil a renewal reminder was sent for (one reminder per term).
   renewalReminderFor DateTime?        @map("renewal_reminder_for") @db.Timestamptz(3)
   createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt          DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   account   MemberAccount?       @relation(fields: [accountId], references: [id], onDelete: SetNull)
   payments  MembershipPayment[]
@@ -706,7 +706,7 @@ model Mentor {
   linkedinUrl String?      @map("linkedin_url") @db.VarChar(500)
   status      MentorStatus @default(PENDING)
   createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   account     MemberAccount       @relation(fields: [accountId], references: [id], onDelete: Cascade)
   wings       MentorWing[]
@@ -740,7 +740,7 @@ model MentorshipRequest {
   matchedAt         DateTime?               @map("matched_at") @db.Timestamptz(3)
   adminNote         String?                 @map("admin_note") @db.VarChar(500)
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt         DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   account         MemberAccount           @relation(fields: [accountId], references: [id], onDelete: Cascade)
   mentor          Mentor?                 @relation("MatchedMentor", fields: [mentorId], references: [id], onDelete: SetNull)
@@ -780,7 +780,7 @@ model ContactMessage {
   message   String        @db.VarChar(5000)
   status    MessageStatus @default(NEW)
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([status, createdAt(sort: Desc)])
   @@map("contact_messages")

@@ -136,7 +136,8 @@ CALL ascend_check('event_registrations', 'reg_free_ck', 'fee > 0 OR payment_stat
 CALL ascend_check('event_registrations', 'reg_paid_ck', 'payment_status NOT IN (''PAID'', ''REFUNDED'') OR paid_at IS NOT NULL');
 CALL ascend_check('event_registrations', 'reg_refund_ck',
   '(payment_status = ''REFUNDED'') = (refunded_at IS NOT NULL) AND (refund_amount IS NULL OR (refund_amount > 0 AND refund_amount <= fee))');
-CALL ascend_check('event_registrations', 'reg_attended_ck', 'attended = (attended_at IS NOT NULL)');
+-- Attended always has a check-in time; un-marking keeps the old time (the app allows undo).
+CALL ascend_check('event_registrations', 'reg_attended_ck', 'NOT attended OR attended_at IS NOT NULL');
 
 CALL ascend_check('memberships', 'memberships_contact_ck', 'ascend_is_email(email) AND ascend_is_mobile(mobile)');
 CALL ascend_check('memberships', 'memberships_fee_ck', 'fee IS NULL OR fee >= 0');

@@ -46,7 +46,11 @@ ALTER ROLE ascend_admin    SET log_min_duration_statement = '1s';
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC;
-REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC;
+-- Only our own functions: extension functions in public (citext, pg_trgm operators) must stay
+-- executable, or every case-insensitive comparison fails.
+REVOKE ALL ON FUNCTION ascend_is_email(citext), ascend_is_mobile(text), ascend_is_https(text),
+  ascend_is_link(text), ascend_is_slug(text), ascend_is_sha256(text) FROM PUBLIC;
+REVOKE ALL ON PROCEDURE ascend_check(regclass, text, text) FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO ascend_web, ascend_admin, ascend_readonly;
 REVOKE CREATE ON SCHEMA public FROM ascend_web, ascend_admin, ascend_readonly;
 

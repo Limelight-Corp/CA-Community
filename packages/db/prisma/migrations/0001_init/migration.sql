@@ -81,7 +81,7 @@ CREATE TABLE "site_settings" (
     "social_facebook" VARCHAR(500),
     "social_youtube" VARCHAR(500),
     "social_x" VARCHAR(500),
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by_id" TEXT,
 
     CONSTRAINT "site_settings_pkey" PRIMARY KEY ("id")
@@ -109,7 +109,7 @@ CREATE TABLE "wings" (
     "activities" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "wings_pkey" PRIMARY KEY ("id")
 );
@@ -142,7 +142,7 @@ CREATE TABLE "events" (
     "cancelled_at" TIMESTAMPTZ(3),
     "cancellation_note" VARCHAR(1000),
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "events_pkey" PRIMARY KEY ("id")
 );
@@ -178,7 +178,7 @@ CREATE TABLE "speakers" (
     "linkedin_url" VARCHAR(500),
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "speakers_pkey" PRIMARY KEY ("id")
 );
@@ -206,7 +206,7 @@ CREATE TABLE "news_articles" (
     "cover_image_url" VARCHAR(500),
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "news_articles_pkey" PRIMARY KEY ("id")
 );
@@ -223,7 +223,7 @@ CREATE TABLE "resources" (
     "downloads" INTEGER NOT NULL DEFAULT 0,
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "resources_pkey" PRIMARY KEY ("id")
 );
@@ -240,7 +240,7 @@ CREATE TABLE "gallery_items" (
     "video_url" VARCHAR(2000),
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "gallery_items_pkey" PRIMARY KEY ("id")
 );
@@ -258,7 +258,7 @@ CREATE TABLE "team_members" (
     "sort_order" INTEGER NOT NULL DEFAULT 10,
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "team_members_pkey" PRIMARY KEY ("id")
 );
@@ -272,7 +272,7 @@ CREATE TABLE "testimonials" (
     "photo_url" VARCHAR(500),
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "testimonials_pkey" PRIMARY KEY ("id")
 );
@@ -289,7 +289,7 @@ CREATE TABLE "initiatives" (
     "image_url" VARCHAR(500),
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "initiatives_pkey" PRIMARY KEY ("id")
 );
@@ -316,7 +316,7 @@ CREATE TABLE "jobs" (
     "featured" BOOLEAN NOT NULL DEFAULT false,
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "jobs_pkey" PRIMARY KEY ("id")
 );
@@ -332,7 +332,7 @@ CREATE TABLE "member_accounts" (
     "session_version" INTEGER NOT NULL DEFAULT 1,
     "last_login_at" TIMESTAMPTZ(3),
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "member_accounts_pkey" PRIMARY KEY ("id")
 );
@@ -350,7 +350,7 @@ CREATE TABLE "member_profiles" (
     "bio" VARCHAR(2000),
     "photo_url" VARCHAR(500),
     "directory_opt_in" BOOLEAN NOT NULL DEFAULT false,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "member_profiles_pkey" PRIMARY KEY ("account_id")
 );
@@ -380,7 +380,7 @@ CREATE TABLE "admin_users" (
     "totp_secret_enc" VARCHAR(255),
     "last_login_at" TIMESTAMPTZ(3),
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "admin_users_pkey" PRIMARY KEY ("id")
 );
@@ -427,7 +427,7 @@ CREATE TABLE "event_registrations" (
     "certificate_id" VARCHAR(40),
     "reminder_sent_at" TIMESTAMPTZ(3),
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "event_registrations_pkey" PRIMARY KEY ("id")
 );
@@ -453,7 +453,7 @@ CREATE TABLE "memberships" (
     "valid_until" TIMESTAMPTZ(3),
     "renewal_reminder_for" TIMESTAMPTZ(3),
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "memberships_pkey" PRIMARY KEY ("id")
 );
@@ -497,7 +497,7 @@ CREATE TABLE "mentors" (
     "linkedin_url" VARCHAR(500),
     "status" "MentorStatus" NOT NULL DEFAULT 'PENDING',
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "mentors_pkey" PRIMARY KEY ("id")
 );
@@ -522,7 +522,7 @@ CREATE TABLE "mentorship_requests" (
     "matched_at" TIMESTAMPTZ(3),
     "admin_note" VARCHAR(500),
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "mentorship_requests_pkey" PRIMARY KEY ("id")
 );
@@ -545,7 +545,7 @@ CREATE TABLE "contact_messages" (
     "message" VARCHAR(5000) NOT NULL,
     "status" "MessageStatus" NOT NULL DEFAULT 'NEW',
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "contact_messages_pkey" PRIMARY KEY ("id")
 );

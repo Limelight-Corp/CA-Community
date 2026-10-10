@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import {
   ArrowRight,
+  ArrowUpRight,
   BadgeCheck,
+  Check,
   CalendarDays,
   Compass,
   Crown,
@@ -14,6 +17,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { cn } from '@ascend/ui';
+import { JourneyArt } from './JourneyArt';
 
 /** One icon per documented journey step, in order. */
 const STEP_ICONS = [
@@ -26,6 +30,19 @@ const STEP_ICONS = [
   Network,
   HandHeart,
   Crown,
+];
+
+/** What each step looks like on this site, and where to do it — in the same order as the steps. */
+const STEP_DETAILS: { points: string[]; cta: string; href: string }[] = [
+  { points: ['Meet the wings and their focus areas', 'See upcoming events and speakers', 'Read news and free resources'], cta: 'About the community', href: '/about' },
+  { points: ['Free account with your email', 'Verify your email in one click', 'Track your bookings in one dashboard'], cta: 'Create account', href: '/login?mode=register' },
+  { points: ['Pick the plan that fits you', 'Pay once your application is approved', 'Membership runs for 12 months'], cta: 'See membership plans', href: '/join' },
+  { points: ['Add your photo, designation and bio', 'Share your city, firm and practice area', 'Opt in to the members directory'], cta: 'Open my profile', href: '/dashboard?tab=profile' },
+  { points: ['Follow the wings you care about', 'Join city and young CA communities', 'Explore each wing’s activities'], cta: 'Browse the wings', href: '/wings' },
+  { points: ['Webinars, workshops and meet-ups', 'Member pricing on paid events', 'Entry pass, reminders and receipts'], cta: 'See upcoming events', href: '/events' },
+  { points: ['Find members in the directory', 'Discover jobs and articleship roles', 'Meet peers at every event'], cta: 'Open the directory', href: '/directory' },
+  { points: ['Mentor students and young CAs', 'Share knowledge at sessions', 'Volunteer at community events'], cta: 'Become a mentor', href: '/mentorship' },
+  { points: ['Lead city networking and events', 'Champion young CA programmes', 'Drive wing and community initiatives'], cta: 'How we are organised', href: '/about' },
 ];
 
 export interface JourneyStep {
@@ -152,66 +169,81 @@ export function JourneyScroller({
             const last = i === steps.length - 1;
             const lit = pinned ? i <= active : true;
             const Icon = STEP_ICONS[i] ?? Compass;
+            const extra = STEP_DETAILS[i];
             return (
               <li
                 key={s.title}
                 className={cn(
-                  'relative flex h-[min(50svh,420px)] w-[min(80vw,340px)] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-[28px] border p-6 transition-[opacity,filter,transform] duration-500 md:rounded-[32px] md:p-7 lg:h-[min(58vh,540px)] lg:w-[min(30vw,400px)]',
-                  last
-                    ? 'border-transparent bg-grad-gold text-brand-950'
-                    : 'border-mist/[0.1] bg-grad-surface',
-                  pinned && !lit && 'scale-[0.96] opacity-40 saturate-50',
-                  pinned &&
-                    i === active &&
-                    !last &&
-                    'border-gold/40 shadow-[0_30px_70px_-35px_rgb(var(--gold-rgb)/0.6)]'
+                  'group/step relative flex w-[min(80vw,300px)] shrink-0 snap-start flex-col overflow-hidden rounded-[26px] border transition-[opacity,filter,transform,box-shadow] duration-500 lg:w-[320px]',
+                  last ? 'border-transparent bg-grad-gold text-brand-950' : 'border-mist/[0.1] bg-grad-surface',
+                  pinned && !lit && 'jr-idle scale-[0.96] opacity-40 saturate-50',
+                  pinned && i === active && !last && 'border-gold/40 shadow-[0_30px_70px_-35px_rgb(var(--gold-rgb)/0.6)]'
                 )}
               >
-                <span
-                  aria-hidden
+                {/* Illustration */}
+                <div
                   className={cn(
-                    'pointer-events-none absolute -bottom-10 -right-3 font-display text-[160px] font-semibold leading-none tracking-[-0.08em] md:text-[200px]',
-                    last ? 'text-brand-950/10' : 'text-outline opacity-40'
+                    'relative h-32 overflow-hidden border-b md:h-36',
+                    last ? 'border-brand-950/15 bg-brand-950' : 'border-mist/[0.08] bg-[radial-gradient(80%_90%_at_50%_0%,rgb(var(--lime-rgb)/0.16),transparent_70%)]'
                   )}
                 >
-                  {i + 1}
-                </span>
-                <div className="relative flex items-center justify-between">
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 opacity-50 [background-image:linear-gradient(rgb(var(--mist-rgb)/0.05)_1px,transparent_1px),linear-gradient(90deg,rgb(var(--mist-rgb)/0.05)_1px,transparent_1px)] [background-size:16px_16px]"
+                  />
+                  <JourneyArt index={i} className="relative h-full w-full transition-transform duration-700 group-hover/step:scale-[1.04]" />
                   <span
                     className={cn(
-                      'font-mono text-[12px] uppercase tracking-[0.14em]',
-                      last ? 'text-brand-950/70' : 'text-gold'
+                      'absolute left-3 top-3 rounded-full border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] backdrop-blur-md',
+                      last ? 'border-gold/40 bg-gold/15 text-gold' : 'border-mist/[0.12] bg-bg/50 text-gold'
                     )}
                   >
                     Step {String(i + 1).padStart(2, '0')}
                   </span>
                   <span
                     className={cn(
-                      'grid h-12 w-12 place-items-center rounded-2xl transition-transform duration-700 md:h-14 md:w-14',
-                      last ? 'bg-brand-950 text-gold' : 'bg-brand-500/15 text-brand-200',
+                      'absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-xl transition-transform duration-700',
+                      last ? 'bg-gold text-brand-950' : 'bg-brand-500/20 text-brand-200',
                       lit && pinned && 'rotate-[-8deg] scale-110'
                     )}
                   >
-                    <Icon className="h-6 w-6" aria-hidden />
+                    <Icon className="h-[18px] w-[18px]" aria-hidden />
                   </span>
                 </div>
-                <div className="relative">
+
+                {/* Content */}
+                <div className="flex flex-1 flex-col p-5">
                   <h3
                     className={cn(
-                      'font-display text-[30px] font-medium leading-[1] tracking-[-0.045em] md:text-[34px]',
+                      'font-display text-[23px] font-medium leading-[1.05] tracking-[-0.035em]',
                       last ? 'text-brand-950' : 'text-[var(--fg)]'
                     )}
                   >
                     {s.title}
                   </h3>
-                  <p
-                    className={cn(
-                      'mt-3 max-w-[30ch] text-[15px] leading-relaxed',
-                      last ? 'text-brand-950/75' : 'text-[var(--muted)]'
-                    )}
-                  >
-                    {s.text}
-                  </p>
+                  <p className={cn('mt-1.5 text-[14px] leading-snug', last ? 'text-brand-950/75' : 'text-[var(--muted)]')}>{s.text}</p>
+                  {extra && (
+                    <>
+                      <ul className="mt-3.5 flex flex-col gap-1.5">
+                        {extra.points.map((pt) => (
+                          <li key={pt} className={cn('flex items-start gap-2 text-[13px] leading-snug', last ? 'text-brand-950/85' : 'text-[var(--fg-soft)]')}>
+                            <Check className={cn('mt-[2px] h-3.5 w-3.5 shrink-0', last ? 'text-brand-950' : 'text-gold')} aria-hidden />
+                            {pt}
+                          </li>
+                        ))}
+                      </ul>
+                      <Link
+                        href={extra.href}
+                        className={cn(
+                          'mt-auto inline-flex items-center gap-1.5 self-start pt-4 text-[13.5px] font-semibold transition',
+                          last ? 'text-brand-950 hover:opacity-80' : 'text-brand-200 hover:text-[var(--fg)]'
+                        )}
+                      >
+                        {extra.cta}
+                        <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/step:rotate-45" aria-hidden />
+                      </Link>
+                    </>
+                  )}
                 </div>
               </li>
             );

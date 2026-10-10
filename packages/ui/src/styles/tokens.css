@@ -1991,3 +1991,45 @@ footer .wrap {
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------------------------------
+ * Member journey — per-step animated illustrations (inline SVG, CSS-only motion)
+ * ---------------------------------------------------------------------------------------- */
+.jr-art * {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.jr-art .jr-spin { animation: jr-spin 4s linear infinite; }
+.jr-art .jr-blip { animation: jr-blip 2.4s ease-out infinite; }
+.jr-art .jr-fill { animation: jr-fill 3.6s var(--ease-out-expo, ease-out) infinite; transform-origin: 0% 50%; }
+.jr-art .jr-blink { animation: jr-blink 1s steps(1) infinite; }
+.jr-art .jr-pop { animation: jr-pop 3.6s var(--ease-out-expo, ease-out) infinite; }
+.jr-art .jr-sheen { animation: jr-sheen 3.2s ease-in-out infinite; }
+.jr-art .jr-float { animation: jr-float 3.4s ease-in-out infinite; }
+.jr-art .jr-toggle { animation: jr-toggle 4.8s ease-in-out infinite; }
+.jr-art .jr-dash { stroke-dasharray: 4 6; animation: jr-dash 1.4s linear infinite; }
+.jr-art .jr-rise { animation: jr-rise 2.8s ease-out infinite; }
+.jr-art .jr-grow { animation: jr-grow 3.6s var(--ease-out-expo, ease-out) infinite; transform-origin: 50% 100%; }
+.jr-art .jr-wave { animation: jr-wave 1.6s ease-in-out infinite alternate; transform-origin: 0% 50%; }
+.jr-art .jr-beat { animation: jr-beat 1.6s ease-in-out infinite; }
+.jr-art .jr-orbit { animation: jr-spin 7s linear infinite; }
+
+@keyframes jr-spin { to { transform: rotate(360deg); } }
+@keyframes jr-blip { 0%, 100% { opacity: 0; transform: scale(0.4); } 30% { opacity: 1; transform: scale(1); } 70% { opacity: 0; transform: scale(1.6); } }
+@keyframes jr-fill { 0% { transform: scaleX(0); } 35%, 85% { transform: scaleX(1); } 100% { transform: scaleX(0); opacity: 0; } }
+@keyframes jr-blink { 50% { opacity: 0; } }
+@keyframes jr-pop { 0%, 45% { transform: scale(0); opacity: 0; } 60%, 88% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.6); opacity: 0; } }
+@keyframes jr-sheen { 0% { transform: translateX(-140%) skewX(-18deg); } 60%, 100% { transform: translateX(420%) skewX(-18deg); } }
+@keyframes jr-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes jr-toggle { 0%, 12%, 100% { opacity: 0.18; } 20%, 60% { opacity: 1; } }
+@keyframes jr-dash { to { stroke-dashoffset: -20; } }
+@keyframes jr-rise { 0% { transform: translateY(8px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-34px); opacity: 0; } }
+@keyframes jr-grow { 0% { transform: scaleY(0.08); } 40%, 85% { transform: scaleY(1); } 100% { transform: scaleY(0.08); } }
+@keyframes jr-wave { from { transform: skewY(-6deg) scaleX(0.94); } to { transform: skewY(5deg) scaleX(1); } }
+@keyframes jr-beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.14); } 30% { transform: scale(0.98); } 45% { transform: scale(1.08); } }
+
+/* Cards not yet reached stay still; the active card animates. */
+.jr-idle .jr-art * { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .jr-art * { animation: none !important; }
+}

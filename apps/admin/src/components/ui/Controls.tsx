@@ -5,7 +5,7 @@
  * filter inputs, export buttons. All labels are wired to their controls through FormField.
  */
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { Download, FileSpreadsheet, ImagePlus, Loader2, Search, Trash2, X } from 'lucide-react';
+import { Download, FileSpreadsheet, FileUp, ImagePlus, Link2, Loader2, Search, Trash2, X } from 'lucide-react';
 import { Button, FormField, Modal, cn, fieldInputClass } from '@ascend/ui';
 
 /* ------------------------------------------------------------------------------------------ */
@@ -241,6 +241,118 @@ export function ListField({
     <TextField {...base} value={text} onChange={handle} />
   ) : (
     <TextAreaField {...base} rows={6} value={text} onChange={handle} />
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Document upload (or link)                                                                   */
+/* ------------------------------------------------------------------------------------------ */
+
+const DOC_MAX = 15 * 1024 * 1024;
+
+/** Uploads a PDF/Office document through /api/upload?type=document, or takes a pasted link. */
+export function FileUpload({
+  label,
+  value,
+  onChange,
+  hint,
+  error,
+  className,
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  hint?: string;
+  error?: string;
+  className?: string;
+}) {
+  const inputId = useId();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const isUploaded = value.startsWith('/resource-files/');
+  const fileName = isUploaded ? value.slice('/resource-files/'.length) : '';
+
+  const upload = async (file: File) => {
+    setUploadError(null);
+    if (file.size > DOC_MAX) {
+      setUploadError('The file is larger than 15 MB.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload?type=document', { method: 'POST', body: fd, credentials: 'same-origin' });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success || !json.url) {
+        setUploadError(json?.error || 'Upload failed. Please try again.');
+        return;
+      }
+      onChange(json.url as string);
+    } catch {
+      setUploadError('Network error while uploading.');
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const shownError = uploadError ?? error;
+
+  return (
+    <div className={cn('flex min-w-0 flex-col gap-2', className)}>
+      <span className="text-[13px] font-medium text-[var(--fg)]" id={`${inputId}-label`}>
+        {label}
+      </span>
+      {isUploaded ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-mist/[0.16] bg-field/60 px-4 py-3">
+          <FileUp className="h-5 w-5 shrink-0 text-brand-200" aria-hidden />
+          <span className="min-w-0 flex-1 truncate text-[13.5px] text-[var(--fg)]">Uploaded file · {fileName}</span>
+          <Button type="button" variant="ghost" size="sm" onClick={() => onChange('')} disabled={busy}>
+            <Trash2 className="h-4 w-4" aria-hidden />
+            Remove
+          </Button>
+        </div>
+      ) : (
+        <div className="relative">
+          <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" aria-hidden />
+          <input
+            type="url"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="https://… or upload a file"
+            aria-labelledby={`${inputId}-label`}
+            className={cn(fieldInputClass, 'pl-9')}
+          />
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          ref={fileRef}
+          id={inputId}
+          type="file"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf"
+          className="sr-only"
+          aria-labelledby={`${inputId}-label`}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void upload(f);
+          }}
+        />
+        <Button type="button" variant="line" size="sm" onClick={() => fileRef.current?.click()} disabled={busy}>
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <FileUp className="h-4 w-4" aria-hidden />}
+          {busy ? 'Uploading…' : isUploaded ? 'Replace file' : 'Upload file'}
+        </Button>
+      </div>
+      {shownError ? (
+        <span role="alert" className="text-[12px] text-bad">
+          {shownError}
+        </span>
+      ) : hint ? (
+        <span className="text-[12px] text-[var(--muted)]">{hint}</span>
+      ) : null}
+    </div>
   );
 }
 

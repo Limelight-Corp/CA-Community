@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { RESOURCE_CATEGORIES, type CommunityResource } from '@ascend/shared';
 import { Container } from '@ascend/ui';
 import { getItems, getSettings } from '../../lib/community-store';
-import { mergeCategories, safeUrl } from '../../lib/content';
+import { mergeCategories, resourceDownloadUrl, safeUrl } from '../../lib/content';
 import { CtaBand, PageHero, Section } from '../../components/content/ui';
 import { ResourceLibrary, type ResourceCardData } from '../../components/content/ResourceLibrary';
 
@@ -19,8 +19,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function ResourcesPage() {
   const resources = getItems<CommunityResource>('resources', true);
   const items: ResourceCardData[] = resources.map((r) => {
-    // Members-only file links are withheld from the public page entirely.
-    const fileUrl = r.isMembersOnly ? undefined : safeUrl(r.fileUrl);
+    // Links always go through the download route, which checks members-only access;
+    // the stored file path or external link is never sent to the browser.
+    const stored = safeUrl(r.fileUrl);
+    const fileUrl = stored ? resourceDownloadUrl(r.id) : undefined;
     return {
       id: r.id,
       title: r.title,
@@ -28,7 +30,7 @@ export default function ResourcesPage() {
       format: r.format,
       isMembersOnly: r.isMembersOnly,
       fileUrl,
-      isDownload: !!fileUrl && /\.(pdf|docx?|xlsx?|pptx?|zip|csv)(\?|$)/i.test(fileUrl),
+      isDownload: !!stored && /\.(pdf|docx?|xlsx?|pptx?|zip|csv)(\?|$)/i.test(stored),
     };
   });
 

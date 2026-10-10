@@ -28,7 +28,7 @@ import { eventInstants, toIstIso } from '../../../components/events/event-time';
 import { PillLink, Section } from '../../../components/content/ui';
 import { getItems, getSettings } from '../../../lib/community-store';
 import { eventSpeakers, formatEventDate, locationLabel, priceLabel } from '../../../lib/events';
-import { safeUrl } from '../../../lib/content';
+import { resourceDownloadUrl, safeUrl } from '../../../lib/content';
 import { allWingHubs, findWingHub, wingEvents, wingPeople, wingResources } from '../../../lib/wings';
 
 type Params = Promise<{ slug: string }>;
@@ -80,7 +80,8 @@ function PersonCard({ person, convener }: { person: CommunityTeamMember; convene
 }
 
 function ResourceRow({ r }: { r: CommunityResource }) {
-  const file = r.isMembersOnly ? undefined : safeUrl(r.fileUrl);
+  const stored = safeUrl(r.fileUrl);
+  const file = stored ? resourceDownloadUrl(r.id) : undefined;
   return (
     <li className="group flex items-center gap-4 rounded-2xl border border-mist/[0.1] bg-grad-surface px-4 py-3.5 transition hover:border-brand-300/40">
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500/15 text-brand-200 transition-transform group-hover:-rotate-6">
@@ -93,12 +94,12 @@ function ResourceRow({ r }: { r: CommunityResource }) {
         </span>
       </span>
       {r.isMembersOnly ? (
-        <Link href="/join" className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-gold">
+        <a href={file ?? '/join'} className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-gold">
           <Lock className="h-4 w-4" aria-hidden /> Members
-        </Link>
+        </a>
       ) : file ? (
         <a href={file} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-[var(--fg)] hover:text-brand-200">
-          {/\.(pdf|docx?|xlsx?|pptx?|zip|csv)(\?|$)/i.test(file) ? <Download className="h-4 w-4" aria-hidden /> : <ExternalLink className="h-4 w-4" aria-hidden />}
+          {/\.(pdf|docx?|xlsx?|pptx?|zip|csv)(\?|$)/i.test(stored ?? '') ? <Download className="h-4 w-4" aria-hidden /> : <ExternalLink className="h-4 w-4" aria-hidden />}
           Open
         </a>
       ) : (

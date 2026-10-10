@@ -21,6 +21,8 @@ export type FieldKind =
   | 'select'
   | 'toggle'
   | 'image'
+  /** Uploaded document (PDF/Office) or a pasted link. */
+  | 'file'
   | 'url'
   | 'tags'
   | 'lines'
@@ -103,7 +105,6 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
     description: 'Articles, guides, tax updates, webinars and downloads.',
     titleField: 'title',
     subtitleFields: ['category', 'format'],
-    imageField: 'fileUrl',
     allowCreate: true,
     allowDelete: true,
     createDefaults: { downloads: 0 },
@@ -112,7 +113,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'category', label: 'Category', kind: 'select', options: RESOURCE_CATEGORIES, allowCustom: true, required: true },
       { name: 'format', label: 'Format', kind: 'text', required: true, max: 80, placeholder: 'PDF · 18 pages' },
       { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'Optional — shows this resource on the wing’s page' },
-      { name: 'fileUrl', label: 'Cover image', kind: 'image', full: true },
+      { name: 'fileUrl', label: 'File or link', kind: 'file', full: true, hint: 'Upload a PDF, Word, Excel or PowerPoint file (up to 15 MB), or paste a link such as a YouTube webinar.' },
       { name: 'isMembersOnly', label: 'Members only', kind: 'toggle', defaultValue: false },
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
     ],

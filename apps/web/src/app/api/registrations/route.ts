@@ -85,12 +85,18 @@ export async function POST(req: Request) {
     | { kind: 'closed'; message: string }
     | { kind: 'created'; reg: CommunityRegistration };
 
+  // An unpaid booking left untouched for a day counts as abandoned: it no longer blocks a fresh
+  // registration with the same email. It is kept as-is, so a late payment can still be verified.
+  const abandonedBefore = Date.now() - 24 * 60 * 60 * 1000;
+  const isAbandoned = (r: CommunityRegistration) =>
+    r.status === 'pending_payment' && !r.paidAt && Date.parse(r.updatedAt || r.createdAt) < abandonedBefore;
+
   const outcome = mutatePrivate<Outcome>((data) => {
     const existing = data.registrations.find(
       (r) =>
         r.eventId === event.id &&
         r.email.toLowerCase() === input.email &&
-        (r.status === 'confirmed' || r.status === 'pending_payment')
+        (r.status === 'confirmed' || (r.status === 'pending_payment' && !isAbandoned(r)))
     );
     if (existing) {
       // Only hand back the existing booking to someone who also knows the registered mobile.
@@ -107,6 +113,7 @@ export async function POST(req: Request) {
       id: newId('reg'),
       bookingId: generateBookingId(event, data.registrations),
       accessToken: newSecret(),
+      checkinCode: newSecret(),
       eventId: event.id,
       eventSlug: event.slug,
       eventTitle: event.title,

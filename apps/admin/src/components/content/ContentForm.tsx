@@ -8,7 +8,7 @@ import { api } from '../../lib/client-api';
 import { CONTENT_TYPES, defaultValues, type FieldDef, type ManagedContentType } from '../../lib/content-config';
 import { slugify } from '../../lib/format';
 import { Panel } from '../ui/Display';
-import { ConfirmDialog, ImageUpload, ListField, SelectField, Switch, TextAreaField, TextField } from '../ui/Controls';
+import { ConfirmDialog, FileUpload, ImageUpload, ListField, SelectField, Switch, TextAreaField, TextField } from '../ui/Controls';
 import { PointsEditor, StatsEditor, type StatItem } from './ListEditors';
 
 type Values = Record<string, unknown>;
@@ -66,6 +66,9 @@ function validateField(f: FieldDef, value: unknown, taken: Set<string>): string 
         return /^\/(?!\/)\S*$/.test(str) || /^https?:\/\/\S+$/i.test(str) ? undefined : 'Enter a site path starting with / or a full https:// URL';
       }
       return /^https?:\/\/\S+$/i.test(str) ? undefined : 'Enter a full URL starting with https://';
+    case 'file':
+      if (!str) return undefined;
+      return /^\/(?!\/)\S*$/.test(str) || /^https?:\/\/\S+$/i.test(str) ? undefined : 'Upload a file or paste a full https:// link';
     case 'color':
       return /^#[0-9a-fA-F]{6}$/.test(str) ? undefined : 'Use a hex colour like #2F6FE4';
     case 'stats': {
@@ -223,6 +226,18 @@ export function ContentForm({
             value={String(v ?? '')}
             onChange={(x) => set(f.name, x)}
             aspect={f.aspect ?? 'banner'}
+            error={errors[f.name]}
+            className={cn(f.full && 'md:col-span-2')}
+          />
+        );
+      case 'file':
+        return (
+          <FileUpload
+            key={f.name}
+            label={f.label}
+            hint={f.hint}
+            value={String(v ?? '')}
+            onChange={(x) => set(f.name, x)}
             error={errors[f.name]}
             className={cn(f.full && 'md:col-span-2')}
           />

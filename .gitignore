@@ -46,3 +46,6 @@ data/admin-users.json
 # Backups made by `npm run seed:test -- --force`
 data/private-store.backup-*.json
 data/*.tmp
+
+# Uploaded resource files (served via /api/resources/[id]/download)
+data/resource-files/

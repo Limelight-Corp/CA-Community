@@ -185,6 +185,15 @@ export function SiteHeader({
                 Log in
               </Link>
             )}
+            {!user && (
+              <Link
+                href="/join"
+                className="hidden h-10 items-center rounded-full border border-gold/40 px-4 text-[13.5px] font-semibold text-gold transition hover:border-gold hover:bg-gold/10 lg:flex"
+              >
+                <span className="hidden whitespace-nowrap 2xl:inline">Join the Community</span>
+                <span className="whitespace-nowrap 2xl:hidden">Join</span>
+              </Link>
+            )}
             <Link
               href="/events"
               className="group hidden h-10 items-center gap-2 rounded-full bg-grad-primary pl-4 pr-1.5 text-[13.5px] font-semibold text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] transition hover:brightness-110 md:flex"

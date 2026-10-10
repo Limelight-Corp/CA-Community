@@ -6,6 +6,7 @@ import { BookOpen, Download, ExternalLink, FileSpreadsheet, FileText, Lock, Play
 import { EmptyState, cn, fieldInputClass } from '@ascend/ui';
 import { chipClass } from './ui';
 import { FxCard } from '../home/Interactive';
+import { useAuth } from '../../context/AuthContext';
 
 export interface ResourceCardData {
   id: string;
@@ -13,7 +14,7 @@ export interface ResourceCardData {
   category: string;
   format: string;
   isMembersOnly: boolean;
-  /** Only present for public resources — members-only file links are never sent to the browser. */
+  /** Always the /api/resources/[id]/download route — the stored link is never sent to the browser. */
   fileUrl?: string;
   isDownload?: boolean;
 }
@@ -106,6 +107,7 @@ const FORMAT_ICON: Record<string, React.ComponentType<{ className?: string }>> =
 
 function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; wide?: boolean }) {
   const Icon = FORMAT_ICON[r.format.toLowerCase().split(/[^a-z]+/)[0] ?? ''] ?? FileText;
+  const isMember = !!useAuth().user;
   return (
     <FxCard
       as="article"
@@ -160,10 +162,17 @@ function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; 
           </h2>
         </div>
         <div className="mt-auto border-t border-[var(--line)] pt-4">
-          {r.isMembersOnly ? (
-            <Link href="/join" className="relative z-10 inline-flex items-center gap-2 text-[13.5px] font-semibold text-gold hover:text-gold-soft">
-              <Lock className="h-4 w-4" aria-hidden /> Join to unlock<span className="sr-only">: {r.title}</span>
-            </Link>
+          {r.isMembersOnly && !(isMember && r.fileUrl) ? (
+            <span className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <Link href="/join" className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-gold hover:text-gold-soft">
+                <Lock className="h-4 w-4" aria-hidden /> Join to unlock<span className="sr-only">: {r.title}</span>
+              </Link>
+              {!isMember && r.fileUrl && (
+                <a href={r.fileUrl} className="text-[12.5px] font-medium text-[var(--muted)] underline-offset-4 hover:text-[var(--fg)] hover:underline">
+                  Member? Log in<span className="sr-only"> to open {r.title}</span>
+                </a>
+              )}
+            </span>
           ) : r.fileUrl ? (
             <a
               href={r.fileUrl}

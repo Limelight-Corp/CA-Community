@@ -61,6 +61,7 @@ function fieldSchema(field: FieldDef): z.ZodTypeAny {
     case 'toggle':
       return z.boolean();
     case 'image':
+    case 'file':
     case 'url':
       return field.kind === 'url' && field.name !== 'ctaUrl' ? externalUrl : safeLink;
     case 'tags':

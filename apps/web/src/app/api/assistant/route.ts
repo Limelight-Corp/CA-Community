@@ -16,7 +16,7 @@ const Body = z.object({
 
 /** Website support assistant. Body: { messages: [{ role, content }], page? } → { reply, events, links, lead?, suggestions, mode } */
 export async function POST(request: NextRequest) {
-  if (!rateLimit(`assistant:${clientIp(request)}`, 30, 10 * 60_000)) {
+  if (!rateLimit(`assistant:${clientIp(request)}`, 60, 10 * 60_000)) {
     return NextResponse.json({ error: 'You’re sending messages quickly — please wait a minute and try again.' }, { status: 429 });
   }
   const parsed = Body.safeParse(await readJsonBody(request, 64_000));

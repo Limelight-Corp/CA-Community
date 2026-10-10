@@ -169,7 +169,7 @@ with event cards, direct page links and suggested follow-ups.
   keyword search, so it never breaks.
 - **Follow-up form** — "Talk to the team" posts to `/api/contact`; the lead appears in
   admin → Messages with the subject "Chat follow-up request".
-- Rate limits: 30 chat messages and 3 AI-created leads per visitor per 10 minutes.
+- Rate limits: 60 chat messages and 3 AI-created leads per visitor per 10 minutes.
 
 ## Analytics (optional)
 

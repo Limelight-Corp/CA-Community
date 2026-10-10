@@ -48,6 +48,7 @@ interface Msg {
   links?: LinkCard[];
   suggestions?: string[];
   lead?: boolean;
+  mode?: 'ai' | 'basic';
 }
 
 const STORE_KEY = 'ascend:assistant:v1';
@@ -166,6 +167,7 @@ export function SupportChat() {
           links: data.links,
           suggestions: data.suggestions,
           lead: !!data.lead,
+          mode: data.mode,
         },
       ]);
     } catch {
@@ -232,7 +234,8 @@ export function SupportChat() {
           <div className="min-w-0 flex-1 leading-tight">
             <p className="font-display text-[16px] font-semibold text-[var(--fg)]">ASCEND Assistant</p>
             <p className="flex items-center gap-1.5 text-[12px] text-[var(--muted)]">
-              <span className="live-dot" aria-hidden /> Events, membership & help
+              <span className="live-dot" aria-hidden />{' '}
+              {lastAssistant?.mode === 'basic' ? 'Quick-help mode' : 'Events, membership & help'}
             </p>
           </div>
           {messages.length > 0 && (

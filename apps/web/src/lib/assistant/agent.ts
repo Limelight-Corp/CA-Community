@@ -13,7 +13,8 @@ import * as z from 'zod/v4';
 import { contactMessageSchema } from '../form-schemas';
 import { saveContactMessage } from '../leads';
 import { rateLimit } from '../form-guard';
-import { searchEvents, searchSite, siteFacts, SITE_PAGES, type EventCard, type LinkCard } from './knowledge';
+import { searchEvents, searchSite, siteFacts, type EventCard, type LinkCard } from './knowledge';
+import { basicReply } from './basic';
 
 export interface ChatTurn {
   role: 'user' | 'assistant';
@@ -78,6 +79,8 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
         city: z.string().optional(),
         mode: z.enum(['Online', 'Offline']).optional(),
         max_fee: z.number().optional().describe('Maximum fee in INR; 0 for free events'),
+        paid_only: z.boolean().optional().describe('true for paid events only'),
+        category: z.enum(['Networking', 'Seminar', 'Workshop', 'Conference', 'Training', 'Career', 'Social']).optional(),
         month: z.string().optional().describe('YYYY-MM'),
         include_past: z.boolean().optional(),
       }),
@@ -87,6 +90,8 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
           city: input.city,
           mode: input.mode,
           maxFee: input.max_fee,
+          paid: input.paid_only,
+          category: input.category,
           month: input.month,
           includePast: input.include_past,
         });
@@ -166,43 +171,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
   return { reply, ...collected, suggestions: suggestionsFor(history.at(-1)?.content ?? '', collected), mode: 'ai' };
 }
 
-/* ------------------------------------------------------------------------------------------ */
-/* Basic mode — no API key / API unavailable                                                   */
-/* ------------------------------------------------------------------------------------------ */
-
 const has = (text: string, ...keys: string[]) => keys.some((k) => text.includes(k));
-
-function basicReply(history: ChatTurn[]): AssistantReply {
-  const q = (history.at(-1)?.content ?? '').toLowerCase();
-  const page = (href: string) => SITE_PAGES.find((p) => p.href === href)!;
-  let reply: string;
-  let events: EventCard[] = [];
-  let links: LinkCard[] = [];
-
-  if (has(q, 'event', 'register', 'summit', 'workshop', 'webinar', 'seminar', 'masterclass', 'clinic', 'ticket')) {
-    events = searchEvents({ query: has(q, 'upcoming', 'events', 'all') ? undefined : q }).slice(0, 4);
-    if (!events.length) events = searchEvents({}).slice(0, 4);
-    reply = events.length ? 'Here are the upcoming events — tap one for details or to register.' : 'There are no upcoming events listed right now.';
-    links = [page('/events')];
-  } else if (has(q, 'member', 'join', 'plan', 'fee', 'price', 'subscription')) {
-    reply = 'Membership plans and the application form are on the Join Us page.';
-    links = [page('/join')];
-  } else if (has(q, 'refund', 'cancel')) {
-    reply = 'The cancellation & refund policy is linked below. For a specific booking, request a follow-up and the team will help.';
-    links = [page('/legal/refund'), page('/contact')];
-  } else if (has(q, 'pay', 'upi', 'razorpay', 'card')) {
-    reply = 'Payments for paid events happen on the payment page after you register, through Razorpay (UPI, cards and net banking).';
-    links = [page('/legal/payment'), page('/events')];
-  } else if (has(q, 'contact', 'call', 'talk', 'human', 'team', 'help', 'follow', 'callback', 'baat')) {
-    reply = 'Happy to connect you with the team — use “Request a follow-up” below, or see the contact details.';
-    links = [page('/contact')];
-  } else {
-    links = searchSite(q);
-    reply = links.length ? 'These pages look relevant:' : 'I couldn’t find that. You can browse the pages below or request a follow-up from the team.';
-    if (!links.length) links = [page('/events'), page('/join'), page('/contact')];
-  }
-  return { reply, events, links, suggestions: suggestionsFor(q, { events, links }), mode: 'basic' };
-}
 
 function suggestionsFor(lastUser: string, got: { events: EventCard[]; links: LinkCard[] }): string[] {
   const q = lastUser.toLowerCase();

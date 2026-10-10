@@ -89,13 +89,23 @@ export interface EventQuery {
   city?: string;
   mode?: 'Online' | 'Offline';
   maxFee?: number;
+  /** Only events with a fee. */
+  paid?: boolean;
+  /** Exact event category, e.g. "Workshop". */
+  category?: string;
   month?: string; // YYYY-MM
   includePast?: boolean;
+  /** Only past events. */
+  pastOnly?: boolean;
+  limit?: number;
 }
 
 export function searchEvents(q: EventQuery): EventCard[] {
   let events = getItems<CommunityEvent>('events', true);
-  if (!q.includePast) events = events.filter((e) => isUpcoming(e));
+  if (q.pastOnly) events = events.filter((e) => !isUpcoming(e));
+  else if (!q.includePast) events = events.filter((e) => isUpcoming(e));
+  if (q.paid) events = events.filter((e) => (Number(e.fee) || 0) > 0);
+  if (q.category) events = events.filter((e) => e.category.toLowerCase() === q.category!.toLowerCase());
   if (q.city) events = events.filter((e) => e.city?.toLowerCase().includes(q.city!.toLowerCase()));
   if (q.mode) events = events.filter((e) => e.mode === q.mode);
   if (typeof q.maxFee === 'number') events = events.filter((e) => (Number(e.fee) || 0) <= q.maxFee!);
@@ -110,9 +120,9 @@ export function searchEvents(q: EventQuery): EventCard[] {
       })
       .filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s);
-    return ranked.slice(0, 6).map((x) => toEventCard(x.e));
+    return ranked.slice(0, q.limit ?? 6).map((x) => toEventCard(x.e));
   }
-  return sorted.slice(0, 6).map(toEventCard);
+  return (q.pastOnly ? sorted.reverse() : sorted).slice(0, q.limit ?? 6).map(toEventCard);
 }
 
 /** Pages, resources, news, speakers and wings matching the query, each with a direct link. */

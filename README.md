@@ -153,6 +153,24 @@ prototype (the API is not wired to the website yet), so the server only checks t
 session cookie is present — real token verification must be added when the member API goes
 live.
 
+## Support chat assistant
+
+A chat button sits on every page of the website (bottom right). It opens with quick actions
+(upcoming events, register & pay, membership plans, resources, talk to the team) and answers
+with event cards, direct page links and suggested follow-ups.
+
+- **AI mode** — set `ANTHROPIC_API_KEY` in `apps/web/.env.local` and restart. The assistant
+  (`/api/assistant`, model `claude-opus-5-5`, low effort) uses three server-side tools:
+  `search_events` (live events with register links), `search_site` (pages, policies,
+  resources, news, speakers, wings) and `create_lead` (saves a follow-up to the admin
+  **Messages** inbox after the visitor confirms). Answers come only from site content.
+  Refusal fallback (`fallbacks: "default"`) is enabled.
+- **Basic mode** — without a key (or if the API is unavailable) the same widget answers from
+  keyword search, so it never breaks.
+- **Follow-up form** — "Talk to the team" posts to `/api/contact`; the lead appears in
+  admin → Messages with the subject "Chat follow-up request".
+- Rate limits: 30 chat messages and 3 AI-created leads per visitor per 10 minutes.
+
 ## Analytics (optional)
 
 Set `NEXT_PUBLIC_GA_ID=G-XXXXXXX` for the website to load Google Analytics 4.

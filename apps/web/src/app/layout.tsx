@@ -7,6 +7,7 @@ import { getSettings } from '../lib/community-store';
 import { SiteHeader } from '../components/site/SiteHeader';
 import { SiteFooter } from '../components/site/SiteFooter';
 import { Providers } from '../components/site/Providers';
+import { SupportChat } from '../components/site/SupportChat';
 import { siteUrl } from '../lib/seo';
 import './globals.css';
 
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </main>
             <SiteFooter settings={settings} />
+            <SupportChat />
           </Providers>
         </AuthProvider>
       </body>

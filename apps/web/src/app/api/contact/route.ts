@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { CommunityContactMessage } from '@ascend/shared';
-import { mutatePrivate, newId } from '../../../lib/community-store';
+import { saveContactMessage } from '../../../lib/leads';
 import { clientIp, HONEYPOT_FIELD, rateLimit, readJsonBody } from '../../../lib/form-guard';
 import { contactMessageSchema, fieldErrors } from '../../../lib/form-schemas';
 
@@ -32,15 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    mutatePrivate((data) => {
-      const message: CommunityContactMessage = {
-        id: newId('msg'),
-        ...parsed.data,
-        status: 'new',
-        createdAt: new Date().toISOString(),
-      };
-      data.messages.push(message);
-    });
+    saveContactMessage(parsed.data);
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.error('Failed to save contact message:', error);

@@ -37,7 +37,7 @@ export const memberApplicationSchema = z.object({
     .optional()
     .transform((v) => (v ? v : undefined))
     .refine((v) => !v || /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+/i.test(v), 'Enter a full LinkedIn URL (https://linkedin.com/in/…)'),
-  interests: z.array(z.number().int().min(1).max(10)).max(10).optional().default([]),
+  interests: z.array(z.number().int().min(1).max(99)).max(30).optional().default([]),
   consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the privacy policy to continue' }) }),
 });
 

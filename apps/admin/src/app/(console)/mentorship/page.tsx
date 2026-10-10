@@ -1,18 +1,19 @@
 import type { Metadata } from 'next';
 import { Clock, HeartHandshake, UserRoundCheck, Users } from 'lucide-react';
-import { ORG_WINGS } from '@ascend/shared';
 import { readPrivate } from '../../../lib/community-store';
 import { activeMentees } from '../../../lib/mentorship';
+import { adminWings, wingLabel } from '../../../lib/taxonomy';
 import { PageHeader, Panel, StatCard } from '../../../components/ui/Display';
 import { MentorshipAdmin } from '../../../components/mentorship/MentorshipAdmin';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Mentorship' };
 
-const wingName = (n: number) => ORG_WINGS.find((w) => w.number === n)?.name ?? `Wing ${n}`;
 
 export default function MentorshipAdminPage() {
   const { mentors, mentorshipRequests: requests } = readPrivate();
+  const wings = adminWings();
+  const wingName = (n: number) => wingLabel(wings, n);
   const mentorRows = [...mentors]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map((m) => ({

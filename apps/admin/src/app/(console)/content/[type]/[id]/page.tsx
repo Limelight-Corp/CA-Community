@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getItems } from '../../../../../lib/community-store';
 import { CONTENT_TYPES, isManagedContentType } from '../../../../../lib/content-config';
+import { fieldOptions } from '../../../../../lib/taxonomy';
 import { PageHeader } from '../../../../../components/ui/Display';
 import { ContentForm } from '../../../../../components/content/ContentForm';
 
@@ -27,7 +28,7 @@ export default async function EditContentPage({ params }: { params: Promise<{ ty
         backHref={`/content/${type}`}
         backLabel={config.label}
       />
-      <ContentForm key={item.updatedAt ?? item.id} type={type} item={item} takenSlugs={takenSlugs} />
+      <ContentForm key={item.updatedAt ?? item.id} type={type} item={item} takenSlugs={takenSlugs} options={fieldOptions(type)} />
     </>
   );
 }

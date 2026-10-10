@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, BriefcaseBusiness, CalendarClock, GraduationCap, IndianRupee, Lock, MapPin, Search, Sparkles, X } from 'lucide-react';
-import { cn } from '@ascend/ui';
+import { Pagination, cn, usePagination } from '@ascend/ui';
 
 export interface JobCard {
   slug: string;
@@ -46,9 +46,11 @@ export function JobBoard({ jobs, types, modes }: { jobs: JobCard[]; types: strin
   }, [jobs, q, type, city, mode]);
 
   const filtered = !!(q || type || city || mode);
+  const pager = usePagination(shown, 10, [q, type, city, mode]);
+  const listTop = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div ref={listTop} className="flex flex-col gap-8">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Opening type">
         {['', ...types].map((t) => (
           <button
@@ -115,7 +117,7 @@ export function JobBoard({ jobs, types, modes }: { jobs: JobCard[]; types: strin
 
       {shown.length ? (
         <ul className="grid gap-4">
-          {shown.map((j) => (
+          {pager.pageItems.map((j) => (
             <li key={j.slug}>
               <Link
                 href={`/careers/${j.slug}`}
@@ -183,6 +185,7 @@ export function JobBoard({ jobs, types, modes }: { jobs: JobCard[]; types: strin
           {jobs.length ? 'No openings match these filters.' : 'No openings right now — new articleship and job posts appear here as soon as they are shared.'}
         </div>
       )}
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="openings" scrollTo={listTop} />
     </div>
   );
 }

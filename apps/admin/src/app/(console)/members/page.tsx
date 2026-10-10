@@ -2,6 +2,7 @@ import { CircleCheck, Clock, Users, CircleX } from 'lucide-react';
 import { getSettings, readPrivate } from '../../../lib/community-store';
 import { byNewest } from '../../../lib/filters';
 import { PageHeader, Panel, StatCard } from '../../../components/ui/Display';
+import { adminWings } from '../../../lib/taxonomy';
 import { MembersManager } from '../../../components/members/MembersManager';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
         <StatCard label="Rejected" value={count('rejected')} tone="bad" icon={<CircleX />} />
       </section>
       <Panel>
-        <MembersManager rows={rows} initial={{ q: sp.q, plan: sp.plan, status: sp.status, city: sp.city }} fees={getSettings().membershipFees} />
+        <MembersManager rows={rows} initial={{ q: sp.q, plan: sp.plan, status: sp.status, city: sp.city }} fees={getSettings().membershipFees}
+          wingNames={Object.fromEntries(adminWings().map((w) => [w.number, w.name]))}
+        />
       </Panel>
     </>
   );

@@ -12,6 +12,7 @@ import {
   WORK_MODES,
   RESOURCE_CATEGORIES,
   type CommunityContentType,
+  type TaxonomyKey,
 } from '@ascend/shared';
 
 export type FieldKind =
@@ -44,6 +45,8 @@ export interface FieldDef {
   placeholder?: string;
   /** select: allowed values. */
   options?: readonly string[];
+  /** select: options are loaded from the store at request time (wings, or an admin-managed category list). */
+  optionsFrom?: 'wings' | TaxonomyKey;
   /** select: accept values outside `options` (legacy/free categories). */
   allowCustom?: boolean;
   /** slug: field the slug is generated from. */
@@ -91,7 +94,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
     fields: [
       { name: 'title', label: 'Title', kind: 'text', required: true, max: 200, full: true },
       { name: 'slug', label: 'URL slug', kind: 'slug', slugFrom: 'title', required: true, hint: 'Used in the article URL: /news/your-slug' },
-      { name: 'category', label: 'Category', kind: 'select', options: NEWS_CATEGORIES, allowCustom: true, required: true },
+      { name: 'category', label: 'Category', kind: 'select', options: NEWS_CATEGORIES, optionsFrom: 'newsCategories', required: true },
       { name: 'date', label: 'Date', kind: 'text', required: true, max: 40, placeholder: '03 Nov 2026', hint: 'Shown as written, e.g. 03 Nov 2026' },
       { name: 'author', label: 'Author', kind: 'text', max: 120 },
       { name: 'coverImageUrl', label: 'Cover image', kind: 'image', full: true },
@@ -112,9 +115,9 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
     createDefaults: { downloads: 0 },
     fields: [
       { name: 'title', label: 'Title', kind: 'text', required: true, max: 200, full: true },
-      { name: 'category', label: 'Category', kind: 'select', options: RESOURCE_CATEGORIES, allowCustom: true, required: true },
+      { name: 'category', label: 'Category', kind: 'select', options: RESOURCE_CATEGORIES, optionsFrom: 'resourceCategories', required: true },
       { name: 'format', label: 'Format', kind: 'text', required: true, max: 80, placeholder: 'PDF · 18 pages' },
-      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'Optional — shows this resource on the wing’s page' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), optionsFrom: 'wings', hint: 'Optional — shows this resource on the wing’s page' },
       { name: 'fileUrl', label: 'File or link', kind: 'file', full: true, hint: 'Upload a PDF, Word, Excel or PowerPoint file (up to 15 MB), or paste a link such as a YouTube webinar.' },
       { name: 'isMembersOnly', label: 'Members only', kind: 'toggle', defaultValue: false },
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
@@ -133,7 +136,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
     createDefaults: { accentGradient: 'from-brand-900 via-brand-800 to-brand-950' },
     fields: [
       { name: 'title', label: 'Caption / title', kind: 'text', required: true, max: 200, full: true },
-      { name: 'category', label: 'Category', kind: 'select', options: GALLERY_CATEGORIES, allowCustom: true, required: true },
+      { name: 'category', label: 'Category', kind: 'select', options: GALLERY_CATEGORIES, optionsFrom: 'galleryCategories', required: true },
       { name: 'date', label: 'Date', kind: 'text', required: true, max: 40, placeholder: 'January 2027' },
       { name: 'location', label: 'Location', kind: 'text', required: true, max: 160 },
       { name: 'imageUrl', label: 'Photo', kind: 'image', full: true },
@@ -183,7 +186,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'name', label: 'Full name', kind: 'text', required: true, max: 120 },
       { name: 'designation', label: 'Designation', kind: 'text', required: true, max: 160 },
       { name: 'group', label: 'Group', kind: 'select', options: TEAM_GROUPS, required: true, defaultValue: 'Core Team' },
-      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'For wing conveners and committee members — shows them on the wing’s page' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), optionsFrom: 'wings', hint: 'For wing conveners and committee members — shows them on the wing’s page' },
       { name: 'order', label: 'Display order', kind: 'number', min: 0, max: 999, defaultValue: 10, hint: 'Lower numbers appear first' },
       { name: 'photoUrl', label: 'Photo', kind: 'image', aspect: 'square', full: true },
       { name: 'linkedinUrl', label: 'LinkedIn profile', kind: 'url', full: true },
@@ -244,13 +247,13 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'title', label: 'Role / title', kind: 'text', required: true, max: 160, full: true, placeholder: 'Articled Assistant — Direct Tax' },
       { name: 'slug', label: 'URL slug', kind: 'slug', slugFrom: 'title', required: true, hint: 'Used in the link: /careers/your-slug' },
       { name: 'organisation', label: 'Firm / company', kind: 'text', required: true, max: 160 },
-      { name: 'type', label: 'Type', kind: 'select', options: JOB_TYPES, required: true },
+      { name: 'type', label: 'Type', kind: 'select', options: JOB_TYPES, optionsFrom: 'jobTypes', required: true },
       { name: 'location', label: 'City / location', kind: 'text', required: true, max: 120 },
       { name: 'workMode', label: 'Work mode', kind: 'select', options: WORK_MODES, required: true },
       { name: 'experience', label: 'Eligibility / experience', kind: 'text', max: 120, placeholder: 'CA Inter cleared · 0–2 years' },
       { name: 'compensation', label: 'Stipend / salary', kind: 'text', max: 120, placeholder: 'As per ICAI norms / ₹… per month' },
       { name: 'deadline', label: 'Last date to apply', kind: 'date', hint: 'The post is hidden from the board after this date' },
-      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'Optional — related wing' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), optionsFrom: 'wings', hint: 'Optional — related wing' },
       { name: 'description', label: 'About the role', kind: 'richtext', required: true, max: 8000, full: true, hint: 'Plain text; blank lines separate paragraphs.' },
       { name: 'requirements', label: 'Requirements', kind: 'lines', full: true, hint: 'One per line' },
       { name: 'applyUrl', label: 'Apply link', kind: 'url', hint: 'Application form or careers page (https://…)' },
@@ -265,16 +268,17 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
     type: 'wings',
     label: 'Wings',
     singular: 'Wing',
-    description: 'The ten professional wings, their focus areas and activities.',
+    description: 'The professional wings, their focus areas and activities. New wings appear on the website (Wings page, filters and forms) as soon as they are published.',
     titleField: 'name',
-    subtitleFields: ['tags'],
-    allowCreate: false,
-    allowDelete: false,
+    subtitleFields: ['number', 'tags'],
+    allowCreate: true,
+    allowDelete: true,
+    createDefaults: { color: '#2F5BFF' },
     fields: [
       { name: 'name', label: 'Wing name', kind: 'text', required: true, max: 120 },
       { name: 'number', label: 'Wing number', kind: 'number', required: true, min: 1, max: 99 },
-      { name: 'tags', label: 'Focus areas', kind: 'text', max: 300, full: true, hint: 'Shown as one line, e.g. Direct Tax · GST · Customs' },
-      { name: 'color', label: 'Accent colour', kind: 'color', required: true },
+      { name: 'tags', label: 'Focus areas', kind: 'text', max: 300, full: true, hint: 'Separate with · or commas, e.g. Direct Tax · GST · Customs' },
+      { name: 'color', label: 'Accent colour', kind: 'color', required: true, defaultValue: '#2F5BFF' },
       { name: 'activities', label: 'Activities', kind: 'lines', full: true, hint: 'One activity per line' },
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
     ],

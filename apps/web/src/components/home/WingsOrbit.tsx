@@ -16,7 +16,7 @@ export interface OrbitWing {
 }
 
 /**
- * The ten wings orbiting the community, with a synced list beside it on large screens.
+ * The wings orbiting the community, with a synced list beside it on large screens.
  * Hovering or focusing a wing (in the list or the orbit) pauses the orbit, highlights the
  * wing and shows its focus areas and first proposed activities in the centre.
  */

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Briefcase, GraduationCap, Linkedin, MapPin, Search, UserRoundPlus, X } from 'lucide-react';
-import { cn } from '@ascend/ui';
+import { Pagination, cn, usePagination } from '@ascend/ui';
 import type { DirectoryEntry } from '../../lib/directory';
 import { getInitials } from '../../context/AuthContext';
 
@@ -41,9 +41,11 @@ export function DirectoryBrowser({
   }, [entries, q, city, wing, plan]);
 
   const filtered = !!(q || city || wing || plan);
+  const pager = usePagination(shown, 12, [q, city, wing, plan]);
+  const listTop = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div ref={listTop} className="flex flex-col gap-8">
       {!selfListed && (
         <div className="flex flex-col gap-3 rounded-[22px] border border-brand-300/25 bg-brand-500/10 p-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-start gap-3 text-[14px] text-[var(--fg)]">
@@ -114,7 +116,7 @@ export function DirectoryBrowser({
 
       {shown.length ? (
         <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {shown.map((e) => (
+          {pager.pageItems.map((e) => (
             <li key={e.id} className="min-w-0">
               <MemberCard e={e} />
             </li>
@@ -125,6 +127,7 @@ export function DirectoryBrowser({
           {entries.length ? 'No members match these filters.' : 'No members have listed their profile yet — be the first from your dashboard.'}
         </div>
       )}
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="members" scrollTo={listTop} />
     </div>
   );
 }

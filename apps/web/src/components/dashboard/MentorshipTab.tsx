@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ORG_WINGS, MENTORSHIP_STAGES } from '@ascend/shared';
+import { MENTORSHIP_STAGES } from '@ascend/shared';
 import { cn, useToast } from '@ascend/ui';
 import { HeartHandshake, Linkedin, Loader2, Lock, Mail, Pause, Phone, Play, Sparkles, UserRoundCheck, Users } from 'lucide-react';
 import type { DashboardData, MentorshipData } from '../../lib/member-dashboard';
@@ -35,10 +35,10 @@ async function send(url: string, method: string, body?: unknown) {
   return { ok: res.ok, ...data };
 }
 
-function WingPicker({ value, onChange }: { value: number[]; onChange: (v: number[]) => void }) {
+function WingPicker({ options, value, onChange }: { options: { number: number; name: string }[]; value: number[]; onChange: (v: number[]) => void }) {
   return (
     <div className="flex flex-wrap gap-2">
-      {ORG_WINGS.map((w) => {
+      {options.map((w) => {
         const on = value.includes(w.number);
         return (
           <button
@@ -189,7 +189,7 @@ function FindMentor({ m }: { m: MentorshipData }) {
           </label>
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-medium text-[var(--fg)]">Areas of interest (optional)</span>
-            <WingPicker value={wings} onChange={setWings} />
+            <WingPicker options={m.wingOptions} value={wings} onChange={setWings} />
           </div>
           {choosable.length > 0 && (
             <label className="flex flex-col gap-2">
@@ -340,7 +340,7 @@ function BeAMentor({ m }: { m: MentorshipData }) {
           </label>
           <div className="flex flex-col gap-2 sm:col-span-2">
             <span className="text-[13px] font-medium text-[var(--fg)]">Wings</span>
-            <WingPicker value={wings} onChange={setWings} />
+            <WingPicker options={m.wingOptions} value={wings} onChange={setWings} />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-medium text-[var(--fg)]">I can mentor</span>

@@ -34,6 +34,7 @@ import type { DashboardBooking, DashboardData } from '../../lib/member-dashboard
 import { getInitials, useAuth } from '../../context/AuthContext';
 import { payWithRazorpay, type PaymentInit } from '../events/razorpay-client';
 import { MentorshipTab } from './MentorshipTab';
+import { PagedList } from '../content/PagedList';
 
 type Tab = 'overview' | 'events' | 'receipts' | 'certificates' | 'resources' | 'mentorship' | 'profile';
 
@@ -145,7 +146,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
               <h2 className="font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">Receipts</h2>
               <p className="mt-1 text-[13.5px] text-[var(--muted)]">Payment receipts for paid bookings and confirmations for free ones.</p>
               {receipts.length ? (
-                <ul className="mt-5 divide-y divide-mist/[0.08]">
+                <PagedList pageSize={10} noun="receipts" className="mt-5 divide-y divide-mist/[0.08]">
                   {receipts.map((b) => (
                     <li key={b.bookingId} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-4">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500/15 text-brand-200">
@@ -163,7 +164,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
                       </a>
                     </li>
                   ))}
-                </ul>
+                </PagedList>
               ) : (
                 <EmptyState icon={Receipt} text={account.emailVerified ? 'No receipts yet.' : 'Confirm your email to see your receipts.'} />
               )}
@@ -175,7 +176,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
               <h2 className="font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">Certificates</h2>
               <p className="mt-1 text-[13.5px] text-[var(--muted)]">Issued when you are checked in at an event. Each one has a QR code anyone can verify.</p>
               {certificates.length ? (
-                <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+                <PagedList pageSize={10} noun="certificates" className="mt-5 grid gap-4 sm:grid-cols-2">
                   {certificates.map((b) => (
                     <li key={b.bookingId} className="holo relative overflow-hidden rounded-[22px] border border-gold/30 bg-gold/[0.05] p-5">
                       <Award className="h-6 w-6 text-gold" aria-hidden />
@@ -191,7 +192,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
                       </div>
                     </li>
                   ))}
-                </ul>
+                </PagedList>
               ) : (
                 <EmptyState icon={Award} text="No certificates yet. Attend an event and get checked in at the entrance to receive one." />
               )}
@@ -203,7 +204,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
               <h2 className="font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">Member resources</h2>
               {isMember ? (
                 data.resources.length ? (
-                  <ul className="mt-5 divide-y divide-mist/[0.08]">
+                  <PagedList pageSize={10} noun="resources" className="mt-5 divide-y divide-mist/[0.08]">
                     {data.resources.map((r) => (
                       <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-4">
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
@@ -224,7 +225,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
                         )}
                       </li>
                     ))}
-                  </ul>
+                  </PagedList>
                 ) : (
                   <EmptyState icon={BookOpen} text="No members-only resources have been published yet." action={{ href: '/resources', label: 'Open the library' }} />
                 )
@@ -548,13 +549,13 @@ function BookingList({ title, items, verified, past }: { title: string; items: D
         {title} <span className="font-mono text-[14px] text-[var(--muted)]">{items.length}</span>
       </h2>
       {items.length ? (
-        <ul className="mt-4 grid gap-4">
+        <PagedList pageSize={5} noun="bookings" className="mt-4 grid gap-4">
           {items.map((b) => (
             <li key={b.bookingId}>
               <BookingCard b={b} past={past} />
             </li>
           ))}
-        </ul>
+        </PagedList>
       ) : (
         <div className="mt-4">
           <EmptyState

@@ -4,7 +4,6 @@
  * be written (unknown keys are stripped) and each value is type/length checked.
  */
 import { z } from 'zod';
-import { EVENT_CATEGORIES, ORG_WINGS } from '@ascend/shared';
 import { CONTENT_TYPES, type FieldDef, type ManagedContentType } from './content-config';
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -27,7 +26,7 @@ export const externalUrl = z
   .max(2000)
   .refine((v) => v === '' || /^https?:\/\/[^\s]+$/i.test(v), 'Enter a full URL starting with https://');
 
-function fieldSchema(field: FieldDef): z.ZodTypeAny {
+function fieldSchema(field: FieldDef, dynamicOptions?: readonly string[], keep?: unknown): z.ZodTypeAny {
   const max = field.max;
   switch (field.kind) {
     case 'text':
@@ -50,7 +49,9 @@ function fieldSchema(field: FieldDef): z.ZodTypeAny {
       return field.required ? d.refine((v) => v !== '', `${field.label} is required`) : d;
     }
     case 'select': {
-      const opts = field.options ?? [];
+      // Store-backed lists (wings, categories) win over the static defaults; the item's current
+      // value stays valid so records with a retired category can still be edited.
+      const opts = [...(dynamicOptions ?? field.options ?? []), ...(typeof keep === 'string' && keep ? [keep] : [])];
       if (field.allowCustom) {
         const s = z.string().trim().max(80);
         return field.required ? s.min(1, `${field.label} is required`) : s;
@@ -91,16 +92,18 @@ function fieldSchema(field: FieldDef): z.ZodTypeAny {
   }
 }
 
-const cache = new Map<ManagedContentType, z.ZodObject<z.ZodRawShape>>();
-
-export function contentSchema(type: ManagedContentType): z.ZodObject<z.ZodRawShape> {
-  const hit = cache.get(type);
-  if (hit) return hit;
+/**
+ * Schema for one content type. `options` carries the live select lists (see lib/taxonomy.ts) and
+ * `existing` the record being edited.
+ */
+export function contentSchema(
+  type: ManagedContentType,
+  options: Record<string, readonly string[]> = {},
+  existing?: Record<string, unknown>
+): z.ZodObject<z.ZodRawShape> {
   const shape: z.ZodRawShape = {};
-  for (const field of CONTENT_TYPES[type].fields) shape[field.name] = fieldSchema(field);
-  const schema = z.object(shape);
-  cache.set(type, schema);
-  return schema;
+  for (const field of CONTENT_TYPES[type].fields) shape[field.name] = fieldSchema(field, options[field.name], existing?.[field.name]);
+  return z.object(shape);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -116,11 +119,9 @@ const agendaItem = z.object({
 export const eventBaseSchema = z.object({
     title: z.string().trim().min(1, 'Title is required').max(200),
     slug: z.string().trim().max(80).regex(SLUG_RE, 'Use lowercase letters, numbers and hyphens only'),
-    category: z.string().refine((v) => (EVENT_CATEGORIES as readonly string[]).includes(v), 'Choose a category'),
-    wingNumber: z.coerce
-      .number()
-      .int()
-      .refine((n) => ORG_WINGS.some((w) => w.number === n), 'Choose a wing'),
+    // Checked against the live category list and wings in the API route (see eventReferenceErrors).
+    category: z.string().trim().min(1, 'Choose a category').max(80),
+    wingNumber: z.coerce.number().int().min(1, 'Choose a wing'),
     date: z.string().regex(DATE_RE, 'Event date is required'),
     time: z.string().trim().min(1, 'Start time is required').max(40),
     endTime: z.string().trim().max(40).optional(),
@@ -153,6 +154,22 @@ export function eventCrossFieldErrors(v: {
   if (v.mode === 'Offline' && !v.city) errors.city = 'City is required for offline events';
   if ((Number(v.memberFee) || 0) > (Number(v.fee) || 0)) {
     errors.memberFee = 'Member fee should not exceed the standard fee';
+  }
+  return errors;
+}
+
+/** Category and wing must exist (an event keeps its current values even if they were retired). */
+export function eventReferenceErrors(
+  v: { category?: unknown; wingNumber?: unknown },
+  lists: { categories: readonly string[]; wingNumbers: readonly number[] },
+  existing?: { category?: string; wingNumber?: number }
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (v.category !== undefined && v.category !== existing?.category && !lists.categories.includes(String(v.category))) {
+    errors.category = 'Choose a category';
+  }
+  if (v.wingNumber !== undefined && v.wingNumber !== existing?.wingNumber && !lists.wingNumbers.includes(Number(v.wingNumber))) {
+    errors.wingNumber = 'Choose a wing';
   }
   return errors;
 }

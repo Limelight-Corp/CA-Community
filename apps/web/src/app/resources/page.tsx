@@ -1,11 +1,12 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { RESOURCE_CATEGORIES, type CommunityResource } from '@ascend/shared';
+import type { CommunityResource } from '@ascend/shared';
 import { Container } from '@ascend/ui';
 import { getItems, getSettings } from '../../lib/community-store';
-import { mergeCategories, resourceDownloadUrl, safeUrl } from '../../lib/content';
+import { resourceDownloadUrl, safeUrl } from '../../lib/content';
 import { CtaBand, PageHero, Section } from '../../components/content/ui';
 import { ResourceLibrary, type ResourceCardData } from '../../components/content/ResourceLibrary';
+import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -46,7 +47,7 @@ export default function ResourcesPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <ResourceLibrary items={items} categories={mergeCategories(RESOURCE_CATEGORIES, resources)} />
+          <ResourceLibrary items={items} categories={siteTaxonomy('resourceCategories', resources.map((r) => r.category))} />
         </Container>
       </Section>
       <CtaBand

@@ -7,6 +7,7 @@ import { formatDateTime, formatINR } from '../../lib/format';
 import { DataTable, EmptyRow, PaymentChip, RegistrationChip } from '../ui/Display';
 import { ExportButtons, FilterSelect, SearchInput, Toolbar } from '../ui/Controls';
 import { canGatewayRefund, canMarkPaid, canRefund, useRegistrationAction } from '../registrations/useRegistrationAction';
+import { Pagination, usePagination } from '@ascend/ui';
 
 const PAYMENT_OPTIONS = [
   { value: 'paid', label: 'Successful' },
@@ -39,6 +40,7 @@ export function PaymentsTable({
     () => filterPayments(rows, { q, event: eventId || undefined, payment: payment || undefined }),
     [rows, q, eventId, payment]
   );
+  const pager = usePagination(filtered, 25, [q, eventId, payment]);
   const total = filtered.reduce((s, r) => s + (r.paymentStatus === 'paid' ? Number(r.fee) || 0 : 0), 0);
 
   return (
@@ -74,7 +76,7 @@ export function PaymentsTable({
           {filtered.length === 0 && (
             <EmptyRow colSpan={8}>{rows.length === 0 ? 'No paid-event transactions yet.' : 'No payments match these filters.'}</EmptyRow>
           )}
-          {filtered.map((r) => (
+          {pager.pageItems.map((r) => (
             <tr key={r.id}>
               <td className="max-w-[220px]">
                 <span className="block truncate font-medium text-[var(--fg)]">{r.name}</span>
@@ -129,6 +131,7 @@ export function PaymentsTable({
           ))}
         </tbody>
       </DataTable>
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="transactions" />
       {dialog}
     </div>
   );

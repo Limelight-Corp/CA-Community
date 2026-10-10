@@ -5,6 +5,7 @@ import { notifyMemberApplication } from '../../../lib/notifications';
 import { clientIp, HONEYPOT_FIELD, rateLimit, readJsonBody } from '../../../lib/form-guard';
 import { fieldErrors, memberApplicationSchema } from '../../../lib/form-schemas';
 import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstile';
+import { knownWingNumbers } from '../../../lib/taxonomy';
 
 /**
  * Public membership application (Website Checklist §7).
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
         areaOfPractice: input.areaOfPractice,
         organisation: input.organisation,
         linkedinUrl: input.linkedinUrl,
-        interests: Array.from(new Set(input.interests)).sort((a, b) => a - b),
+        interests: knownWingNumbers(input.interests),
         status: 'pending',
         createdAt: stamp,
         updatedAt: stamp,

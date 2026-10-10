@@ -7,7 +7,6 @@ import {
   MEMBER_IDENTITIES,
   MEMBER_JOURNEY,
   ORG_POSITIONING,
-  ORG_WINGS,
   wingSlug,
   WHY_JOIN,
   type CommunityWing,
@@ -19,6 +18,7 @@ import { getItems, getSettings } from '../../lib/community-store';
 import { PageHero, PillLink, Section } from '../../components/content/ui';
 import { JoinForm } from '../../components/content/JoinForm';
 import { FxCard } from '../../components/home/Interactive';
+import { siteWings, wingCountWords } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -48,13 +48,14 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const requested = typeof sp.plan === 'string' ? sp.plan : undefined;
   const initialPlan = MEMBERSHIP_PLANS.some((p) => p.key === requested) ? (requested as PlanKey) : undefined;
-  const requestedWing = typeof sp.wing === 'string' ? ORG_WINGS.find((w) => wingSlug(w.name) === sp.wing) : undefined;
+  const orgWings = siteWings();
+  const requestedWing = typeof sp.wing === 'string' ? orgWings.find((w) => wingSlug(w.name) === sp.wing) : undefined;
 
   const storeWings = getItems<CommunityWing>('wings', true);
   // Annual fees come from Site Settings (defaults: the Blueprint prices).
   const settingsForFees = getSettings();
   const plans = MEMBERSHIP_PLANS.map((p) => ({ ...p, price: membershipFeeFor(p.key, settingsForFees) }));
-  const wings = ORG_WINGS.map((w) => ({
+  const wings = orgWings.map((w) => ({
     number: w.number,
     name: w.name,
     color: storeWings.find((s) => s.number === w.number)?.color || 'var(--brand-500)',
@@ -67,7 +68,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
         title="Join the"
         accent="movement."
         accentTone="hero"
-        lead="One membership. Ten wings, a Pan-India city network and a year-round calendar to help you learn, connect, grow and lead."
+        lead={`One membership. ${wingCountWords(orgWings.length)}, a Pan-India city network and a year-round calendar to help you learn, connect, grow and lead.`}
         ghost="JOIN"
       >
         <div className="flex flex-wrap gap-3 pt-2">

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { BarChart3 } from 'lucide-react';
 import { readPrivate, readStore } from '../../../../lib/community-store';
 import { EventCancelControl } from '../../../../components/events/EventCancelControl';
+import { adminTaxonomy, adminWings } from '../../../../lib/taxonomy';
 import { PageHeader } from '../../../../components/ui/Display';
 import { EventForm } from '../../../../components/events/EventForm';
 
@@ -54,6 +55,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
         key={event.updatedAt ?? event.id}
         event={event}
         speakers={speakers}
+        categories={adminTaxonomy('eventCategories')}
+        wings={adminWings().map((w) => ({ number: w.number, name: w.name }))}
         takenSlugs={store.events.filter((e) => e.id !== event.id).map((e) => e.slug)}
       />
     </>

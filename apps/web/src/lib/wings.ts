@@ -1,7 +1,7 @@
-/** Wing hub data (server-only): ORG_WINGS + the CMS wing record + linked team, events and resources. */
+/** Wing hub data (server-only): the CMS wings (admin → Wings) + linked team, events and resources. */
 import {
-  ORG_WINGS,
   wingSlug,
+  wingsFromStore,
   type CommunityEvent,
   type CommunityResource,
   type CommunityTeamMember,
@@ -31,14 +31,14 @@ function toHub(org: OrgWing, store: CommunityWing[]): WingHub {
     name: org.name,
     color: s?.color || 'var(--brand-500)',
     focus: org.focus,
-    activities: s?.activities?.length ? s.activities : org.activities,
+    activities: org.activities,
     tags: s?.tags,
   };
 }
 
 export function allWingHubs(): WingHub[] {
-  const store = getItems<CommunityWing>('wings', true);
-  return ORG_WINGS.map((w) => toHub(w, store));
+  const store = getItems<CommunityWing>('wings');
+  return wingsFromStore(store, true).map((w) => toHub(w, store));
 }
 
 export function findWingHub(slug: string): WingHub | undefined {

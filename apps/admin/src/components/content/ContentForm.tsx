@@ -85,10 +85,13 @@ export function ContentForm({
   type,
   item,
   takenSlugs = [],
+  options = {},
 }: {
   type: ManagedContentType;
   item?: Values & { id: string };
   takenSlugs?: string[];
+  /** Live select lists for store-backed fields (wings, managed categories), by field name. */
+  options?: Record<string, string[]>;
 }) {
   const config = CONTENT_TYPES[type];
   const router = useRouter();
@@ -211,7 +214,7 @@ export function ContentForm({
           />
         );
       case 'select': {
-        const opts = (f.options ?? []).map((o) => ({ value: o, label: o }));
+        const opts = (options[f.name] ?? f.options ?? []).map((o) => ({ value: o, label: o }));
         const current = String(v ?? '');
         if (current && !opts.some((o) => o.value === current)) opts.push({ value: current, label: `${current} (current)` });
         return <SelectField key={f.name} {...common} value={current} onChange={(x) => set(f.name, x)} options={opts} placeholder={f.required ? 'Select…' : '—'} />;

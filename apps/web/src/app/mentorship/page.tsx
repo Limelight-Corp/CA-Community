@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HeartHandshake, MessageCircleQuestion, Sparkles, UserRoundCheck } from 'lucide-react';
-import { ORG_COMMUNITIES, ORG_WINGS, wingSlug } from '@ascend/shared';
+import { ORG_COMMUNITIES, wingSlug } from '@ascend/shared';
 import { Container } from '@ascend/ui';
 import { CtaBand, PageHero, Section } from '../../components/content/ui';
 import { approvedMentors } from '../../lib/mentorship';
+import { siteWings } from '../../lib/taxonomy';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -14,9 +15,10 @@ export const metadata: Metadata = {
 };
 
 /** Mentoring formats named in the wings' proposed activities (Blueprint slide 6). */
-const FORMATS = ORG_WINGS.flatMap((w) => w.activities.filter((a) => /mentor/i.test(a)).map((a) => ({ activity: a, wing: w })));
 
 export default function MentorshipPage() {
+  /** Mentoring formats named in the wings' activities (Blueprint slide 6). */
+  const FORMATS = siteWings().flatMap((w) => w.activities.filter((a) => /mentor/i.test(a)).map((a) => ({ activity: a, wing: w })));
   const mentors = approvedMentors();
   const communities = ORG_COMMUNITIES.filter((c) => c.points.some((p) => /mentor/i.test(p)));
 

@@ -1899,3 +1899,137 @@ footer .wrap {
   .mesh-drift, .meter > span, .halo::before { animation: none !important; }
   .reveal-up { transition: none; }
 }
+
+/* ==========================================================================================
+ * Event pass card (EventTile): beam border, banner shine, seat ring, CTA arrow
+ * ========================================================================================== */
+@property --pass-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.event-pass::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 3;
+  padding: 1.5px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--pass-angle),
+    transparent 0 62%,
+    var(--pass-accent, var(--brand-500)) 74%,
+    rgb(var(--gold-rgb) / 0.95) 84%,
+    transparent 96%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.event-pass:hover::before,
+.event-pass:focus-within::before,
+.event-pass.fx-live::before {
+  opacity: 1;
+  animation: pass-beam 3.6s linear infinite;
+}
+@keyframes pass-beam {
+  to {
+    --pass-angle: 360deg;
+  }
+}
+.event-pass .pass-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.13) 48%, transparent 66%);
+  transform: translateX(-120%);
+  transition: transform 1.1s var(--ease-out-expo);
+}
+.event-pass:hover .pass-shine,
+.event-pass.fx-live .pass-shine {
+  transform: translateX(120%);
+}
+.event-pass .pass-glow {
+  transition: opacity 0.6s, transform 0.9s var(--ease-out-expo);
+}
+.event-pass:hover .pass-glow {
+  opacity: 1;
+  transform: scale(1.15);
+}
+.event-pass .pass-ring-fill {
+  transition: stroke-dashoffset 1.2s var(--ease-out-expo);
+}
+.event-pass .pass-cta-arrow {
+  transition: transform 0.45s var(--ease-out-expo), background-color 0.3s;
+}
+.event-pass .pass-cta:hover .pass-cta-arrow,
+.event-pass:hover .pass-cta-arrow {
+  transform: rotate(45deg);
+}
+.event-pass .pass-live-dot {
+  box-shadow: 0 0 0 0 currentColor;
+  animation: pass-pulse 1.8s ease-out infinite;
+}
+@keyframes pass-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 60%, transparent); }
+  100% { box-shadow: 0 0 0 7px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .event-pass::before,
+  .event-pass .pass-live-dot {
+    animation: none;
+  }
+  .event-pass .pass-shine {
+    display: none;
+  }
+  .event-pass .pass-glow,
+  .event-pass .pass-ring-fill,
+  .event-pass .pass-cta-arrow {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------
+ * Member journey — per-step animated illustrations (inline SVG, CSS-only motion)
+ * ---------------------------------------------------------------------------------------- */
+.jr-art * {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.jr-art .jr-spin { animation: jr-spin 4s linear infinite; }
+.jr-art .jr-blip { animation: jr-blip 2.4s ease-out infinite; }
+.jr-art .jr-fill { animation: jr-fill 3.6s var(--ease-out-expo, ease-out) infinite; transform-origin: 0% 50%; }
+.jr-art .jr-blink { animation: jr-blink 1s steps(1) infinite; }
+.jr-art .jr-pop { animation: jr-pop 3.6s var(--ease-out-expo, ease-out) infinite; }
+.jr-art .jr-sheen { animation: jr-sheen 3.2s ease-in-out infinite; }
+.jr-art .jr-float { animation: jr-float 3.4s ease-in-out infinite; }
+.jr-art .jr-toggle { animation: jr-toggle 4.8s ease-in-out infinite; }
+.jr-art .jr-dash { stroke-dasharray: 4 6; animation: jr-dash 1.4s linear infinite; }
+.jr-art .jr-rise { animation: jr-rise 2.8s ease-out infinite; }
+.jr-art .jr-grow { animation: jr-grow 3.6s var(--ease-out-expo, ease-out) infinite; transform-origin: 50% 100%; }
+.jr-art .jr-wave { animation: jr-wave 1.6s ease-in-out infinite alternate; transform-origin: 0% 50%; }
+.jr-art .jr-beat { animation: jr-beat 1.6s ease-in-out infinite; }
+.jr-art .jr-orbit { animation: jr-spin 7s linear infinite; }
+
+@keyframes jr-spin { to { transform: rotate(360deg); } }
+@keyframes jr-blip { 0%, 100% { opacity: 0; transform: scale(0.4); } 30% { opacity: 1; transform: scale(1); } 70% { opacity: 0; transform: scale(1.6); } }
+@keyframes jr-fill { 0% { transform: scaleX(0); } 35%, 85% { transform: scaleX(1); } 100% { transform: scaleX(0); opacity: 0; } }
+@keyframes jr-blink { 50% { opacity: 0; } }
+@keyframes jr-pop { 0%, 45% { transform: scale(0); opacity: 0; } 60%, 88% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.6); opacity: 0; } }
+@keyframes jr-sheen { 0% { transform: translateX(-140%) skewX(-18deg); } 60%, 100% { transform: translateX(420%) skewX(-18deg); } }
+@keyframes jr-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes jr-toggle { 0%, 12%, 100% { opacity: 0.18; } 20%, 60% { opacity: 1; } }
+@keyframes jr-dash { to { stroke-dashoffset: -20; } }
+@keyframes jr-rise { 0% { transform: translateY(8px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-34px); opacity: 0; } }
+@keyframes jr-grow { 0% { transform: scaleY(0.08); } 40%, 85% { transform: scaleY(1); } 100% { transform: scaleY(0.08); } }
+@keyframes jr-wave { from { transform: skewY(-6deg) scaleX(0.94); } to { transform: skewY(5deg) scaleX(1); } }
+@keyframes jr-beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.14); } 30% { transform: scale(0.98); } 45% { transform: scale(1.08); } }
+
+/* Cards not yet reached stay still; the active card animates. */
+.jr-idle .jr-art * { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .jr-art * { animation: none !important; }
+}

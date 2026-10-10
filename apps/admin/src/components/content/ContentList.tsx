@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FileText, Pencil } from 'lucide-react';
-import { cn, useToast } from '@ascend/ui';
+import { cn, useToast, Pagination, usePagination } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { CONTENT_TYPES, type ManagedContentType } from '../../lib/content-config';
 import { FilterSelect, SearchInput, Toolbar } from '../ui/Controls';
@@ -29,6 +29,7 @@ export function ContentList({ type, items }: { type: ManagedContentType; items: 
       return [config.titleField, ...config.subtitleFields].some((k) => String(it[k] ?? '').toLowerCase().includes(needle));
     });
   }, [items, q, visibility, config]);
+  const pager = usePagination(filtered, 24, [q, visibility]);
 
   const togglePublish = async (it: Item) => {
     setBusy(it.id);
@@ -67,7 +68,7 @@ export function ContentList({ type, items }: { type: ManagedContentType; items: 
         </p>
       ) : (
         <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
-          {filtered.map((it) => {
+          {pager.pageItems.map((it) => {
             const img = config.imageField ? String(it[config.imageField] ?? '') : '';
             const title = String(it[config.titleField] ?? 'Untitled');
             const subtitle = config.subtitleFields
@@ -126,6 +127,7 @@ export function ContentList({ type, items }: { type: ManagedContentType; items: 
           })}
         </ul>
       )}
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="items" />
     </div>
   );
 }

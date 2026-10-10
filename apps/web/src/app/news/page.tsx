@@ -1,11 +1,12 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { NEWS_CATEGORIES, type CommunityNews } from '@ascend/shared';
+import type { CommunityNews } from '@ascend/shared';
 import { Container } from '@ascend/ui';
 import { getItems, getSettings } from '../../lib/community-store';
-import { formatDisplayDate, generatedGradient, isoDate, mergeCategories, safeUrl, sortByDateDesc } from '../../lib/content';
+import { formatDisplayDate, generatedGradient, isoDate, safeUrl, sortByDateDesc } from '../../lib/content';
 import { PageHero, Section } from '../../components/content/ui';
 import { NewsBrowser, type NewsCardData } from '../../components/content/NewsBrowser';
+import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -42,7 +43,7 @@ export default function NewsPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <NewsBrowser items={items} categories={mergeCategories(NEWS_CATEGORIES, news)} />
+          <NewsBrowser items={items} categories={siteTaxonomy('newsCategories', news.map((n) => n.category))} />
         </Container>
       </Section>
     </>

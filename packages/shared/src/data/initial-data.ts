@@ -5,9 +5,10 @@ import {
   PROTOTYPE_NEWS,
   PROTOTYPE_RESOURCES,
 } from '../constants/prototype-data';
-import { ORG_POSITIONING, ORG_WINGS, type EventCategory } from '../constants/organisation';
+import { ORG_POSITIONING, ORG_WINGS } from '../constants/organisation';
 
-export type CommunityEventCategory = EventCategory | 'Conference' | 'Seminar';
+/** One of the event categories managed in admin (defaults: EVENT_CATEGORIES). */
+export type CommunityEventCategory = string;
 
 export interface CommunityAgendaItem {
   time: string;
@@ -181,6 +182,8 @@ export interface SiteSettings {
   announcement?: string;
   /** Annual membership fees (₹) that override the Blueprint defaults in MEMBERSHIP_PLANS. */
   membershipFees?: { core?: number; associate?: number; student?: number };
+  /** Admin-managed category lists (see constants/taxonomy.ts); missing keys use the defaults. */
+  taxonomies?: Partial<Record<'eventCategories' | 'newsCategories' | 'resourceCategories' | 'galleryCategories' | 'jobTypes', string[]>>;
   contact: {
     email?: string;
     phone?: string;

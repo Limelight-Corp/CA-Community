@@ -8,12 +8,13 @@ import { FxCard } from '../../components/home/Interactive';
 import { getSettings } from '../../lib/community-store';
 import { allWingHubs, wingEvents } from '../../lib/wings';
 import { CtaBand, PageHero, Section } from '../../components/content/ui';
+import { wingCountWords } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
   return {
     title: 'Professional Wings',
-    description: `The ten professional wings of ${siteName} — each with its own convener, events, resources and community.`,
+    description: `The professional wings of ${siteName} — each with its own convener, events, resources and community.`,
     alternates: { canonical: '/wings' },
   };
 }
@@ -26,7 +27,7 @@ export default function WingsIndexPage() {
       <PageHero
         eyebrow={`${wings.length} professional wings`}
         eyebrowTone="blue"
-        title="Ten wings."
+        title={`${wingCountWords(wings.length)}.`}
         accent="One community."
         accentTone="hero"
         lead="Each wing has its own convener, calendar and resources. Pick the ones that match your practice and interests."

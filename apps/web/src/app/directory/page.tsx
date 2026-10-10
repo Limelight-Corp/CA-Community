@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Lock, Sparkles } from 'lucide-react';
-import { ORG_WINGS } from '@ascend/shared';
 import { Container } from '@ascend/ui';
 import { PageHero, Section } from '../../components/content/ui';
 import { DirectoryBrowser } from '../../components/directory/DirectoryBrowser';
 import { directoryEntries } from '../../lib/directory';
 import { isApprovedMember, membershipFor } from '../../lib/member-accounts';
 import { currentMember } from '../../lib/member-session';
+import { siteWings } from '../../lib/taxonomy';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -38,7 +38,7 @@ export default async function DirectoryPage() {
           {member ? (
             <DirectoryBrowser
               entries={entries}
-              wings={ORG_WINGS.map((w) => ({ number: w.number, name: w.name }))}
+              wings={siteWings().map((w) => ({ number: w.number, name: w.name }))}
               selfListed={!!account?.profile.directoryOptIn}
             />
           ) : (

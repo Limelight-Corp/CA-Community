@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, CalendarClock, Check, GraduationCap, IndianRupee, Layers, Lock, MapPin } from 'lucide-react';
-import { ORG_WINGS, wingSlug } from '@ascend/shared';
+import { wingSlug } from '@ascend/shared';
 import { Container, Kicker } from '@ascend/ui';
 import { ShareButtons } from '../../../components/content/ShareButtons';
 import { getSettings } from '../../../lib/community-store';
@@ -11,6 +11,7 @@ import { applyTarget, employmentType, findJob, isJobOpen } from '../../../lib/jo
 import { isApprovedMember } from '../../../lib/member-accounts';
 import { currentMember } from '../../../lib/member-session';
 import { jsonLd, siteUrl } from '../../../lib/seo';
+import { siteWings } from '../../../lib/taxonomy';
 
 export const dynamic = 'force-dynamic';
 type Params = Promise<{ slug: string }>;
@@ -40,7 +41,7 @@ export default async function JobPage({ params }: { params: Params }) {
   const apply = applyTarget(job);
   const logo = safeUrl(job.logoUrl);
   const url = `${siteUrl()}/careers/${job.slug}`;
-  const wing = job.wing ? ORG_WINGS.find((w) => w.name === job.wing) : undefined;
+  const wing = job.wing ? siteWings().find((w) => w.name.toLowerCase() === job.wing!.trim().toLowerCase()) : undefined;
   const paragraphs = job.description.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 
   const remote = job.workMode === 'Remote';

@@ -92,14 +92,14 @@ export default function HomePage() {
         </div>
         <div className="grid-lines absolute inset-0" aria-hidden />
 
-        <Container size="wide" className="relative z-10 pb-20 pt-16 md:pb-28 md:pt-24">
-          <div className="grid items-end gap-14 lg:grid-cols-[1.35fr_1fr]">
+        <Container size="wide" className="relative z-10 pb-20 pt-16 md:pb-28 md:pt-24 lg:pb-20 lg:pt-12">
+          <div className="grid items-end gap-14 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:gap-12">
             <div className="min-w-0">
               <Reveal>
                 <Kicker tone="gold">{settings.heroEyebrow}</Kicker>
               </Reveal>
               <Reveal delay={80}>
-                <h1 className="mt-8 font-display text-[clamp(40px,10.5vw,148px)] font-medium leading-[0.88] tracking-[-0.06em] text-[var(--fg)]">
+                <h1 className="mt-8 font-display text-[clamp(40px,10.5vw,148px)] font-medium lg:mt-6 lg:text-[clamp(60px,6.2vw,100px)] leading-[0.88] tracking-[-0.06em] text-[var(--fg)]">
                   {settings.heroHeadline}
                   <br />
                   {rotating ? (

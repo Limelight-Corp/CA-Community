@@ -17,3 +17,34 @@
     text-rendering: optimizeLegibility;
   }
 }
+
+/* Admin sign-in: radar sweep, orbiting modules, scan line, error shake */
+.radar-sweep {
+  background: conic-gradient(from 0deg, rgb(var(--gold-rgb) / 0.22), transparent 22%);
+  -webkit-mask: radial-gradient(circle, black 0 69%, transparent 70%);
+  mask: radial-gradient(circle, black 0 69%, transparent 70%);
+  animation: radar-turn 6s linear infinite;
+}
+.radar-orbit { animation: radar-turn 60s linear infinite; }
+.radar-counter { display: inline-flex; animation: radar-turn 60s linear infinite reverse; }
+@keyframes radar-turn { to { transform: rotate(360deg); } }
+
+.login-scan {
+  background: linear-gradient(180deg, transparent, rgb(var(--gold-rgb) / 0.07) 60%, rgb(var(--gold-rgb) / 0.16) 98%, transparent);
+  animation: login-scan 5s ease-in-out infinite;
+}
+@keyframes login-scan {
+  0% { transform: translateY(-100%); opacity: 0; }
+  15% { opacity: 1; }
+  60%, 100% { transform: translateY(520%); opacity: 0; }
+}
+
+.login-shake { animation: login-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes login-shake {
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-sweep, .radar-orbit, .radar-counter, .login-scan, .login-shake { animation: none !important; }
+}

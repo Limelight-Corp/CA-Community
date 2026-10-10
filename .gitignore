@@ -41,4 +41,8 @@ Thumbs.db
 
 # Private submissions (registrations, member applications, messages) - contains personal data
 data/private-store.json
+# Admin accounts (password hashes, session signing secret)
+data/admin-users.json
+# Backups made by `npm run seed:test -- --force`
+data/private-store.backup-*.json
 data/*.tmp

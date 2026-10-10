@@ -138,10 +138,10 @@ export function SiteHeader({
             : 'border-b border-transparent bg-transparent'
         )}
       >
-        <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-6 px-5 md:px-8">
+        <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-6 px-5 md:px-8 xl:gap-4 2xl:gap-6">
           <Logo siteName={siteName} />
 
-          <nav aria-label="Main" className="ml-4 hidden flex-1 items-center gap-0.5 xl:flex">
+          <nav aria-label="Main" className="ml-4 hidden flex-1 items-center gap-0.5 xl:ml-1 xl:flex 2xl:ml-4">
             {NAV_ITEMS.map((item) => {
               const active = isActive(pathname, item.href);
               return (
@@ -150,7 +150,7 @@ export function SiteHeader({
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'relative rounded-full px-3 py-2 text-[13.5px] font-medium transition-colors',
+                    'relative whitespace-nowrap rounded-full px-3 py-2 text-[13.5px] font-medium transition-colors xl:px-2.5 xl:text-[13px] 2xl:px-3 2xl:text-[13.5px]',
                     active ? 'text-white' : 'text-[var(--muted)] hover:text-white'
                   )}
                 >
@@ -189,7 +189,8 @@ export function SiteHeader({
               href="/events"
               className="group hidden h-10 items-center gap-2 rounded-full bg-grad-primary pl-4 pr-1.5 text-[13.5px] font-semibold text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] transition hover:brightness-110 md:flex"
             >
-              Register for an event
+              <span className="hidden whitespace-nowrap 2xl:inline">Register for an event</span>
+              <span className="whitespace-nowrap 2xl:hidden">Register</span>
               <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 transition-transform duration-300 group-hover:rotate-45">
                 <ArrowUpRight className="h-4 w-4" aria-hidden />
               </span>

@@ -21,6 +21,11 @@ export async function api<T = unknown>(
       cache: 'no-store',
     });
     const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    if (res.status === 401 && typeof window !== 'undefined') {
+      // Session expired: send the admin back to sign in, then return here.
+      const here = `${window.location.pathname}${window.location.search}`;
+      window.location.assign(`/login?next=${encodeURIComponent(here)}`);
+    }
     if (!res.ok || !json || json.success === false) {
       return {
         ok: false,

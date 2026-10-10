@@ -90,6 +90,17 @@ export async function payWithRazorpay(opts: PayOptions): Promise<PayOutcome> {
       description: opts.description,
       prefill: opts.prefill,
       notes: { bookingId: opts.bookingId },
+      // UPI first (QR on desktop, UPI apps on mobile — Razorpay picks the flow per device),
+      // then Checkout's default methods: cards (incl. RuPay), net banking, wallets.
+      config: {
+        display: {
+          blocks: {
+            upi: { name: 'Pay using UPI', instruments: [{ method: 'upi' }] },
+          },
+          sequence: ['block.upi'],
+          preferences: { show_default_blocks: true },
+        },
+      },
       handler: async (resp: RazorpayResponse) => {
         const r = await postVerify({ bookingId: opts.bookingId, accessToken: opts.accessToken, ...resp });
         done(r.ok ? { kind: 'paid' } : { kind: 'failed', message: r.error || 'Payment could not be verified.' });

@@ -1,9 +1,20 @@
-import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { AdminLoginForm } from '../../components/auth/AdminLoginForm';
+import { safeNextPath, signInConfigured } from '../../lib/admin-session';
 
-/**
- * Access to the admin console is enforced by the HTTP Basic access gate in src/middleware.ts,
- * so there is no separate sign-in screen. Old links to /login land on the dashboard.
- */
-export default function AdminLoginRedirect() {
-  redirect('/dashboard');
+export const metadata: Metadata = { title: 'Sign in' };
+export const dynamic = 'force-dynamic';
+
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const { next } = await searchParams;
+  return (
+    <AdminLoginForm
+      next={safeNextPath(Array.isArray(next) ? next[0] : next)}
+      configured={signInConfigured()}
+    />
+  );
 }

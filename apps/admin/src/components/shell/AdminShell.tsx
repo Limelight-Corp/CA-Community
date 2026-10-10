@@ -10,6 +10,8 @@ import {
   Images,
   Inbox,
   LayoutDashboard,
+  Loader2,
+  LogOut,
   Activity,
   Layers,
   Menu,
@@ -106,6 +108,50 @@ function Brand() {
   );
 }
 
+export interface ShellAdmin {
+  name: string;
+  role: 'super_admin' | 'admin';
+}
+
+function AccountBar({ admin }: { admin: ShellAdmin | null }) {
+  const [busy, setBusy] = useState(false);
+  if (!admin) {
+    return <p className="text-[11.5px] leading-relaxed text-faint">Development mode · access gate is disabled on this machine.</p>;
+  }
+  const logout = async () => {
+    setBusy(true);
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => null);
+    window.location.assign('/login');
+  };
+  return (
+    <div className="flex items-center gap-3">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grad-primary font-mono text-[12px] font-semibold uppercase text-white ring-2 ring-gold/40">
+        {admin.name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((w) => w[0])
+          .join('')}
+      </span>
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="block truncate text-[13.5px] font-medium text-[var(--fg)]">{admin.name}</span>
+        <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-faint">
+          {admin.role === 'super_admin' ? 'Super admin' : 'Administrator'}
+        </span>
+      </span>
+      <button
+        type="button"
+        onClick={logout}
+        disabled={busy}
+        className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-bad/25 bg-bad/10 px-3 text-[12.5px] font-semibold text-bad transition hover:bg-bad/20 disabled:opacity-70"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <LogOut className="h-4 w-4" aria-hidden />}
+        Log out
+      </button>
+    </div>
+  );
+}
+
 function NavList({ counts, pathname, onNavigate }: { counts: ShellCounts; pathname: string; onNavigate?: () => void }) {
   return (
     <nav aria-label="Admin sections" className="flex flex-col gap-6">
@@ -150,7 +196,7 @@ function NavList({ counts, pathname, onNavigate }: { counts: ShellCounts; pathna
   );
 }
 
-export function AdminShell({ counts, children }: { counts: ShellCounts; children: React.ReactNode }) {
+export function AdminShell({ counts, admin, children }: { counts: ShellCounts; admin: ShellAdmin | null; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -198,8 +244,8 @@ export function AdminShell({ counts, children }: { counts: ShellCounts; children
           <div className="flex-1 overflow-y-auto px-3 pb-8">
             <NavList counts={counts} pathname={pathname} />
           </div>
-          <div className="border-t border-mist/[0.08] px-5 py-4 text-[11.5px] leading-relaxed text-faint">
-            Protected admin area · changes publish to the website immediately.
+          <div className="border-t border-mist/[0.08] px-4 py-4">
+            <AccountBar admin={admin} />
           </div>
         </aside>
 
@@ -244,6 +290,9 @@ export function AdminShell({ counts, children }: { counts: ShellCounts; children
               </div>
               <div className="flex-1 overflow-y-auto px-3 pb-8">
                 <NavList counts={counts} pathname={pathname} onNavigate={() => setOpen(false)} />
+              </div>
+              <div className="border-t border-mist/[0.08] px-4 py-4">
+                <AccountBar admin={admin} />
               </div>
             </div>
           </div>

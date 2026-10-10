@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AccentText, Kicker, cn, useToast } from '@ascend/ui';
 import { useAuth } from '../../context/AuthContext';
+import { safeNextPath } from '../../lib/member-session';
 import { FxCard } from '../../components/home/Interactive';
 import {
   AlertCircle,
@@ -27,7 +28,22 @@ import {
 export default function MemberLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login, user, isLoading: authLoading } = useAuth();
+  // Where to go after signing in, e.g. back to a paid event registration.
+  const [nextPath, setNextPath] = useState<string | null>(null);
+  const afterLogin = () => router.push(nextPath ?? '/dashboard');
+
+  useEffect(() => {
+    setNextPath(safeNextPath(new URLSearchParams(window.location.search).get('next')));
+  }, []);
+
+  // Already signed in and sent here to continue somewhere: go straight there.
+  // Only when the server will see the session cookie too, so the two can never bounce.
+  useEffect(() => {
+    if (!authLoading && user && nextPath && /(?:^|;\s*)ascend_member_token=[^;]+/.test(document.cookie)) {
+      router.replace(nextPath);
+    }
+  }, [authLoading, user, nextPath, router]);
   const [loginMode, setLoginMode] = useState<'otp' | 'email'>('otp');
 
   // OTP Form States
@@ -149,9 +165,9 @@ export default function MemberLoginPage() {
       }
 
       login(userObj, authToken);
-      toast('Login successful! Redirecting to member dashboard...');
+      toast(nextPath ? 'Login successful! Taking you back…' : 'Login successful! Redirecting to member dashboard...');
       setTimeout(() => {
-        router.push('/dashboard');
+        afterLogin();
       }, 500);
     } catch (err: any) {
       setErrorMessage(err.message || 'Invalid or expired OTP');
@@ -209,7 +225,7 @@ export default function MemberLoginPage() {
       login(userObj, authToken);
       toast('Login successful! Welcome back.');
       setTimeout(() => {
-        router.push('/dashboard');
+        afterLogin();
       }, 500);
     } catch (err: any) {
       setErrorMessage(err.message || 'Invalid email or password');
@@ -339,6 +355,20 @@ export default function MemberLoginPage() {
                 </button>
               ))}
             </div>
+
+            {nextPath && (
+              <div
+                role="status"
+                className="mt-5 flex items-start gap-2.5 rounded-2xl border border-gold/30 bg-gold/10 p-3.5 text-[13px] text-gold"
+              >
+                <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>
+                  {nextPath.startsWith('/events/') || nextPath.startsWith('/registration/')
+                    ? 'Please log in to continue to payment. You will come straight back to your registration.'
+                    : 'Please log in to continue. You will come straight back afterwards.'}
+                </span>
+              </div>
+            )}
 
             {errorMessage && (
               <div

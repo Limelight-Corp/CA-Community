@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowUpRight, CalendarDays, CheckCircle2, Clock, Hourglass, MapPin, Navigation, XCircle } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, CheckCircle2, Clock, CreditCard, Hourglass, MapPin, Navigation, XCircle } from 'lucide-react';
 import { AccentText, Container, Kicker, cn } from '@ascend/ui';
 import { getSettings } from '../../../lib/community-store';
 import { dateParts, formatEventDate, locationLabel, priceLabel } from '../../../lib/events';
@@ -14,7 +14,6 @@ import {
   CopyBookingId,
   PrintButton,
   RememberBooking,
-  RetryPaymentButton,
 } from '../../../components/events/RegistrationActions';
 
 export const dynamic = 'force-dynamic';
@@ -203,16 +202,12 @@ export default async function RegistrationPage({
 
           {(view === 'pending' || view === 'failed') && gatewayOn && reg.fee > 0 && (
             <div className="mt-6">
-              <RetryPaymentButton
-                bookingId={reg.bookingId}
-                accessToken={token}
-                eventSlug={reg.eventSlug}
-                eventTitle={reg.eventTitle}
-                siteName={settings.siteName}
-                feeLabel={feeLabel}
-                fee={reg.fee}
-                prefill={{ name: reg.name, email: reg.email, contact: reg.mobile }}
-              />
+              <Link
+                href={`/registration/${encodeURIComponent(reg.bookingId)}/pay?t=${encodeURIComponent(token)}`}
+                className="inline-flex h-12 w-fit items-center gap-2 rounded-full bg-grad-primary px-6 text-[15px] font-semibold text-white shadow-[0_14px_36px_-12px_rgb(var(--lime-rgb)/0.95)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 print:hidden"
+              >
+                <CreditCard className="h-4 w-4" aria-hidden /> {view === 'failed' ? 'Retry payment' : 'Complete payment'} · {feeLabel}
+              </Link>
             </div>
           )}
 

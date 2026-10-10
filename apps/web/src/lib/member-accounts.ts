@@ -9,7 +9,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import type { CommunityMemberApplication } from '@ascend/shared';
+import { membershipState, type CommunityMemberApplication } from '@ascend/shared';
 import { dataDir, readPrivate } from './community-store';
 
 export interface MemberProfile {
@@ -185,9 +185,10 @@ export function membershipFor(account: Pick<MemberAccount, 'email' | 'emailVerif
   return readPrivate().members.find((m) => m.email.toLowerCase() === account.email);
 }
 
-/** Members-only access: verified email + an approved membership application. */
+/** Members-only access: verified email + an approved, paid and unexpired membership. */
 export function isApprovedMember(account: Pick<MemberAccount, 'email' | 'emailVerifiedAt'> | null | undefined): boolean {
-  return !!account && membershipFor(account)?.status === 'approved';
+  const app = account ? membershipFor(account) : undefined;
+  return !!app && membershipState(app) === 'active';
 }
 
 /** The account as the browser may see it. */

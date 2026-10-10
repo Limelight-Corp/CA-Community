@@ -3,11 +3,14 @@
  * registration / member / message mutations. Never import this from a client component.
  */
 import { randomBytes } from 'crypto';
-import type {
-  CommunityContactMessage,
-  CommunityEvent,
-  CommunityMemberApplication,
-  CommunityRegistration,
+import {
+  newMembershipReceiptId,
+  recordMembershipPayment,
+  type CommunityContactMessage,
+  type CommunityEvent,
+  type CommunityMemberApplication,
+  type CommunityRegistration,
+  type MembershipPayment,
 } from '@ascend/shared';
 import { mutatePrivate, readPrivate, readStore, writeStore } from './community-store';
 import { todayISO } from './format';
@@ -234,6 +237,26 @@ export function updateMember(
     if (!m) throw new ActionError('Application not found', 404);
     Object.assign(m, updates, { id: m.id, createdAt: m.createdAt, updatedAt: new Date().toISOString() });
     return { ...m };
+  });
+}
+
+/**
+ * Marks a membership paid outside the gateway (cash, bank transfer, complimentary) for one
+ * 12-month term at the given amount. Only approved applications can be paid.
+ */
+export function recordOfflineMembershipPayment(
+  id: string,
+  amount: number,
+  recordedBy: string
+): { app: CommunityMemberApplication; payment: MembershipPayment; renewal: boolean } {
+  return mutatePrivate((data) => {
+    const m = data.members.find((x) => x.id === id);
+    if (!m) throw new ActionError('Application not found', 404);
+    if (m.status !== 'approved') throw new ActionError('Approve the application before recording a payment', 409);
+    const renewal = (m.payments?.length ?? 0) > 0;
+    const taken = new Set(data.members.flatMap((x) => (x.payments ?? []).map((p) => p.id)));
+    const { payment } = recordMembershipPayment(m, { id: newMembershipReceiptId(taken), amount, method: 'offline', recordedBy });
+    return { app: { ...m }, payment, renewal };
   });
 }
 

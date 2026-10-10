@@ -3,9 +3,14 @@ import {
   emailBookingFrom,
   eventCancelledEmail,
   eventUpdatedEmail,
+  MEMBERSHIP_PLANS,
+  membershipApprovedEmail,
+  membershipPaidEmail,
   paymentConfirmedEmail,
   type CommunityEvent,
+  type CommunityMemberApplication,
   type CommunityRegistration,
+  type MembershipPayment,
 } from '@ascend/shared';
 import { getItems, mutatePrivate, readPrivate } from './community-store';
 import { emailBrand, queueMail, siteUrl } from './mailer';
@@ -78,4 +83,33 @@ export function notifyEventUpdated(event: CommunityEvent, changes: EventChange[]
   const brand = emailBrand();
   for (const r of regs) queueMail(r.email, eventUpdatedEmail(brand, emailBookingFrom(r, event, siteUrl()), changes));
   return regs.length;
+}
+
+/** Approval: fixes the fee (if not yet paid) and emails the applicant a link to pay. */
+export function notifyMembershipApproved(app: CommunityMemberApplication): void {
+  queueMail(
+    app.email,
+    membershipApprovedEmail(emailBrand(), {
+      name: app.name,
+      plan: MEMBERSHIP_PLANS.find((p) => p.key === app.plan)?.name ?? app.plan,
+      fee: app.membershipFee ?? 0,
+      payUrl: `${siteUrl()}/dashboard`,
+    })
+  );
+}
+
+/** Receipt for a payment recorded offline by the team. */
+export function notifyMembershipPaidOffline(app: CommunityMemberApplication, payment: MembershipPayment, renewal: boolean): void {
+  queueMail(
+    app.email,
+    membershipPaidEmail(emailBrand(), {
+      name: app.name,
+      plan: MEMBERSHIP_PLANS.find((p) => p.key === app.plan)?.name ?? app.plan,
+      amount: payment.amount,
+      receiptId: payment.id,
+      validUntil: payment.validUntil,
+      renewal,
+      dashboardUrl: `${siteUrl()}/dashboard`,
+    })
+  );
 }

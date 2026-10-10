@@ -3,7 +3,7 @@
  * Everything here reads the live site content (community store + legal docs) — nothing is made up.
  */
 import type { CommunityEvent, CommunityNews, CommunityResource, CommunitySpeaker, CommunityWing } from '@ascend/shared';
-import { MEMBERSHIP_PLANS } from '@ascend/shared';
+import { MEMBERSHIP_PLANS, membershipFeeFor } from '@ascend/shared';
 import { getItems, getSettings } from '../community-store';
 import { canRegister, eventCategory, formatEventDate, isUpcoming, locationLabel, priceLabel, seatsLeft, sortByDate } from '../events';
 import { LEGAL_DOCS } from '../../components/content/legal-docs';
@@ -154,11 +154,11 @@ export function searchSite(query: string): LinkCard[] {
 export function siteFacts(): string {
   const st = getSettings();
   const plans = MEMBERSHIP_PLANS.map(
-    (p) => `- ${p.name} (${p.audience}): ₹${p.price.toLocaleString('en-IN')} / ${p.period}${p.priceNote ? ` ${p.priceNote}` : ''}`
+    (p) => `- ${p.name} (${p.audience}): ₹${membershipFeeFor(p.key, st).toLocaleString('en-IN')} / ${p.period}`
   ).join('\n');
   return [
     `Organisation: ${st.siteName}.`,
     `Contact: email ${st.contact.email ?? 'not published'}; phone ${st.contact.phone ?? 'not published'}; address ${st.contact.address ?? 'not published'}.`,
-    `Membership plans (proposed — subject to confirmation):\n${plans}`,
+    `Membership plans (annual fee, paid after the application is approved; valid 12 months from payment):\n${plans}`,
   ].join('\n');
 }

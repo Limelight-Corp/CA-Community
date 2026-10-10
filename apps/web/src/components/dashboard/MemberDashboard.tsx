@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import type { DashboardBooking, DashboardData } from '../../lib/member-dashboard';
 import { getInitials, useAuth } from '../../context/AuthContext';
+import { payWithRazorpay, type PaymentInit } from '../events/razorpay-client';
 
 type Tab = 'overview' | 'events' | 'receipts' | 'certificates' | 'resources' | 'profile';
 
@@ -98,7 +99,13 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
                   </div>
                 ))}
               </div>
-              <MembershipCard membership={membership} isMember={isMember} verified={account.emailVerified} />
+              <MembershipCard
+                membership={membership}
+                isMember={isMember}
+                verified={account.emailVerified}
+                siteName={data.siteName}
+                prefill={{ name: account.name, email: account.email, contact: account.mobile }}
+              />
               <section className={panel}>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">Next up</h2>
@@ -223,9 +230,13 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
                   <Lock className="h-6 w-6 text-gold" aria-hidden />
                   <p className="text-[15px] leading-relaxed text-[var(--fg)]">
                     {data.membersOnlyCount > 0 ? `${data.membersOnlyCount} resource${data.membersOnlyCount === 1 ? ' is' : 's are'} reserved for members. ` : ''}
-                    {membership?.status === 'pending'
-                      ? 'Your membership application is being reviewed — they unlock as soon as it is approved.'
-                      : !account.emailVerified
+                    {membership?.state === 'pending'
+                      ? 'Your membership application is being reviewed — they unlock once it is approved and paid.'
+                      : membership?.state === 'awaiting_payment'
+                        ? 'Your membership is approved — complete the payment on the Overview tab to unlock them.'
+                        : membership?.state === 'expired'
+                          ? 'Your membership has expired — renew it on the Overview tab to unlock them again.'
+                          : !account.emailVerified
                         ? 'Confirm your email and become a member to unlock them.'
                         : 'Become a member to unlock them.'}
                   </p>
@@ -250,11 +261,16 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
 
 function Header({ data }: { data: DashboardData }) {
   const { account, membership, isMember } = data;
+  const state = membership?.state;
   const status = isMember
     ? { label: `${membership?.plan ?? 'Member'} · Active`, cls: 'border-ok/40 bg-ok/10 text-ok' }
-    : membership?.status === 'pending'
-      ? { label: 'Membership under review', cls: 'border-gold/40 bg-gold/10 text-gold' }
-      : { label: 'Free account', cls: 'border-mist/20 bg-mist/[0.06] text-[var(--muted)]' };
+    : state === 'awaiting_payment'
+      ? { label: 'Approved · payment due', cls: 'border-gold/40 bg-gold/10 text-gold' }
+      : state === 'expired'
+        ? { label: 'Membership expired', cls: 'border-bad/40 bg-bad/10 text-bad' }
+        : state === 'pending'
+          ? { label: 'Membership under review', cls: 'border-gold/40 bg-gold/10 text-gold' }
+          : { label: 'Free account', cls: 'border-mist/20 bg-mist/[0.06] text-[var(--muted)]' };
   return (
     <div className="relative overflow-hidden rounded-[32px] border border-mist/[0.1] bg-gradient-to-br from-brand-800/70 via-bg to-bg p-6 sm:p-9">
       <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-gold/15 blur-[90px]" />
@@ -327,7 +343,70 @@ function VerifyBanner({ email, mailEnabled }: { email: string; mailEnabled: bool
   );
 }
 
-function MembershipCard({ membership, isMember, verified }: { membership: DashboardData['membership']; isMember: boolean; verified: boolean }) {
+const longDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+
+/** Starts a membership payment / renewal through Razorpay and refreshes the dashboard when done. */
+function MembershipPayButton({ label, siteName, prefill }: { label: string; siteName: string; prefill: { name?: string; email?: string; contact?: string } }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const { refresh } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const pay = async () => {
+    setBusy(true);
+    try {
+      const res = await fetch('/api/membership/order', { method: 'POST' });
+      const d = (await res.json().catch(() => ({}))) as {
+        payment?: Extract<PaymentInit, { provider: 'razorpay' }> & { description?: string };
+        error?: string;
+      };
+      if (!res.ok || !d.payment) {
+        toast(d.error || 'Could not start the payment.');
+        return;
+      }
+      const outcome = await payWithRazorpay({
+        payment: d.payment,
+        siteName,
+        description: d.payment.description ?? 'Membership',
+        prefill,
+        verifyUrl: '/api/membership/verify',
+      });
+      if (outcome.kind === 'paid') {
+        toast('Payment received — your membership is active!');
+        await refresh();
+        router.refresh();
+      } else if (outcome.kind === 'failed') toast(outcome.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={pay}
+      disabled={busy}
+      className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950 disabled:opacity-60"
+    >
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CreditCard className="h-4 w-4" aria-hidden />}
+      {label}
+    </button>
+  );
+}
+
+function MembershipCard({
+  membership,
+  isMember,
+  verified,
+  siteName,
+  prefill,
+}: {
+  membership: DashboardData['membership'];
+  isMember: boolean;
+  verified: boolean;
+  siteName: string;
+  prefill: { name?: string; email?: string; contact?: string };
+}) {
+
   if (!membership) {
     return (
       <section className={cn(panel, 'holo relative overflow-hidden border-gold/25')}>
@@ -343,7 +422,26 @@ function MembershipCard({ membership, isMember, verified }: { membership: Dashbo
       </section>
     );
   }
-  const label = isMember ? 'Active' : membership.status === 'pending' ? 'Under review' : 'Not approved';
+  const state = membership.state;
+  const label =
+    state === 'active'
+      ? 'Active'
+      : state === 'awaiting_payment'
+        ? 'Payment due'
+        : state === 'expired'
+          ? 'Expired'
+          : state === 'pending'
+            ? 'Under review'
+            : 'Not approved';
+  const tone =
+    state === 'active'
+      ? 'border-ok/40 bg-ok/10 text-ok'
+      : state === 'awaiting_payment' || state === 'pending'
+        ? 'border-gold/40 bg-gold/10 text-gold'
+        : 'border-bad/40 bg-bad/10 text-bad';
+  const until = membership.validUntil ? longDate(membership.validUntil) : '';
+  const daysLeft = membership.validUntil ? Math.ceil((Date.parse(membership.validUntil) - Date.now()) / 86_400_000) : 0;
+  const showPay = state === 'awaiting_payment' || state === 'expired' || (state === 'active' && daysLeft <= 30);
   return (
     <section className={panel}>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -351,22 +449,71 @@ function MembershipCard({ membership, isMember, verified }: { membership: Dashbo
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-gold">Membership</p>
           <h2 className="mt-2 font-display text-[24px] font-medium tracking-[-0.03em] text-[var(--fg)]">{membership.plan}</h2>
           <p className="mt-1 text-[13px] text-[var(--muted)]">
-            Applied {new Date(membership.appliedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            {state === 'active'
+              ? `Active until ${until}${daysLeft <= 30 ? ` · ${daysLeft} day${daysLeft === 1 ? '' : 's'} left` : ''}`
+              : state === 'expired'
+                ? `Expired on ${until}`
+                : `Applied ${longDate(membership.appliedAt)}`}
           </p>
         </div>
-        <span
-          className={cn(
-            'rounded-full border px-3 py-1 text-[12.5px] font-semibold',
-            isMember ? 'border-ok/40 bg-ok/10 text-ok' : membership.status === 'pending' ? 'border-gold/40 bg-gold/10 text-gold' : 'border-bad/40 bg-bad/10 text-bad'
-          )}
-        >
-          {label}
-        </span>
+        <span className={cn('rounded-full border px-3 py-1 text-[12.5px] font-semibold', tone)}>{label}</span>
       </div>
-      {membership.status === 'rejected' && (
+      {state === 'rejected' && (
         <p className="mt-4 text-[14px] text-[var(--muted)]">
-          Your application was not approved. <Link href="/contact" className="text-[var(--fg)] underline underline-offset-2">Contact us</Link> if you have questions.
+          Your application was not approved.{' '}
+          <Link href="/contact" className="text-[var(--fg)] underline underline-offset-2">
+            Contact us
+          </Link>{' '}
+          if you have questions.
         </p>
+      )}
+      {state === 'pending' && (
+        <p className="mt-4 text-[14px] text-[var(--muted)]">
+          Our team is reviewing your application. Once approved, you can pay the annual fee here to activate it.
+        </p>
+      )}
+      {showPay && (
+        <div className="mt-5 flex flex-col gap-3 rounded-[20px] border border-gold/25 bg-gold/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[14px] text-[var(--fg)]">
+            {state === 'awaiting_payment'
+              ? `Approved! Pay the annual fee of ${inr(membership.fee)} to activate your membership for 12 months.`
+              : state === 'expired'
+                ? `Renew for ${inr(membership.fee)} to restore your member benefits for 12 months.`
+                : `Renew now for ${inr(membership.fee)} — the new 12 months start on ${until}, so you lose nothing.`}
+          </p>
+          {membership.canPayOnline ? (
+            <MembershipPayButton
+              label={state === 'awaiting_payment' ? `Pay ${inr(membership.fee)}` : `Renew · ${inr(membership.fee)}`}
+              siteName={siteName}
+              prefill={prefill}
+            />
+          ) : (
+            <Link href="/contact?topic=membership#contact-form" className="shrink-0 text-[13.5px] font-semibold text-gold">
+              Contact us to pay →
+            </Link>
+          )}
+        </div>
+      )}
+      {membership.payments.length > 0 && (
+        <details className="mt-5 rounded-[18px] border border-mist/[0.1] p-4">
+          <summary className="cursor-pointer text-[13.5px] font-semibold text-[var(--fg)]">
+            Payments &amp; receipts ({membership.payments.length})
+          </summary>
+          <ul className="mt-3 divide-y divide-mist/[0.08]">
+            {membership.payments.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-[13px]">
+                <span className="font-mono text-[var(--fg)]">{p.id}</span>
+                <span className="text-[var(--muted)]">
+                  {longDate(p.paidAt)} · {p.method} · valid till {longDate(p.validUntil)}
+                </span>
+                <span className="ml-auto font-mono text-[var(--fg)]">{inr(p.amount)}</span>
+                <a href={p.receiptUrl} className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-brand-200 hover:text-white">
+                  <Download className="h-3.5 w-3.5" aria-hidden /> PDF
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
       {membership.wings.length > 0 && (
         <div className="mt-5">

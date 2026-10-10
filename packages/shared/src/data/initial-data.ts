@@ -179,6 +179,8 @@ export interface SiteSettings {
   heroImageUrl?: string;
   /** Optional strip shown above the header (e.g. founding member registration). */
   announcement?: string;
+  /** Annual membership fees (₹) that override the Blueprint defaults in MEMBERSHIP_PLANS. */
+  membershipFees?: { core?: number; associate?: number; student?: number };
   contact: {
     email?: string;
     phone?: string;
@@ -294,8 +296,32 @@ export interface CommunityMemberApplication {
   photoUrl?: string;
   interests?: number[];
   status: 'pending' | 'approved' | 'rejected';
+  /** Fee (₹) fixed at approval; updated to the amount of each payment order that is opened. */
+  membershipFee?: number;
+  /** Open Razorpay order for the next payment. */
+  gatewayOrderId?: string;
+  /** Membership is active until this moment (ISO); extended by each payment. */
+  validUntil?: string;
+  payments?: MembershipPayment[];
+  /** The `validUntil` a renewal reminder was already sent for. */
+  renewalReminderFor?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/** One membership payment (online via Razorpay or recorded offline by the admin). */
+export interface MembershipPayment {
+  /** Receipt number, e.g. MEM-7K2Q9X. */
+  id: string;
+  amount: number;
+  method: 'razorpay' | 'offline';
+  gatewayOrderId?: string;
+  gatewayPaymentId?: string;
+  paidAt: string;
+  validFrom: string;
+  validUntil: string;
+  /** Who recorded an offline payment. */
+  recordedBy?: string;
 }
 
 export interface CommunityContactMessage {

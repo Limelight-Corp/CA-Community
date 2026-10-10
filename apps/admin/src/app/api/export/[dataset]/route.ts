@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import {
   MEMBERSHIP_PLANS,
+  membershipState,
   ORG_WINGS,
   type CommunityMemberApplication,
   type CommunityRegistration,
@@ -130,6 +131,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
           { header: 'LinkedIn', value: (m) => m.linkedinUrl },
           { header: 'Wing interests', value: wingNames },
           { header: 'Status', value: (m) => MEMBER_STATUS_LABEL[m.status] ?? m.status },
+          { header: 'Membership', value: (m) => ({ active: 'Active', awaiting_payment: 'Payment due', expired: 'Expired' })[membershipState(m) as string] ?? '' },
+          { header: 'Valid until', value: (m) => m.validUntil?.slice(0, 10) },
+          { header: 'Total paid (INR)', value: (m) => (m.payments ?? []).reduce((sum, p) => sum + p.amount, 0) },
+          { header: 'Last receipt', value: (m) => m.payments?.at(-1)?.id },
           { header: 'Applied at', value: (m) => m.createdAt },
           { header: 'Updated at', value: (m) => m.updatedAt },
         ];

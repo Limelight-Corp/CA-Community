@@ -14,3 +14,4 @@ export * from './schemas/theme.schema';
 export * from './openapi/registry';
 export * from './data/initial-data';
 export * from './email/templates';
+export * from './membership/membership';

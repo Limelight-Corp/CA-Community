@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
-import { sendDueReminders } from '../../../../lib/reminders';
+import { sendDueReminders, sendMembershipRenewalReminders } from '../../../../lib/reminders';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,5 +17,5 @@ export async function GET(req: Request) {
   if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, ...sendDueReminders() }, { headers: { 'Cache-Control': 'no-store' } });
+  return NextResponse.json({ ok: true, ...sendDueReminders(), renewals: sendMembershipRenewalReminders().sent }, { headers: { 'Cache-Control': 'no-store' } });
 }

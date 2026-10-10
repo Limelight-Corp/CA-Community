@@ -9,8 +9,19 @@
  * Runs hourly inside the web server (src/instrumentation.ts) and can also be triggered by a
  * cron service via GET /api/cron/reminders.
  */
-import { emailBookingFrom, eventReminderEmail, type CommunityEvent, type CommunityRegistration } from '@ascend/shared';
-import { getItems, mutatePrivate } from './community-store';
+import {
+  emailBookingFrom,
+  eventReminderEmail,
+  MEMBERSHIP_PLANS,
+  membershipFeeFor,
+  membershipRenewalEmail,
+  membershipState,
+  RENEWAL_REMINDER_DAYS,
+  type CommunityEvent,
+  type CommunityMemberApplication,
+  type CommunityRegistration,
+} from '@ascend/shared';
+import { getItems, getSettings, mutatePrivate } from './community-store';
 import { emailBrand, queueMail } from './mailer';
 import { siteUrl } from './seo';
 
@@ -77,4 +88,37 @@ export function sendDueReminders(now = new Date()): ReminderRun {
     );
   }
   return { checkedEvents: events.length, sent: due.length, bookings: due.map((r) => r.bookingId) };
+}
+
+/**
+ * Membership renewal reminders: one email per membership period, sent when an active membership
+ * is within RENEWAL_REMINDER_DAYS of expiry. Stamped (renewalReminderFor = validUntil) first.
+ */
+export function sendMembershipRenewalReminders(now = new Date()): { sent: number } {
+  const horizon = now.getTime() + RENEWAL_REMINDER_DAYS * 24 * 3600_000;
+  const due = mutatePrivate<CommunityMemberApplication[]>((data) => {
+    const picked: CommunityMemberApplication[] = [];
+    for (const m of data.members) {
+      if (membershipState(m, now) !== 'active' || !m.validUntil) continue;
+      if (Date.parse(m.validUntil) > horizon || m.renewalReminderFor === m.validUntil) continue;
+      m.renewalReminderFor = m.validUntil;
+      picked.push({ ...m });
+    }
+    return picked;
+  });
+  const brand = emailBrand();
+  const settings = getSettings();
+  for (const m of due) {
+    queueMail(
+      m.email,
+      membershipRenewalEmail(brand, {
+        name: m.name,
+        plan: MEMBERSHIP_PLANS.find((p) => p.key === m.plan)?.name ?? m.plan,
+        fee: membershipFeeFor(m.plan, settings),
+        validUntil: m.validUntil!,
+        payUrl: `${siteUrl()}/dashboard`,
+      })
+    );
+  }
+  return { sent: due.length };
 }

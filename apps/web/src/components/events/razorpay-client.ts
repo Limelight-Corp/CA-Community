@@ -45,8 +45,8 @@ export function loadRazorpay(): Promise<RazorpayCtor> {
   return loader;
 }
 
-async function postVerify(body: Record<string, unknown>) {
-  const res = await fetch('/api/registrations/verify', {
+async function postVerify(body: Record<string, unknown>, url = '/api/registrations/verify') {
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -55,8 +55,11 @@ async function postVerify(body: Record<string, unknown>) {
 }
 
 export interface PayOptions {
-  bookingId: string;
-  accessToken: string;
+  /** Event bookings: verified at /api/registrations/verify with these. */
+  bookingId?: string;
+  accessToken?: string;
+  /** Other payments (e.g. membership): the endpoint that verifies the Razorpay response. */
+  verifyUrl?: string;
   payment: Extract<PaymentInit, { provider: 'razorpay' }>;
   siteName: string;
   description: string;
@@ -89,7 +92,7 @@ export async function payWithRazorpay(opts: PayOptions): Promise<PayOutcome> {
       name: opts.siteName,
       description: opts.description,
       prefill: opts.prefill,
-      notes: { bookingId: opts.bookingId },
+      notes: opts.bookingId ? { bookingId: opts.bookingId } : {},
       // UPI first (QR on desktop, UPI apps on mobile — Razorpay picks the flow per device),
       // then Checkout's default methods: cards (incl. RuPay), net banking, wallets.
       config: {
@@ -102,7 +105,7 @@ export async function payWithRazorpay(opts: PayOptions): Promise<PayOutcome> {
         },
       },
       handler: async (resp: RazorpayResponse) => {
-        const r = await postVerify({ bookingId: opts.bookingId, accessToken: opts.accessToken, ...resp });
+        const r = await postVerify({ bookingId: opts.bookingId, accessToken: opts.accessToken, ...resp }, opts.verifyUrl);
         done(r.ok ? { kind: 'paid' } : { kind: 'failed', message: r.error || 'Payment could not be verified.' });
       },
       modal: {
@@ -115,7 +118,7 @@ export async function payWithRazorpay(opts: PayOptions): Promise<PayOutcome> {
     // Razorpay lets the user retry inside the modal, so record the failure and wait for the modal to close.
     rzp.on('payment.failed', (resp) => {
       lastFailure = resp?.error?.description || 'The payment did not go through.';
-      void postVerify({ bookingId: opts.bookingId, accessToken: opts.accessToken, failed: true });
+      void postVerify({ bookingId: opts.bookingId, accessToken: opts.accessToken, failed: true }, opts.verifyUrl);
     });
 
     rzp.open();

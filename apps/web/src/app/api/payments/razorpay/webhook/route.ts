@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import type { CommunityRegistration } from '@ascend/shared';
 import { mutatePrivate } from '../../../../../lib/community-store';
 import { notifyPaymentConfirmed, notifyPaymentFailed } from '../../../../../lib/notifications';
+import { completeMembershipPayment } from '../../../../../lib/membership';
 import { safeEqual, takeSeat } from '../../../registrations/_lib/server';
 
 export const runtime = 'nodejs';
@@ -89,9 +90,19 @@ export async function POST(req: Request) {
   });
 
   switch (outcome.kind) {
-    case 'unknown':
-      console.warn(`[razorpay webhook] ${event}: no booking for order ${payment.order_id}`);
+    case 'unknown': {
+      // Not an event booking — it may be a membership payment.
+      if (event !== 'payment.failed' && payment.id) {
+        const m = completeMembershipPayment(payment.order_id, payment.id, payment.amount);
+        if (m === 'mismatch') {
+          console.error(`[razorpay webhook] ${event}: membership amount mismatch for order ${payment.order_id} (${payment.amount})`);
+          return ok({ ignored: true });
+        }
+        if (m) return ok(m.duplicate ? { duplicate: true } : { membership: m.payment.id });
+      }
+      if (event !== 'payment.failed') console.warn(`[razorpay webhook] ${event}: no booking or membership for order ${payment.order_id}`);
       return ok({ ignored: true });
+    }
     case 'mismatch':
       console.error(`[razorpay webhook] ${event}: amount mismatch for order ${payment.order_id} (${payment.amount})`);
       return ok({ ignored: true });

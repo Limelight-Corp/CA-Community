@@ -4,7 +4,7 @@
  * and the common support questions, and answers only from site content.
  */
 import type { CommunityEvent, CommunitySpeaker } from '@ascend/shared';
-import { MEMBERSHIP_PLANS, ORG_POSITIONING } from '@ascend/shared';
+import { MEMBERSHIP_PLANS, membershipFeeFor, ORG_POSITIONING } from '@ascend/shared';
 import { getItems, getSettings } from '../community-store';
 import { isUpcoming } from '../events';
 import { searchEvents, searchSite, SITE_PAGES, type EventCard, type EventQuery, type LinkCard } from './knowledge';
@@ -72,9 +72,10 @@ export function basicReply(history: ChatTurn[]): AssistantReply {
 
   // ---- Membership
   if (/member|membership|join|plan|subscription|sadasya/.test(q) && !/event/.test(q)) {
-    const plans = MEMBERSHIP_PLANS.map((p) => `• **${p.name}** (${p.audience}) — ₹${p.price.toLocaleString('en-IN')} / ${p.period}${p.priceNote ? ` ${p.priceNote}` : ''}`).join('\n');
+    const st = getSettings();
+    const plans = MEMBERSHIP_PLANS.map((p) => `• **${p.name}** (${p.audience}) — ₹${membershipFeeFor(p.key, st).toLocaleString('en-IN')} / ${p.period}`).join('\n');
     return reply({
-      reply: `Membership plans (proposed — subject to confirmation):\n${plans}\nCompare benefits and apply on the Join Us page.`,
+      reply: `Membership plans (annual fee, paid after your application is approved; valid 12 months):\n${plans}\nCompare benefits and apply on the Join Us page.`,
       events: [],
       links: [page('/join')],
       suggestions: ['What do members get?', 'Show upcoming events', 'Talk to the team'],

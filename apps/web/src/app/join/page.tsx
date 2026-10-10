@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Briefcase, Check, ChevronDown, GraduationCap, Handshake, Lightbulb, Rocket, Users } from 'lucide-react';
 import {
   MEMBERSHIP_PLANS,
+  membershipFeeFor,
   MEMBER_IDENTITIES,
   MEMBER_JOURNEY,
   ORG_POSITIONING,
@@ -38,7 +39,7 @@ const WHY_ICONS = {
 } as const;
 
 function priceLabel(p: MembershipPlan) {
-  return `₹${p.price.toLocaleString('en-IN')} / ${p.period}${p.priceNote ? ` ${p.priceNote}` : ''}`;
+  return `₹${p.price.toLocaleString('en-IN')} / ${p.period}`;
 }
 
 type PlanKey = MembershipPlan['key'];
@@ -50,6 +51,9 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const requestedWing = typeof sp.wing === 'string' ? ORG_WINGS.find((w) => wingSlug(w.name) === sp.wing) : undefined;
 
   const storeWings = getItems<CommunityWing>('wings', true);
+  // Annual fees come from Site Settings (defaults: the Blueprint prices).
+  const settingsForFees = getSettings();
+  const plans = MEMBERSHIP_PLANS.map((p) => ({ ...p, price: membershipFeeFor(p.key, settingsForFees) }));
   const wings = ORG_WINGS.map((w) => ({
     number: w.number,
     name: w.name,
@@ -86,11 +90,11 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                 Pick your <AccentText tone="gold">lane.</AccentText>
               </h2>
             </div>
-            <p className="font-mono text-[11.5px] uppercase tracking-[0.12em] text-[var(--muted)]">Proposed plans — subject to confirmation</p>
+            <p className="font-mono text-[11.5px] uppercase tracking-[0.12em] text-[var(--muted)]">Annual fees · pay after your application is approved · valid 12 months</p>
           </div>
 
           <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {MEMBERSHIP_PLANS.map((plan, i) => {
+            {plans.map((plan, i) => {
               const top = plan.benefits.slice(0, 4);
               const more = plan.benefits.slice(4);
               return (
@@ -159,7 +163,6 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                             ₹{plan.price.toLocaleString('en-IN')}
                           </span>
                           <span className="text-[13px] text-white/70">/ {plan.period}</span>
-                          {plan.priceNote && <span className="font-serif text-[14px] italic text-gold-soft">{plan.priceNote}</span>}
                         </p>
                       </div>
                     </div>
@@ -362,7 +365,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
               initialPlan={initialPlan}
               initialWings={requestedWing ? [requestedWing.number] : undefined}
               wings={wings}
-              plans={MEMBERSHIP_PLANS.map((p) => ({ key: p.key, name: p.name, audience: p.audience, priceLabel: priceLabel(p) }))}
+              plans={plans.map((p) => ({ key: p.key, name: p.name, audience: p.audience, priceLabel: priceLabel(p) }))}
             />
           </div>
         </Container>

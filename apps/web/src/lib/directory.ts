@@ -1,9 +1,9 @@
 /**
- * Members-only directory (server only). Lists approved members with a confirmed email who have
+ * Members-only directory (server only). Lists active (approved + paid) members with a confirmed email who have
  * opted in from their dashboard. Contact details (email, phone, membership number) are never
  * exposed — members connect through LinkedIn.
  */
-import { MEMBERSHIP_PLANS, ORG_WINGS, wingSlug } from '@ascend/shared';
+import { MEMBERSHIP_PLANS, membershipState, ORG_WINGS, wingSlug } from '@ascend/shared';
 import { readPrivate } from './community-store';
 import { readAccounts } from './member-accounts';
 
@@ -25,7 +25,7 @@ export interface DirectoryEntry {
 export function directoryEntries(): DirectoryEntry[] {
   const approved = new Map(
     readPrivate()
-      .members.filter((m) => m.status === 'approved')
+      .members.filter((m) => membershipState(m) === 'active')
       .map((m) => [m.email.toLowerCase(), m])
   );
   return readAccounts()

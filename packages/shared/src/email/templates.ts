@@ -462,3 +462,99 @@ export function eventUpdatedEmail(brand: EmailBrand, b: EmailBooking, changes: {
     }),
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Paid membership emails
+// ---------------------------------------------------------------------------------------------
+
+const longDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
+
+/** Application approved — pay to activate. */
+export function membershipApprovedEmail(brand: EmailBrand, m: { name: string; plan: string; fee: number; payUrl: string }): EmailMessage {
+  return {
+    subject: `Your membership is approved — ${brand.siteName}`,
+    ...render({
+      brand,
+      preheader: `Complete your payment of ${formatInr(m.fee)} to activate your ${m.plan}.`,
+      heading: 'Welcome aboard — your application is approved!',
+      intro: [
+        `Hi ${m.name},`,
+        `Your application for ${m.plan} has been approved. Complete the annual fee of ${formatInr(m.fee)} to activate your membership for 12 months.`,
+        'Log in with the same email address you applied with — the payment button is on your dashboard.',
+      ],
+      rows: [
+        ['Plan', m.plan],
+        ['Annual fee', formatInr(m.fee)],
+        ['Validity', '12 months from payment'],
+      ],
+      cta: { label: `Pay ${formatInr(m.fee)} & activate`, url: m.payUrl },
+    }),
+  };
+}
+
+/** Membership payment received — receipt. */
+export function membershipPaidEmail(
+  brand: EmailBrand,
+  m: { name: string; plan: string; amount: number; receiptId: string; paymentId?: string; validUntil: string; renewal: boolean; dashboardUrl: string }
+): EmailMessage {
+  return {
+    subject: `${m.renewal ? 'Membership renewed' : 'Membership active'} — receipt ${m.receiptId}`,
+    ...render({
+      brand,
+      preheader: `Valid until ${longDate(m.validUntil)}.`,
+      heading: m.renewal ? 'Your membership is renewed' : 'Your membership is active!',
+      intro: [`Hi ${m.name},`, `We have received your payment. Your ${m.plan} is active until ${longDate(m.validUntil)}.`],
+      rows: [
+        ['Receipt no.', m.receiptId],
+        ['Plan', m.plan],
+        ['Amount paid', formatInr(m.amount)],
+        ['Payment ID', m.paymentId],
+        ['Valid until', longDate(m.validUntil)],
+      ],
+      cta: { label: 'Open my dashboard', url: m.dashboardUrl },
+      outro: ['You can download the PDF receipt from your dashboard at any time.'],
+    }),
+  };
+}
+
+/** Renewal reminder before (or at) expiry. */
+export function membershipRenewalEmail(brand: EmailBrand, m: { name: string; plan: string; fee: number; validUntil: string; payUrl: string }): EmailMessage {
+  return {
+    subject: `Your membership expires on ${longDate(m.validUntil)}`,
+    ...render({
+      brand,
+      preheader: `Renew for ${formatInr(m.fee)} to keep your member benefits.`,
+      heading: 'Time to renew your membership',
+      intro: [
+        `Hi ${m.name},`,
+        `Your ${m.plan} expires on ${longDate(m.validUntil)}. Renew now for ${formatInr(m.fee)} — the new 12 months start when the current period ends, so you lose nothing by renewing early.`,
+      ],
+      cta: { label: `Renew for ${formatInr(m.fee)}`, url: m.payUrl },
+    }),
+  };
+}
+
+export function adminMembershipPaidEmail(
+  brand: EmailBrand,
+  m: { name: string; email: string; plan: string; amount: number; receiptId: string; method: string; validUntil: string },
+  adminUrl?: string
+): EmailMessage {
+  return {
+    subject: `Membership payment ${formatInr(m.amount)}: ${m.name} (${m.plan})`,
+    ...render({
+      brand,
+      preheader: `${m.receiptId} · valid until ${longDate(m.validUntil)}`,
+      heading: 'Membership payment received',
+      intro: [`${m.name} paid the ${m.plan} fee.`],
+      rows: [
+        ['Receipt no.', m.receiptId],
+        ['Name', m.name],
+        ['Email', m.email],
+        ['Amount', formatInr(m.amount)],
+        ['Method', m.method],
+        ['Valid until', longDate(m.validUntil)],
+      ],
+      ...(adminUrl ? { cta: { label: 'Open members', url: adminUrl } } : {}),
+    }),
+  };
+}

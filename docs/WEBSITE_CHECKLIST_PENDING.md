@@ -66,6 +66,6 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 
 ## Phase 2 / future (§18, §26)
 - [ ] WhatsApp Business API confirmations/reminders **(client: WhatsApp API account)**
-- [ ] Paid membership via Razorpay (plans are marked "proposed" — prices need confirmation)
+- [x] Paid membership via Razorpay: pay after approval, 12 months from payment, early renewal extends, renewal reminder 14 days before expiry, offline payments, fees in Site Settings (Core ₹1,000 · Associate ₹1,000 · Student ₹499)
 - [x] Real member directory: approved members who opt in; members-only; search + city / wing / plan filters; no contact details exposed
 - [ ] Job board, mentorship programme, forum, online courses, referral programme

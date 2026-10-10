@@ -3,7 +3,7 @@
  * confirmation for free ones. Only states what the booking record shows — no tax/GST claims.
  */
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
-import type { CommunityEvent, CommunityRegistration, SiteSettings } from '@ascend/shared';
+import type { CommunityEvent, CommunityMemberApplication, CommunityRegistration, MembershipPayment, SiteSettings } from '@ascend/shared';
 import { safe } from './certificates';
 import { formatEventDate, locationLabel } from './events';
 import { siteUrl } from './seo';
@@ -28,7 +28,8 @@ const ist = (iso?: string) =>
 export async function buildReceiptPdf(
   reg: CommunityRegistration,
   event: CommunityEvent | undefined,
-  settings: Pick<SiteSettings, 'siteName' | 'contact'>
+  settings: Pick<SiteSettings, 'siteName' | 'contact'>,
+  opts: { description?: string; meta?: [string, string][]; idLabel?: string } = {}
 ): Promise<Uint8Array> {
   const kind = receiptKind(reg);
   if (!kind) throw new Error('No receipt for this booking');
@@ -100,10 +101,11 @@ export async function buildReceiptPdf(
   // Meta
   let my = H - 190;
   const meta: [string, string][] = [
-    ['Booking ID', reg.bookingId],
+    [opts.idLabel ?? 'Booking ID', reg.bookingId],
     [kind === 'free' ? 'Registered on' : 'Paid on', ist(kind === 'free' ? reg.createdAt : reg.paidAt || reg.updatedAt)],
   ];
   if (kind === 'refunded') meta.push(['Refunded on', ist(reg.refundedAt || reg.updatedAt)]);
+  meta.push(...(opts.meta ?? []));
   for (const [k, v] of meta) {
     text(k, 330, my, font, 9.5, muted);
     right(v, W - M, my, bold, 9.5);
@@ -116,7 +118,7 @@ export async function buildReceiptPdf(
   text('DESCRIPTION', M + 10, y + 2, bold, 9, muted);
   right('AMOUNT', W - M - 10, y + 2, bold, 9, muted);
   y -= 30;
-  const descLines = wrap(`Event registration — ${reg.eventTitle}`, bold, 11, 330);
+  const descLines = wrap(opts.description ?? `Event registration — ${reg.eventTitle}`, bold, 11, 330);
   descLines.forEach((l, i) => text(l, M + 10, y - i * 15, bold, 11));
   right(kind === 'free' ? 'Free' : inr(reg.fee), W - M - 10, y, bold, 11);
   y -= descLines.length * 15;
@@ -163,4 +165,40 @@ export async function buildReceiptPdf(
   if (contact) text(`Questions? ${contact}`, M, 58, font, 9, muted);
 
   return doc.save();
+}
+
+/** PDF receipt for a membership payment (same layout as the event receipt). */
+export function buildMembershipReceiptPdf(
+  app: CommunityMemberApplication,
+  payment: MembershipPayment,
+  planLabel: string,
+  settings: Pick<SiteSettings, 'siteName' | 'contact'>
+): Promise<Uint8Array> {
+  const day = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+  const asReg: CommunityRegistration = {
+    id: payment.id,
+    bookingId: payment.id,
+    accessToken: '',
+    eventId: '',
+    eventSlug: '',
+    eventTitle: planLabel,
+    name: app.name,
+    email: app.email,
+    mobile: app.mobile,
+    city: app.city,
+    organisation: app.organisation,
+    fee: payment.amount,
+    status: 'confirmed',
+    paymentStatus: 'paid',
+    gatewayOrderId: payment.gatewayOrderId,
+    gatewayPaymentId: payment.gatewayPaymentId,
+    paidAt: payment.paidAt,
+    createdAt: payment.paidAt,
+    updatedAt: payment.paidAt,
+  };
+  return buildReceiptPdf(asReg, undefined, settings, {
+    description: `${planLabel} — annual membership (${day(payment.validFrom)} to ${day(payment.validUntil)})`,
+    idLabel: 'Receipt no.',
+    meta: [['Valid until', day(payment.validUntil)]],
+  });
 }

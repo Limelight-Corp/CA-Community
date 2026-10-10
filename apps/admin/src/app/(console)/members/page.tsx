@@ -1,5 +1,5 @@
 import { CircleCheck, Clock, Users, CircleX } from 'lucide-react';
-import { readPrivate } from '../../../lib/community-store';
+import { getSettings, readPrivate } from '../../../lib/community-store';
 import { byNewest } from '../../../lib/filters';
 import { PageHeader, Panel, StatCard } from '../../../components/ui/Display';
 import { MembersManager } from '../../../components/members/MembersManager';
@@ -25,7 +25,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
         <StatCard label="Rejected" value={count('rejected')} tone="bad" icon={<CircleX />} />
       </section>
       <Panel>
-        <MembersManager rows={rows} initial={{ q: sp.q, plan: sp.plan, status: sp.status, city: sp.city }} />
+        <MembersManager rows={rows} initial={{ q: sp.q, plan: sp.plan, status: sp.status, city: sp.city }} fees={getSettings().membershipFees} />
       </Panel>
     </>
   );

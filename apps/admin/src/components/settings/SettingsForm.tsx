@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save } from 'lucide-react';
-import type { SiteSettings } from '@ascend/shared';
+import { MEMBERSHIP_PLANS, membershipFeeFor, type SiteSettings } from '@ascend/shared';
 import { Button, useToast } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { Panel } from '../ui/Display';
@@ -18,6 +18,7 @@ interface State {
   heroIntro: string;
   heroImageUrl: string;
   announcement: string;
+  fees: { core: string; associate: string; student: string };
   contact: { email: string; phone: string; address: string; mapUrl: string };
   social: { linkedin: string; instagram: string; facebook: string; youtube: string; x: string };
 }
@@ -31,6 +32,11 @@ function toState(s: SiteSettings): State {
     heroHeadlineAccent: s.heroHeadlineAccent ?? '',
     heroIntro: s.heroIntro ?? '',
     heroImageUrl: s.heroImageUrl ?? '',
+    fees: {
+      core: String(membershipFeeFor('core', s)),
+      associate: String(membershipFeeFor('associate', s)),
+      student: String(membershipFeeFor('student', s)),
+    },
     announcement: s.announcement ?? '',
     contact: {
       email: s.contact?.email ?? '',
@@ -84,7 +90,11 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
       return;
     }
     setSaving(true);
-    const res = await api('/api/settings', { method: 'PUT', body: s });
+    const { fees, ...rest } = s;
+    const res = await api('/api/settings', {
+      method: 'PUT',
+      body: { ...rest, membershipFees: { core: Number(fees.core), associate: Number(fees.associate), student: Number(fees.student) } },
+    });
     setSaving(false);
     if (!res.ok) {
       if (res.fieldErrors) setErrors(res.fieldErrors);
@@ -118,6 +128,22 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
             {s.heroHeadline || 'Headline'} <em className="font-serif font-normal italic text-gold-gradient">{s.heroHeadlineAccent}</em>
           </p>
           <p className="mt-2 max-w-[60ch] text-[13.5px] text-[var(--muted)]">{s.heroIntro}</p>
+        </div>
+      </Panel>
+
+      <Panel title="Membership fees" description="Annual fee per plan (₹). Applies to applications approved after saving and to renewals.">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          {MEMBERSHIP_PLANS.map((p) => (
+            <TextField
+              key={p.key}
+              label={`${p.name} (₹ / year)`}
+              value={s.fees[p.key]}
+              onChange={(v) => setS((prev) => ({ ...prev, fees: { ...prev.fees, [p.key]: v.replace(/[^0-9]/g, '') } }))}
+              error={errors[`membershipFees.${p.key}`]}
+              inputMode="numeric"
+              hint={`Blueprint price: ₹${p.price.toLocaleString('en-IN')}`}
+            />
+          ))}
         </div>
       </Panel>
 

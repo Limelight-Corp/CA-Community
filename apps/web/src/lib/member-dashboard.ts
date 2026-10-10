@@ -3,8 +3,10 @@
  * only once that email is verified — otherwise anyone could sign up with someone else's email
  * and see their bookings.
  */
-import { MEMBERSHIP_PLANS, ORG_WINGS, wingSlug, type CommunityEvent, type CommunityResource } from '@ascend/shared';
-import { getItems, readPrivate } from './community-store';
+import { MEMBERSHIP_PLANS, membershipState, ORG_WINGS, wingSlug, type CommunityEvent, type CommunityResource, type MembershipState } from '@ascend/shared';
+import { feeFor } from './membership';
+import { razorpayConfig } from '../app/api/registrations/_lib/server';
+import { getItems, getSettings, readPrivate } from './community-store';
 import { certificatePdfPath, isCertificateValid, verifyUrl } from './certificates';
 import { eventDate, formatEventDate, locationLabel } from './events';
 import { isApprovedMember, membershipFor, type MemberAccount } from './member-accounts';
@@ -38,11 +40,24 @@ export interface DashboardData {
     memberSince: string;
     profile: MemberAccount['profile'];
   };
-  membership: { plan: string; status: 'pending' | 'approved' | 'rejected'; appliedAt: string; wings: { name: string; slug: string }[] } | null;
+  membership: {
+    plan: string;
+    status: 'pending' | 'approved' | 'rejected';
+    state: MembershipState;
+    appliedAt: string;
+    validUntil?: string;
+    /** Amount of the next payment (first payment or renewal). */
+    fee: number;
+    /** Online payment possible (Razorpay configured). */
+    canPayOnline: boolean;
+    payments: { id: string; amount: number; paidAt: string; validUntil: string; method: string; receiptUrl: string }[];
+    wings: { name: string; slug: string }[];
+  } | null;
   isMember: boolean;
   bookings: DashboardBooking[];
   resources: { id: string; title: string; category: string; format: string; url?: string }[];
   membersOnlyCount: number;
+  siteName: string;
   /** SMTP is set up; otherwise emails only land in data/outbox/. */
   mailEnabled: boolean;
 }
@@ -104,7 +119,21 @@ export function dashboardData(account: MemberAccount): DashboardData {
       ? {
           plan: MEMBERSHIP_PLANS.find((p) => p.key === app.plan)?.name ?? app.plan,
           status: app.status,
+          state: membershipState(app),
           appliedAt: app.createdAt,
+          validUntil: app.validUntil,
+          fee: feeFor(app),
+          canPayOnline: !!razorpayConfig(),
+          payments: (app.payments ?? [])
+            .map((p) => ({
+              id: p.id,
+              amount: p.amount,
+              paidAt: p.paidAt,
+              validUntil: p.validUntil,
+              method: p.method === 'razorpay' ? 'Online' : 'Offline',
+              receiptUrl: `/api/membership/receipt/${encodeURIComponent(p.id)}`,
+            }))
+            .reverse(),
           wings: (app.interests ?? [])
             .map((n) => ORG_WINGS.find((w) => w.number === n))
             .filter((w): w is (typeof ORG_WINGS)[number] => !!w)
@@ -123,6 +152,7 @@ export function dashboardData(account: MemberAccount): DashboardData {
         }))
       : [],
     membersOnlyCount: membersOnly.length,
+    siteName: getSettings().siteName,
     mailEnabled: mailConfigured(),
   };
 }

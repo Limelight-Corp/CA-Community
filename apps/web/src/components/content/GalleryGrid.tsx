@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Images, MapPin, Maximize2, Play, X } from 'lucide-react';
-import { EmptyState, cn } from '@ascend/ui';
+import { EmptyState, Pagination, cn, usePagination } from '@ascend/ui';
 import { chipClass } from './ui';
 import { FxCard } from '../home/Interactive';
 
@@ -47,7 +47,10 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
     [items, active]
   );
 
-  const spans = useMemo(() => tileSpans(visible.length), [visible.length]);
+  const pager = usePagination(visible, 12, active);
+  const offset = (pager.page - 1) * pager.pageSize;
+  const listTop = useRef<HTMLDivElement>(null);
+  const spans = useMemo(() => tileSpans(pager.pageItems.length), [pager.pageItems.length]);
 
   const close = useCallback(() => {
     setOpenIndex(null);
@@ -55,7 +58,7 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
   }, []);
 
   return (
-    <div className="flex flex-col gap-10">
+    <div ref={listTop} className="flex flex-col gap-10">
       <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:px-0" role="group" aria-label="Filter gallery by category">
         <div className="flex w-max gap-2 md:w-auto md:flex-wrap">
           {['All', ...categories].map((c) => (
@@ -73,7 +76,7 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
         <EmptyState icon={<Images />} title="No moments here yet" description="Photos and videos will appear after our first events." />
       ) : (
         <ul className="grid grid-flow-row-dense auto-rows-[220px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {visible.map((g, i) => {
+          {pager.pageItems.map((g, i) => {
             const span = spans[i] ?? '';
             const hasMedia = !!(g.image || g.embedUrl);
             const isVideo = !!(g.embedUrl || g.videoUrl);
@@ -124,7 +127,8 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
                     className={tileClass}
                     onClick={(e) => {
                       lastTrigger.current = e.currentTarget;
-                      setOpenIndex(i);
+                      // The lightbox walks the whole filtered set, not just this page.
+                      setOpenIndex(offset + i);
                     }}
                     aria-label={`${isVideo ? 'Play video' : 'View photo'}: ${g.title}`}
                   >
@@ -142,6 +146,8 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
           })}
         </ul>
       )}
+
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="photos" scrollTo={listTop} />
 
       {openIndex !== null && visible[openIndex] && (
         <Lightbox

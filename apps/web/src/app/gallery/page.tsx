@@ -1,11 +1,12 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { GALLERY_CATEGORIES, type CommunityGalleryItem } from '@ascend/shared';
+import type { CommunityGalleryItem } from '@ascend/shared';
 import { Container } from '@ascend/ui';
 import { getItems, getSettings } from '../../lib/community-store';
-import { generatedGradient, mergeCategories, safeUrl, videoEmbedUrl } from '../../lib/content';
+import { generatedGradient, safeUrl, videoEmbedUrl } from '../../lib/content';
 import { PageHero, Section } from '../../components/content/ui';
 import { GalleryGrid, type GalleryCardData } from '../../components/content/GalleryGrid';
+import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -45,7 +46,7 @@ export default function GalleryPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <GalleryGrid items={items} categories={mergeCategories(GALLERY_CATEGORIES, gallery)} />
+          <GalleryGrid items={items} categories={siteTaxonomy('galleryCategories', gallery.map((g) => g.category))} />
         </Container>
       </Section>
     </>

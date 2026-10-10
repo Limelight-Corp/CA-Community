@@ -45,6 +45,7 @@ import {
 } from '../components/home/Interactive';
 import { WingsOrbit } from '../components/home/WingsOrbit';
 import { JourneyScroller } from '../components/home/JourneyScroller';
+import { wingCountWords } from '../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = getSettings();
@@ -537,14 +538,14 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ------------------------------------------------------------------ 10 WINGS ORBIT */}
+      {/* ------------------------------------------------------------------ WINGS ORBIT */}
       <section className="relative overflow-hidden border-t border-[var(--line)] py-24 md:py-32">
         <div className="grid-lines absolute inset-0 opacity-60" aria-hidden />
         <Container size="wide" className="relative">
           <Reveal>
             <SectionHeading
-              eyebrow="10 professional wings"
-              title="Ten wings."
+              eyebrow={`${wings.length} professional wings`}
+              title={`${wingCountWords(wings.length)}.`}
               accent="One community."
               size="lg"
               align="center"

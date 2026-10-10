@@ -3,8 +3,8 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, IndianRupee, Pencil, X } from 'lucide-react';
-import { MEMBERSHIP_PLANS, ORG_WINGS, membershipFeeFor, membershipState, type CommunityMemberApplication, type SiteSettings } from '@ascend/shared';
-import { Avatar, Button, Modal, useToast } from '@ascend/ui';
+import { MEMBERSHIP_PLANS, membershipFeeFor, membershipState, type CommunityMemberApplication, type SiteSettings } from '@ascend/shared';
+import { Avatar, Button, Modal, useToast, Pagination, usePagination } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { filterMembers } from '../../lib/filters';
 import { MEMBER_STATUS_LABEL, formatDateTime } from '../../lib/format';
@@ -47,11 +47,14 @@ export function MembersManager({
   rows,
   initial = {},
   fees,
+  wingNames = {},
 }: {
   rows: CommunityMemberApplication[];
   initial?: { q?: string; plan?: string; status?: string; city?: string };
   /** Current membership fee overrides from Site Settings. */
   fees?: SiteSettings['membershipFees'];
+  /** Wing names by number, for the interests column. */
+  wingNames?: Record<number, string>;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -99,6 +102,7 @@ export function MembersManager({
   }, [rows]);
 
   const filtered = useMemo(() => filterMembers(rows, { q, plan, status, city }), [rows, q, plan, status, city]);
+  const pager = usePagination(filtered, 25, [q, plan, status, city]);
 
   const patch = async (m: CommunityMemberApplication, updates: Partial<EditState>, success: string) => {
     setBusy(m.id);
@@ -172,7 +176,7 @@ export function MembersManager({
           {filtered.length === 0 && (
             <EmptyRow colSpan={8}>{rows.length === 0 ? 'No membership applications yet.' : 'No applications match these filters.'}</EmptyRow>
           )}
-          {filtered.map((m) => (
+          {pager.pageItems.map((m) => (
             <tr key={m.id}>
               <td className="max-w-[260px]">
                 <div className="flex items-center gap-3">
@@ -261,6 +265,7 @@ export function MembersManager({
           ))}
         </tbody>
       </DataTable>
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="applications" />
 
       <ConfirmDialog
         open={!!paying}
@@ -321,7 +326,7 @@ export function MembersManager({
                 <div className="flex flex-wrap gap-1.5">
                   {editing.interests.map((n) => (
                     <span key={n} className="rounded-full border border-brand-300/25 bg-brand-500/10 px-2.5 py-1 text-[12px] text-brand-100">
-                      {ORG_WINGS.find((w) => w.number === n)?.name ?? `Wing ${n}`}
+                      {wingNames[n] ?? `Wing ${n}`}
                     </span>
                   ))}
                 </div>

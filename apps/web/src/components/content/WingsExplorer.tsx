@@ -15,7 +15,7 @@ export interface WingView {
 }
 
 /**
- * The 10 professional wings as an accordion. Each row expands to show its focus areas
+ * The professional wings as an accordion. Each row expands to show its focus areas
  * and the 10 proposed activities from the organisation structure document.
  */
 export function WingsExplorer({ wings }: { wings: WingView[] }) {

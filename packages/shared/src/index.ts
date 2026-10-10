@@ -17,3 +17,4 @@ export * from './email/templates';
 export * from './membership/membership';
 export * from './whatsapp/templates';
 export * from './constants/jobs';
+export * from './constants/taxonomy';

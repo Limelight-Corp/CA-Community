@@ -5,7 +5,6 @@
 import {
   adminMentorshipEmail,
   mentorshipRequestReceivedEmail,
-  ORG_WINGS,
   type MentorProfile,
   type MentorshipRequest,
   type MentorshipStage,
@@ -39,7 +38,7 @@ export function approvedMentors(): (MentorProfile & { activeMentees: number })[]
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export const wingName = (n: number) => ORG_WINGS.find((w) => w.number === n)?.name ?? `Wing ${n}`;
+export { wingName } from './taxonomy';
 
 export interface MentorInput {
   headline: string;

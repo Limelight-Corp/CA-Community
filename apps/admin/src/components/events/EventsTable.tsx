@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BarChart3, CalendarDays, Pencil, Star } from 'lucide-react';
-import { useToast } from '@ascend/ui';
+import { useToast, Pagination, usePagination } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { formatDate, formatFee, formatINR, todayISO } from '../../lib/format';
 import { Chip, DataTable, EmptyRow, Panel, SeatBar } from '../ui/Display';
@@ -107,6 +107,7 @@ export function EventsTable({ rows, initialStatus = '' }: { rows: EventRow[]; in
       }
     });
   }, [rows, q, status, today]);
+  const pager = usePagination(filtered, 20, [q, status]);
 
   const toggle = async (row: EventRow, field: 'isPublished' | 'registrationOpen') => {
     setBusyId(row.id);
@@ -157,7 +158,7 @@ export function EventsTable({ rows, initialStatus = '' }: { rows: EventRow[]; in
           </thead>
           <tbody>
             {filtered.length === 0 && <EmptyRow colSpan={8}>No events match these filters.</EmptyRow>}
-            {filtered.map((r) => (
+            {pager.pageItems.map((r) => (
               <tr key={r.id}>
                 <td className="max-w-[320px]">
                   <div className="flex items-center gap-3">
@@ -243,6 +244,7 @@ export function EventsTable({ rows, initialStatus = '' }: { rows: EventRow[]; in
             ))}
           </tbody>
         </DataTable>
+        <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="events" />
       </div>
     </Panel>
   );

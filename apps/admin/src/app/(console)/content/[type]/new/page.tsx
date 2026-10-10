@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getItems } from '../../../../../lib/community-store';
 import { CONTENT_TYPES, isManagedContentType } from '../../../../../lib/content-config';
+import { fieldOptions } from '../../../../../lib/taxonomy';
 import { PageHeader } from '../../../../../components/ui/Display';
 import { ContentForm } from '../../../../../components/content/ContentForm';
 
@@ -17,7 +18,7 @@ export default async function NewContentPage({ params }: { params: Promise<{ typ
   return (
     <>
       <PageHeader eyebrow={config.label} title={`New ${config.singular.toLowerCase()}`} backHref={`/content/${type}`} backLabel={config.label} />
-      <ContentForm type={type} takenSlugs={takenSlugs} />
+      <ContentForm type={type} takenSlugs={takenSlugs} options={fieldOptions(type)} />
     </>
   );
 }

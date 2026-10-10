@@ -5,6 +5,7 @@ import { fieldErrorsOf, json, sameOrigin } from '../../../../lib/auth-server';
 import { isApprovedMember } from '../../../../lib/member-accounts';
 import { memberFromRequest } from '../../../../lib/member-session';
 import { saveMentorProfile, setMentorAvailability } from '../../../../lib/mentorship';
+import { knownWingNumbers } from '../../../../lib/taxonomy';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,7 @@ const optional = (max: number) =>
 const MentorInput = z.object({
   headline: z.string().trim().min(5, 'Add a short headline (role, firm, experience)').max(160),
   expertise: z.array(z.string().trim().min(1).max(60)).min(1, 'Add at least one area of expertise').max(10),
-  wings: z.array(z.number().int().min(1).max(10)).max(10),
+  wings: z.array(z.number().int().min(1).max(99)).max(30),
   modes: z.array(z.enum(['Online', 'In person'])).min(1, 'Choose how you can mentor'),
   city: optional(80),
   capacity: z.number().int().min(1).max(5),
@@ -36,7 +37,7 @@ export async function PUT(req: NextRequest) {
   if (!isApprovedMember(account)) return json({ error: 'Mentoring is open to active members.' }, 403);
   const parsed = MentorInput.safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsOf(parsed.error) }, 422);
-  const input = { ...parsed.data, expertise: [...new Set(parsed.data.expertise)], wings: [...new Set(parsed.data.wings)].sort((a, b) => a - b) };
+  const input = { ...parsed.data, expertise: [...new Set(parsed.data.expertise)], wings: knownWingNumbers(parsed.data.wings) };
   const { profile, created } = saveMentorProfile(account, input);
   return json({ profile, created }, created ? 201 : 200);
 }

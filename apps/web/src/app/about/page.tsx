@@ -31,7 +31,6 @@ import {
   ORG_TAGLINE,
   ORG_VISION,
   ORG_VISION_STATEMENT,
-  ORG_WINGS,
   MEMBER_JOURNEY,
   type CommunityTeamMember,
   type CommunityWing,
@@ -45,6 +44,7 @@ import { jsonLd, siteUrl } from '../../lib/seo';
 import { safeUrl } from '../../lib/content';
 import { CtaBand, PageHero, PillLink, Section } from '../../components/content/ui';
 import { WingsExplorer, type WingView } from '../../components/content/WingsExplorer';
+import { siteWings, wingCountWords } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -91,7 +91,8 @@ export default function AboutPage() {
   const team = getItems<CommunityTeamMember>('team', true).sort((a, b) => a.order - b.order);
   const storeWings = getItems<CommunityWing>('wings', true);
 
-  const wings: WingView[] = ORG_WINGS.map((w) => ({
+  const orgWings = siteWings();
+  const wings: WingView[] = orgWings.map((w) => ({
     number: w.number,
     name: w.name,
     focus: w.focus,
@@ -120,7 +121,7 @@ export default function AboutPage() {
     };
   });
 
-  const youngWing = ORG_WINGS.find((w) => w.number === 6);
+  const youngWing = orgWings.find((w) => w.number === 6);
   const sameAs = Object.values(settings.social)
     .map((u) => safeUrl(u))
     .filter((u): u is string => !!u && /^https?:/.test(u));
@@ -136,9 +137,9 @@ export default function AboutPage() {
   };
 
   const stats = [
-    { value: ORG_WINGS.length, label: 'Professional wings' },
+    { value: orgWings.length, label: 'Professional wings' },
     {
-      value: ORG_WINGS.reduce((s, w) => s + w.activities.length, 0),
+      value: orgWings.reduce((s, w) => s + w.activities.length, 0),
       label: 'Proposed activity formats',
     },
     { value: ORG_COMMUNITIES.length, label: 'Community structures' },
@@ -603,12 +604,12 @@ export default function AboutPage() {
         <Container size="wide">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-5">
-              <Kicker tone="gold">10 professional wings</Kicker>
+              <Kicker tone="gold">{orgWings.length} professional wings</Kicker>
               <h2
                 id="wings-heading"
                 className="max-w-[14ch] font-display text-[clamp(44px,7.5vw,112px)] font-medium leading-[0.9] tracking-[-0.055em] text-[var(--fg)]"
               >
-                Ten wings. <AccentText tone="hero">One community.</AccentText>
+                {wingCountWords(orgWings.length)}. <AccentText tone="hero">One community.</AccentText>
               </h2>
             </div>
             <p className="max-w-[44ch] text-[16px] leading-relaxed text-[var(--muted)]">

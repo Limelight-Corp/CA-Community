@@ -6,6 +6,7 @@ import { fieldErrorsOf, json, sameOrigin } from '../../../../lib/auth-server';
 import { isApprovedMember } from '../../../../lib/member-accounts';
 import { memberFromRequest } from '../../../../lib/member-session';
 import { createRequest, withdrawRequest } from '../../../../lib/mentorship';
+import { knownWingNumbers } from '../../../../lib/taxonomy';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,7 +14,7 @@ export const dynamic = 'force-dynamic';
 const RequestInput = z.object({
   stage: z.enum(MENTORSHIP_STAGES as unknown as [string, ...string[]]),
   goals: z.string().trim().min(30, 'Describe what you would like help with (at least 30 characters)').max(1500),
-  wings: z.array(z.number().int().min(1).max(10)).max(10),
+  wings: z.array(z.number().int().min(1).max(99)).max(30),
   preferredMentorId: z
     .string()
     .trim()
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`mreq:${account.id}`, 5, 60 * 60_000)) return json({ error: 'Too many requests. Please try again later.' }, 429);
   const parsed = RequestInput.safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsOf(parsed.error) }, 422);
-  const result = createRequest(account, { ...parsed.data, stage: parsed.data.stage as (typeof MENTORSHIP_STAGES)[number], wings: [...new Set(parsed.data.wings)] });
+  const result = createRequest(account, { ...parsed.data, stage: parsed.data.stage as (typeof MENTORSHIP_STAGES)[number], wings: knownWingNumbers(parsed.data.wings) });
   if (!result.ok) return json({ error: result.error }, 409);
   return json({ request: result.request }, 201);
 }

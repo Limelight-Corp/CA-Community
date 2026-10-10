@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, Download, ExternalLink, FileSpreadsheet, FileText, Lock, PlayCircle, Search, X } from 'lucide-react';
-import { EmptyState, cn, fieldInputClass } from '@ascend/ui';
+import { EmptyState, Pagination, cn, fieldInputClass, usePagination } from '@ascend/ui';
 import { chipClass } from './ui';
 import { FxCard } from '../home/Interactive';
 import { useAuth } from '../../context/AuthContext';
@@ -32,9 +32,11 @@ export function ResourceLibrary({ items, categories }: { items: ResourceCardData
         (!q || `${r.title} ${r.category} ${r.format}`.toLowerCase().includes(q))
     );
   }, [items, active, query]);
+  const pager = usePagination(visible, 12, [active, query]);
+  const listTop = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div ref={listTop} className="flex flex-col gap-8">
       <div className="flex flex-col gap-5">
         <div className="relative max-w-[560px]">
           <label htmlFor="resource-search" className="sr-only">
@@ -79,10 +81,11 @@ export function ResourceLibrary({ items, categories }: { items: ResourceCardData
         <EmptyState icon={<FileText />} title="No resources match" description="Try a different keyword or category. New material is added regularly." />
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {visible.map((r, i) => {
+          {pager.pageItems.map((r, i) => {
             // Widen the first card when it makes the grid come out even (no orphan in the last row).
-            const wideMd = i === 0 && visible.length % 2 === 1 && visible.length > 1;
-            const wideXl = i === 0 && (visible.length + 1) % 3 === 0;
+            const count = pager.pageItems.length;
+            const wideMd = i === 0 && count % 2 === 1 && count > 1;
+            const wideXl = i === 0 && (count + 1) % 3 === 0;
             return (
               <li key={r.id} className={cn(wideMd ? 'md:col-span-2' : 'md:col-span-1', wideXl ? 'xl:col-span-2' : 'xl:col-span-1')}>
                 <ResourceCard r={r} index={i} wide={wideMd || wideXl} />
@@ -91,6 +94,7 @@ export function ResourceLibrary({ items, categories }: { items: ResourceCardData
           })}
         </ul>
       )}
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="resources" scrollTo={listTop} />
     </div>
   );
 }

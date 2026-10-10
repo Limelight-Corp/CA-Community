@@ -8,6 +8,7 @@ import { getItems } from '../../lib/community-store';
 import { formatEventDate, locationLabel } from '../../lib/events';
 import { formatDisplayDate, safeUrl, truncate } from '../../lib/content';
 import { openJobs } from '../../lib/jobs';
+import { PagedList } from '../../components/content/PagedList';
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 
@@ -133,7 +134,7 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
             </Link>{' '}
             or the{' '}
             <Link href="/about#wings" className="text-brand-200 underline underline-offset-4">
-              10 wings
+              wings
             </Link>
             .
           </p>
@@ -210,7 +211,9 @@ function ResultGroup({ id, title, count, children }: { id: string; title: string
       <h2 id={`${id}-heading`} className="flex items-baseline gap-3 font-display text-[clamp(28px,3.4vw,44px)] font-medium tracking-[-0.04em] text-[var(--fg)]">
         {title} <span className="font-mono text-[14px] text-gold">{count}</span>
       </h2>
-      <ul className="mt-6 border-t border-[var(--line)]">{children}</ul>
+      <PagedList pageSize={8} noun={title.toLowerCase()} className="mt-6 border-t border-[var(--line)]">
+        {children}
+      </PagedList>
     </section>
   );
 }

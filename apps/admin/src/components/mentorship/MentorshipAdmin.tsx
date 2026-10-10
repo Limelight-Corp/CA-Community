@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, HeartHandshake, Pause, RotateCcw, X } from 'lucide-react';
-import { useToast } from '@ascend/ui';
+import { Pagination, usePagination, useToast } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { formatDateTime } from '../../lib/format';
 import { Chip, DataTable, EmptyRow } from '../ui/Display';
@@ -54,6 +54,8 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
   const [choice, setChoice] = useState<Record<string, string>>({});
   const [declining, setDeclining] = useState<RequestRow | null>(null);
   const [note, setNote] = useState('');
+  const reqPager = usePagination(requests, 20);
+  const mentorPager = usePagination(mentors, 20);
 
   const run = async (key: string, url: string, method: 'PATCH' | 'POST', body: unknown, success: string) => {
     setBusy(key);
@@ -91,7 +93,7 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
           </thead>
           <tbody>
             {requests.length === 0 && <EmptyRow colSpan={4}>No mentorship requests yet.</EmptyRow>}
-            {requests.map((r) => {
+            {reqPager.pageItems.map((r) => {
               const options = r.status === 'open' ? candidates(r) : [];
               const selected = choice[r.id] ?? options[0]?.id ?? '';
               return (
@@ -183,6 +185,7 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
             })}
           </tbody>
         </DataTable>
+        <Pagination page={reqPager.page} pages={reqPager.pages} total={reqPager.total} pageSize={reqPager.pageSize} onChange={reqPager.setPage} noun="requests" />
       </section>
 
       <section>
@@ -201,7 +204,7 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
           </thead>
           <tbody>
             {mentors.length === 0 && <EmptyRow colSpan={5}>No mentor applications yet.</EmptyRow>}
-            {mentors.map((m) => (
+            {mentorPager.pageItems.map((m) => (
               <tr key={m.id}>
                 <td className="max-w-[260px]">
                   <span className="block truncate font-medium text-[var(--fg)]">{m.name}</span>
@@ -260,6 +263,7 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
             ))}
           </tbody>
         </DataTable>
+        <Pagination page={mentorPager.page} pages={mentorPager.pages} total={mentorPager.total} pageSize={mentorPager.pageSize} onChange={mentorPager.setPage} noun="mentors" />
       </section>
 
       <ConfirmDialog

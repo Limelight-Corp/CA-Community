@@ -14,6 +14,7 @@ import {
   LogOut,
   Activity,
   Layers,
+  Tags,
   Menu,
   Megaphone,
   Mic2,
@@ -81,6 +82,7 @@ const NAV: { heading: string; items: NavItem[] }[] = [
       { href: '/content/jobs', label: 'Jobs & articleship', icon: BriefcaseBusiness },
       { href: '/mentorship', label: 'Mentorship', icon: HeartHandshake },
       { href: '/content/wings', label: 'Wings', icon: Layers },
+      { href: '/categories', label: 'Categories', icon: Tags },
     ],
   },
   {

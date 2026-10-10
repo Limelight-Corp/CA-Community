@@ -10,6 +10,7 @@ import { getItems, getSettings } from '../../lib/community-store';
 import { isUpcoming } from '../../lib/events';
 import { generatedGradient, safeUrl } from '../../lib/content';
 import { CtaBand, PageHero, Section } from '../../components/content/ui';
+import { PagedList } from '../../components/content/PagedList';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -55,13 +56,13 @@ export default function SpeakersPage() {
           {speakers.length === 0 ? (
             <EmptyState icon={<Mic2 />} title="Speakers coming soon" description="Speaker profiles will be published as the event calendar is announced." />
           ) : (
-            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <PagedList pageSize={12} noun="speakers" className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {speakers.map((s, i) => (
                 <Reveal as="li" key={s.id} delay={(i % 3) * 90}>
                   <SpeakerCard speaker={s} upcoming={upcomingCount(s.slug)} accent={i % 5 === 0} index={i} />
                 </Reveal>
               ))}
-            </ul>
+            </PagedList>
           )}
         </Container>
       </Section>
@@ -69,7 +70,7 @@ export default function SpeakersPage() {
       <CtaBand
         title="Got something"
         accent="to share?"
-        lead="We’re always looking for practitioners to lead sessions across the ten wings."
+        lead="We’re always looking for practitioners to lead sessions across our professional wings."
         primary={{ href: '/contact', label: 'Propose a session' }}
         secondary={{ href: '/events', label: 'See upcoming events' }}
       />

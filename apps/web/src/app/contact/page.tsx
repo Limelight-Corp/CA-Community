@@ -40,7 +40,7 @@ const TOPICS = [
   { key: 'membership', icon: UserPlus, title: 'Membership', text: 'Plans, eligibility and founding membership.', subject: 'Membership enquiry' },
   { key: 'events', icon: CalendarDays, title: 'Events & registrations', text: 'Bookings, receipts, seats and event details.', subject: 'Event registration query' },
   { key: 'partner', icon: Handshake, title: 'Partner or sponsor', text: 'Knowledge, technology, event and wing partners.', subject: 'Partnership / sponsorship' },
-  { key: 'speak', icon: Mic2, title: 'Speak at a wing', text: 'Lead a session across our 10 professional wings.', subject: 'Speaking opportunity' },
+  { key: 'speak', icon: Mic2, title: 'Speak at a wing', text: 'Lead a session in one of our professional wings.', subject: 'Speaking opportunity' },
   { key: 'city', icon: Building2, title: 'City chapters', text: 'City Leads, Young CA Leads and Women CA Leads.', subject: 'City chapter / community lead' },
   { key: 'media', icon: Megaphone, title: 'Media & general', text: 'Press, collaborations or anything else.', subject: 'General enquiry' },
 ] as const;
@@ -66,9 +66,9 @@ const FAQS = [
   },
   {
     q: 'I want to speak or run a session. Who do I talk to?',
-    a: 'Each of the 10 professional wings runs year-round formats — from Tax Update Live to AI Audit Lab. Choose "Speak at a wing", mention your topic and the wing that fits best.',
+    a: 'Each professional wing runs year-round formats — from Tax Update Live to AI Audit Lab. Choose "Speak at a wing", mention your topic and the wing that fits best.',
     href: '/about#wings',
-    cta: 'Explore the 10 wings',
+    cta: 'Explore the wings',
   },
   {
     q: 'I lost my booking confirmation. What now?',

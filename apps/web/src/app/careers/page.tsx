@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { JOB_TYPES, WORK_MODES } from '@ascend/shared';
+import { WORK_MODES } from '@ascend/shared';
 import { Container } from '@ascend/ui';
 import { CtaBand, PageHero, Section } from '../../components/content/ui';
 import { JobBoard, type JobCard } from '../../components/careers/JobBoard';
 import { getSettings } from '../../lib/community-store';
 import { safeUrl } from '../../lib/content';
 import { openJobs } from '../../lib/jobs';
+import { siteTaxonomy } from '../../lib/taxonomy';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export default function CareersPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <JobBoard jobs={jobs} types={[...JOB_TYPES]} modes={[...WORK_MODES]} />
+          <JobBoard jobs={jobs} types={siteTaxonomy('jobTypes', jobs.map((j) => j.type))} modes={[...WORK_MODES]} />
         </Container>
       </Section>
       <CtaBand

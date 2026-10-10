@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Archive, ArchiveRestore, Mail, MailOpen, Phone } from 'lucide-react';
 import type { CommunityContactMessage } from '@ascend/shared';
-import { cn, useToast } from '@ascend/ui';
+import { cn, useToast, Pagination, usePagination } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { filterMessages } from '../../lib/filters';
 import { formatDateTime } from '../../lib/format';
@@ -26,6 +26,7 @@ export function MessagesInbox({ rows }: { rows: CommunityContactMessage[] }) {
   const [busy, setBusy] = useState<string | null>(null);
 
   const filtered = useMemo(() => filterMessages(rows, view, q), [rows, view, q]);
+  const pager = usePagination(filtered, 20, [view, q]);
   const counts = {
     inbox: rows.filter((m) => m.status !== 'archived').length,
     new: rows.filter((m) => m.status === 'new').length,
@@ -79,7 +80,7 @@ export function MessagesInbox({ rows }: { rows: CommunityContactMessage[] }) {
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {filtered.map((m) => {
+          {pager.pageItems.map((m) => {
             const expanded = openId === m.id;
             const unread = m.status === 'new';
             return (
@@ -146,6 +147,7 @@ export function MessagesInbox({ rows }: { rows: CommunityContactMessage[] }) {
           })}
         </ul>
       )}
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="messages" />
     </div>
   );
 }

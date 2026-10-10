@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
-import { EVENT_CATEGORIES, ORG_WINGS, type CommunityAgendaItem, type CommunityEvent } from '@ascend/shared';
+import type { CommunityAgendaItem, CommunityEvent } from '@ascend/shared';
 import { Button, cn, useToast } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { slugify } from '../../lib/format';
@@ -17,6 +17,11 @@ import {
   TextAreaField,
   TextField,
 } from '../ui/Controls';
+
+export interface WingOption {
+  number: number;
+  name: string;
+}
 
 export interface SpeakerOption {
   slug: string;
@@ -50,12 +55,12 @@ interface FormState {
   isPublished: boolean;
 }
 
-function toState(e?: CommunityEvent): FormState {
+function toState(e: CommunityEvent | undefined, categories: string[], wings: WingOption[]): FormState {
   return {
     title: e?.title ?? '',
     slug: e?.slug ?? '',
-    category: e?.category ?? EVENT_CATEGORIES[0],
-    wingNumber: String(e?.wingNumber ?? ORG_WINGS[0]!.number),
+    category: e?.category ?? categories[0] ?? '',
+    wingNumber: String(e?.wingNumber ?? wings[0]?.number ?? ''),
     date: e?.date ?? '',
     time: e?.time ?? '',
     endTime: e?.endTime ?? '',
@@ -90,8 +95,13 @@ export function EventForm({
   event,
   speakers,
   takenSlugs,
+  categories,
+  wings,
 }: {
   event?: CommunityEvent;
+  /** Admin-managed event categories. */
+  categories: string[];
+  wings: WingOption[];
   speakers: SpeakerOption[];
   /** Slugs used by other events. */
   takenSlugs: string[];
@@ -99,7 +109,7 @@ export function EventForm({
   const router = useRouter();
   const { toast } = useToast();
   const isEdit = Boolean(event);
-  const [form, setForm] = useState<FormState>(() => toState(event));
+  const [form, setForm] = useState<FormState>(() => toState(event, categories, wings));
   const [slugTouched, setSlugTouched] = useState(isEdit);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -238,8 +248,8 @@ export function EventForm({
                 value={form.category}
                 onChange={(v) => set('category', v)}
                 options={[
-                  ...EVENT_CATEGORIES.map((c) => ({ value: c, label: c })),
-                  ...((EVENT_CATEGORIES as readonly string[]).includes(form.category) ? [] : [{ value: form.category, label: form.category }]),
+                  ...categories.map((c) => ({ value: c, label: c })),
+                  ...(!form.category || categories.includes(form.category) ? [] : [{ value: form.category, label: `${form.category} (current)` }]),
                 ]}
                 error={errors.category}
               />
@@ -248,7 +258,10 @@ export function EventForm({
                 required
                 value={form.wingNumber}
                 onChange={(v) => set('wingNumber', v)}
-                options={ORG_WINGS.map((w) => ({ value: String(w.number), label: `${w.number}. ${w.name}` }))}
+                options={[
+                  ...wings.map((w) => ({ value: String(w.number), label: `${w.number}. ${w.name}` })),
+                  ...(!form.wingNumber || wings.some((w) => String(w.number) === form.wingNumber) ? [] : [{ value: form.wingNumber, label: `Wing ${form.wingNumber} (removed)` }]),
+                ]}
                 error={errors.wingNumber}
                 className="md:col-span-2"
               />

@@ -4,6 +4,7 @@ import {
   readStore,
   writeStore,
   readPrivate,
+  mutatePrivate,
   getItems,
   addItem,
   updateItem,
@@ -11,11 +12,13 @@ import {
   ContentType,
 } from '../../../lib/community-store';
 import { CONTENT_TYPES } from '../../../lib/content-config';
+import { adminTaxonomy, adminWings, fieldOptions } from '../../../lib/taxonomy';
 import { eventChanges, notifyEventUpdated } from '../../../lib/notifications';
 import {
   contentSchema,
   eventBaseSchema,
   eventCrossFieldErrors,
+  eventReferenceErrors,
   eventUpdateSchema,
   issuesToFieldErrors,
 } from '../../../lib/content-validation';
@@ -57,21 +60,94 @@ function slugTaken(type: ContentType, slug: unknown, exceptId?: string): boolean
 
 type Validated = { ok: true; data: Record<string, unknown> } | { ok: false; response: NextResponse };
 
-function validate(type: ContentType, input: Record<string, unknown>, partial: boolean): Validated {
+function validate(type: ContentType, input: Record<string, unknown>, partial: boolean, existing?: Record<string, unknown>): Validated {
   const schema =
     type === 'events'
       ? partial
         ? eventUpdateSchema
         : eventBaseSchema
       : partial
-        ? contentSchema(type).partial()
-        : contentSchema(type);
+        ? contentSchema(type, fieldOptions(type), existing).partial()
+        : contentSchema(type, fieldOptions(type), existing);
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
     const fieldErrors = issuesToFieldErrors(parsed.error);
     return { ok: false, response: bad(Object.values(fieldErrors)[0] ?? 'Invalid data', 422, fieldErrors) };
   }
-  return { ok: true, data: parsed.data as Record<string, unknown> };
+  const data = parsed.data as Record<string, unknown>;
+  if (type === 'events') {
+    const refs = eventReferenceErrors(
+      data,
+      { categories: adminTaxonomy('eventCategories'), wingNumbers: adminWings().map((w) => w.number) },
+      existing as { category?: string; wingNumber?: number } | undefined
+    );
+    if (Object.keys(refs).length) return { ok: false, response: bad(Object.values(refs)[0]!, 422, refs) };
+  }
+  if (type === 'wings') {
+    const clash = wingClash(data, typeof existing?.id === 'string' ? existing.id : undefined);
+    if (clash) return { ok: false, response: bad(Object.values(clash)[0]!, 409, clash) };
+  }
+  return { ok: true, data };
+}
+
+/** Wing numbers and names must stay unique (events link by number; content links by name). */
+function wingClash(data: Record<string, unknown>, exceptId?: string): Record<string, string> | null {
+  const others = readStore().wings.filter((w) => w.id !== exceptId);
+  if (data.number !== undefined && others.some((w) => w.number === Number(data.number))) {
+    return { number: `Wing number ${data.number} is already used` };
+  }
+  const name = typeof data.name === 'string' ? data.name.trim().toLowerCase() : '';
+  if (name && others.some((w) => w.name.trim().toLowerCase() === name)) return { name: 'Another wing already has this name' };
+  return null;
+}
+
+/** Content that points at a wing: events by number; resources, team and jobs by name. */
+function wingUsage(wing: { number: number; name: string }): string[] {
+  const store = readStore();
+  const same = (v?: string) => !!v && v.trim().toLowerCase() === wing.name.trim().toLowerCase();
+  const parts: [number, string][] = [
+    [store.events.filter((e) => e.wingNumber === wing.number).length, 'event'],
+    [store.resources.filter((r) => same(r.wing)).length, 'resource'],
+    [store.team.filter((t) => same(t.wing)).length, 'team profile'],
+    [store.jobs.filter((j) => same(j.wing)).length, 'job post'],
+  ];
+  return parts.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n === 1 ? '' : 's'}`);
+}
+
+/** Events link to a wing by number: follow a renumbered wing. */
+function renumberWingEvents(from: number, to: number): void {
+  const store = readStore();
+  let changed = false;
+  for (const e of store.events) {
+    if (e.wingNumber === from) {
+      e.wingNumber = to;
+      changed = true;
+    }
+  }
+  if (changed) writeStore(store);
+  // Member interests, mentors and mentorship requests also store wing numbers.
+  const swap = (list: number[] | undefined) => list?.map((n) => (n === from ? to : n));
+  mutatePrivate((d) => {
+    for (const m of d.members) if (m.interests?.includes(from)) m.interests = swap(m.interests);
+    for (const m of d.mentors) if (m.wings.includes(from)) m.wings = swap(m.wings)!;
+    for (const r of d.mentorshipRequests) if (r.wings.includes(from)) r.wings = swap(r.wings)!;
+  });
+}
+
+/** Follows a renamed wing in the content that links to it by name. */
+function relinkWing(from: string, to: string): void {
+  const store = readStore();
+  const key = from.trim().toLowerCase();
+  let changed = false;
+  for (const list of [store.resources, store.team, store.jobs] as { wing?: string }[][]) {
+    for (const item of list) {
+      if (item.wing && item.wing.trim().toLowerCase() === key) {
+        item.wing = to;
+        changed = true;
+      }
+    }
+  }
+  if (changed) writeStore(store);
 }
 
 export async function GET(request: NextRequest) {
@@ -145,7 +221,7 @@ export async function PUT(request: NextRequest) {
     if (!existing) return bad('Item not found', 404);
 
     // Only declared fields pass validation; id, createdAt and seatsTaken can never be set here.
-    const result = validate(type, updates, true);
+    const result = validate(type, updates, true, existing);
     if (!result.ok) return result.response;
     const data = result.data;
 
@@ -170,6 +246,12 @@ export async function PUT(request: NextRequest) {
     // Events reference speakers by slug: follow a renamed slug so their speaker lists stay intact.
     if (type === 'speakers' && typeof existing.slug === 'string' && 'slug' in data && data.slug !== existing.slug) {
       relinkSpeaker(existing.slug, String(data.slug));
+    }
+    if (type === 'wings' && typeof existing.name === 'string' && typeof data.name === 'string' && data.name !== existing.name) {
+      relinkWing(existing.name, data.name);
+    }
+    if (type === 'wings' && typeof data.number === 'number' && data.number !== existing.number) {
+      renumberWingEvents(Number(existing.number), data.number);
     }
     // Date / time / venue changes are emailed to registered attendees unless the admin opts out.
     let notified = 0;
@@ -220,6 +302,14 @@ export async function DELETE(request: NextRequest) {
           `This event has ${active} active registration${active === 1 ? '' : 's'}. Unpublish it or cancel the registrations instead.`,
           409
         );
+      }
+    }
+
+    if (type === 'wings') {
+      const wing = readStore().wings.find((w) => w.id === id);
+      const used = wing ? wingUsage(wing) : [];
+      if (used.length) {
+        return bad(`This wing is linked to ${used.join(', ')}. Move them to another wing or unpublish the wing instead.`, 409);
       }
     }
 

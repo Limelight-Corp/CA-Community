@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Newspaper } from 'lucide-react';
-import { EmptyState, cn } from '@ascend/ui';
+import { EmptyState, Pagination, cn, usePagination } from '@ascend/ui';
 import { chipClass } from './ui';
 import { FxCard } from '../home/Interactive';
 
@@ -26,10 +26,13 @@ export function NewsBrowser({ items, categories }: { items: NewsCardData[]; cate
     for (const n of items) m.set(n.category.toLowerCase(), (m.get(n.category.toLowerCase()) ?? 0) + 1);
     return m;
   }, [items]);
-  const visible = active === 'All' ? items : items.filter((n) => n.category.toLowerCase() === active.toLowerCase());
+  const visible = useMemo(() => (active === 'All' ? items : items.filter((n) => n.category.toLowerCase() === active.toLowerCase())), [items, active]);
+  // 9 per page: the feature card fills a 2×2 block, so each page closes on a full row.
+  const pager = usePagination(visible, 9, active);
+  const listTop = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex flex-col gap-10">
+    <div ref={listTop} className="flex flex-col gap-10">
       <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:px-0" role="group" aria-label="Filter news by category">
         <div className="flex w-max gap-2 md:w-auto md:flex-wrap">
           {['All', ...categories].map((c) => {
@@ -51,13 +54,14 @@ export function NewsBrowser({ items, categories }: { items: NewsCardData[]; cate
         <EmptyState icon={<Newspaper />} title="Nothing here yet" description="There are no updates in this category right now — check back soon." />
       ) : (
         <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {visible.map((n, i) => (
+          {pager.pageItems.map((n, i) => (
             <li key={n.slug} className={cn(i === 0 && 'md:col-span-2 lg:col-span-2 lg:row-span-2')}>
               <NewsCard item={n} feature={i === 0} index={i} />
             </li>
           ))}
         </ul>
       )}
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="articles" scrollTo={listTop} />
     </div>
   );
 }

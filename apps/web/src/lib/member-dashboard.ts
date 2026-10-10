@@ -6,16 +6,17 @@
 import {
   MEMBERSHIP_PLANS,
   membershipState,
-  ORG_WINGS,
   wingSlug,
   type CommunityEvent,
   type CommunityResource,
   type MembershipState,
   type MentorProfile,
+  type OrgWing,
   type MentorshipRequest,
 } from '@ascend/shared';
 import { feeFor } from './membership';
-import { activeMenteeCount, approvedMentors, wingName } from './mentorship';
+import { activeMenteeCount, approvedMentors } from './mentorship';
+import { siteWings, wingByNumber, wingName } from './taxonomy';
 import { razorpayConfig } from '../app/api/registrations/_lib/server';
 import { getItems, getSettings, readPrivate } from './community-store';
 import { certificatePdfPath, isCertificateValid, verifyUrl } from './certificates';
@@ -89,6 +90,8 @@ export interface MentorshipData {
   }[];
   mentees: { id: string; name: string; email: string; mobile?: string; stage: string; goals: string; matchedAt?: string; status: MentorshipRequest['status'] }[];
   mentors: { id: string; name: string; headline: string; expertise: string[]; wings: string[]; modes: string[]; city?: string; spotsLeft: number; self: boolean }[];
+  /** Wings members can pick as areas of interest. */
+  wingOptions: { number: number; name: string }[];
 }
 
 function mentorshipData(account: MemberAccount): MentorshipData {
@@ -134,6 +137,7 @@ function mentorshipData(account: MemberAccount): MentorshipData {
       spotsLeft: Math.max(0, m.capacity - m.activeMentees),
       self: m.accountId === account.id,
     })),
+    wingOptions: siteWings().map((w) => ({ number: w.number, name: w.name })),
   };
 }
 
@@ -210,8 +214,8 @@ export function dashboardData(account: MemberAccount): DashboardData {
             }))
             .reverse(),
           wings: (app.interests ?? [])
-            .map((n) => ORG_WINGS.find((w) => w.number === n))
-            .filter((w): w is (typeof ORG_WINGS)[number] => !!w)
+            .map((n) => wingByNumber(n))
+            .filter((w): w is OrgWing => !!w)
             .map((w) => ({ name: w.name, slug: wingSlug(w.name) })),
         }
       : null,

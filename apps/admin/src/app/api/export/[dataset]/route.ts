@@ -2,10 +2,10 @@ import { NextRequest } from 'next/server';
 import {
   MEMBERSHIP_PLANS,
   membershipState,
-  ORG_WINGS,
   type CommunityMemberApplication,
   type CommunityRegistration,
 } from '@ascend/shared';
+import { adminWings } from '../../../../lib/taxonomy';
 import { readPrivate, readStore } from '../../../../lib/community-store';
 import { exportResponse, type ExportColumn, type ExportFormat } from '../../../../lib/export';
 import { byNewest, filterMembers, filterPayments, filterRegistrations } from '../../../../lib/filters';
@@ -113,9 +113,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
         }).sort(byNewest);
         const planName = (m: CommunityMemberApplication) =>
           MEMBERSHIP_PLANS.find((p) => p.key === m.plan)?.name ?? m.plan;
+        const wings = adminWings();
         const wingNames = (m: CommunityMemberApplication) =>
           (m.interests ?? [])
-            .map((n) => ORG_WINGS.find((w) => w.number === n)?.name)
+            .map((n) => wings.find((w) => w.number === n)?.name)
             .filter(Boolean)
             .join('; ');
         const columns: ExportColumn<CommunityMemberApplication>[] = [

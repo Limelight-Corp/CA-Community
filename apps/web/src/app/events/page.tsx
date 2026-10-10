@@ -9,6 +9,7 @@ import { getItems, getSettings } from '../../lib/community-store';
 import { canRegister, formatEventDate, isUpcoming, locationLabel, sortByDate } from '../../lib/events';
 import { EventsExplorer } from '../../components/events/EventsExplorer';
 import { eventInstants, toIstIso } from '../../components/events/event-time';
+import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -28,7 +29,7 @@ export default async function EventsPage({
 }) {
   const sp = await searchParams;
   const events = getItems<CommunityEvent>('events', true);
-  const wings = getItems<CommunityWing>('wings', true);
+  const wings = getItems<CommunityWing>('wings', true).sort((a, b) => a.number - b.number);
   const speakers = getItems<CommunitySpeaker>('speakers', true);
 
   const upcoming = sortByDate(events.filter((e) => isUpcoming(e)));
@@ -57,7 +58,7 @@ export default async function EventsPage({
 
           <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <p className="max-w-[52ch] text-[clamp(16px,1.5vw,19px)] leading-relaxed text-[var(--muted)]">
-              Summits, masterclasses, clinics and meetups across all ten wings. Filter by date, city or type and lock your
+              Summits, masterclasses, clinics and meetups across all our wings. Filter by date, city or type and lock your
               seat in a couple of minutes.
             </p>
             <dl className="flex flex-wrap gap-x-10 gap-y-4">
@@ -104,7 +105,7 @@ export default async function EventsPage({
 
       {wings.length > 0 && (
         <div className="border-b border-mist/[0.08] py-4">
-          <Marquee ariaLabel="Our ten wings" duration={50}>
+          <Marquee ariaLabel="Our wings" duration={50}>
             {wings.map((w) => (
               <span key={w.id} className="inline-flex items-center gap-3 font-display text-[22px] font-medium tracking-[-0.02em] text-[var(--muted)]">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: w.color }} aria-hidden />
@@ -121,6 +122,7 @@ export default async function EventsPage({
             events={events}
             wings={wings}
             speakers={speakers}
+            categories={siteTaxonomy('eventCategories', events.map((e) => e.category))}
             initialCategory={pick(sp.category)}
             initialQuery={pick(sp.q)}
           />

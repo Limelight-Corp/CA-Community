@@ -23,3 +23,4 @@ export * from './components/Motion';
 export * from './theme/ThemeProvider';
 export * from './theme/theme-utils';
 export * from './utils';
+export * from './components/Pagination';

@@ -32,7 +32,7 @@ import { UserMenu } from './UserMenu';
 export const NAV_ITEMS: readonly { label: string; href: string; hint: string; icon: LucideIcon }[] =
   [
     { label: 'Home', href: '/', hint: 'Start here', icon: House },
-    { label: 'About Us', href: '/about', hint: 'Vision, leadership & 10 wings', icon: Info },
+    { label: 'About Us', href: '/about', hint: 'Vision, leadership & wings', icon: Info },
     {
       label: 'Events',
       href: '/events',

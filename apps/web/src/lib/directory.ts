@@ -3,7 +3,8 @@
  * opted in from their dashboard. Contact details (email, phone, membership number) are never
  * exposed — members connect through LinkedIn.
  */
-import { MEMBERSHIP_PLANS, membershipState, ORG_WINGS, wingSlug } from '@ascend/shared';
+import { MEMBERSHIP_PLANS, membershipState, wingSlug, type OrgWing } from '@ascend/shared';
+import { siteWings } from './taxonomy';
 import { readPrivate } from './community-store';
 import { readAccounts } from './member-accounts';
 
@@ -23,6 +24,7 @@ export interface DirectoryEntry {
 }
 
 export function directoryEntries(): DirectoryEntry[] {
+  const wings = siteWings();
   const approved = new Map(
     readPrivate()
       .members.filter((m) => membershipState(m) === 'active')
@@ -45,8 +47,8 @@ export function directoryEntries(): DirectoryEntry[] {
         linkedinUrl: a.profile.linkedinUrl || app.linkedinUrl,
         plan: MEMBERSHIP_PLANS.find((p) => p.key === app.plan)?.name ?? app.plan,
         wings: (app.interests ?? [])
-          .map((n) => ORG_WINGS.find((w) => w.number === n))
-          .filter((w): w is (typeof ORG_WINGS)[number] => !!w)
+          .map((n) => wings.find((w) => w.number === n))
+          .filter((w): w is OrgWing => !!w)
           .map((w) => ({ number: w.number, name: w.name, slug: wingSlug(w.name) })),
       };
     })

@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarSearch, ChevronDown, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import type { CommunityEvent, CommunitySpeaker, CommunityWing } from '@ascend/shared';
-import { EVENT_CATEGORIES } from '@ascend/shared';
-import { EmptyState, Reveal, cn, fieldInputClass } from '@ascend/ui';
+import { EmptyState, Pagination, Reveal, cn, fieldInputClass, usePagination } from '@ascend/ui';
 import { EventTile } from './EventTile';
 import { eventDate, eventSpeakers, eventWing, isUpcoming, sortByDate } from '../../lib/events';
 
@@ -16,6 +15,8 @@ export interface EventsExplorerProps {
   events: CommunityEvent[];
   wings: CommunityWing[];
   speakers: CommunitySpeaker[];
+  /** Admin-managed event categories (plus any still used by events). */
+  categories: string[];
   initialCategory?: string;
   initialQuery?: string;
 }
@@ -27,10 +28,10 @@ const monthLabel = (key: string) => {
 };
 
 /** Filterable event listing (Website Checklist §19). */
-export function EventsExplorer({ events, wings, speakers, initialCategory, initialQuery }: EventsExplorerProps) {
+export function EventsExplorer({ events, wings, speakers, categories, initialCategory, initialQuery }: EventsExplorerProps) {
   const [query, setQuery] = useState(initialQuery ?? '');
   const [category, setCategory] = useState<string>(
-    initialCategory && (EVENT_CATEGORIES as readonly string[]).includes(initialCategory) ? initialCategory : 'All'
+    initialCategory && categories.includes(initialCategory) ? initialCategory : 'All'
   );
   const [when, setWhen] = useState<When>('any');
   const [city, setCity] = useState('all');
@@ -92,6 +93,11 @@ export function EventsExplorer({ events, wings, speakers, initialCategory, initi
 
   const upcoming = useMemo(() => sortByDate(matches.filter((e) => isUpcoming(e))), [matches]);
   const past = useMemo(() => sortByDate(matches.filter((e) => !isUpcoming(e))).reverse(), [matches]);
+  const filterKey = [query, category, when, city, mode, price];
+  const upcomingPager = usePagination(upcoming, 9, filterKey);
+  const pastPager = usePagination(past, 9, filterKey);
+  const upcomingTop = useRef<HTMLElement>(null);
+  const pastTop = useRef<HTMLElement>(null);
 
   const activeCount =
     (when !== 'any' ? 1 : 0) + (city !== 'all' ? 1 : 0) + (mode !== 'all' ? 1 : 0) + (price !== 'all' ? 1 : 0);
@@ -172,7 +178,7 @@ export function EventsExplorer({ events, wings, speakers, initialCategory, initi
 
         {/* Category chips */}
         <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]" role="group" aria-label="Event type">
-          {['All', ...EVENT_CATEGORIES].map((c) => (
+          {['All', ...categories].map((c) => (
             <button key={c} type="button" aria-pressed={category === c} onClick={() => setCategory(c)} className={chip(category === c)}>
               {c}
             </button>
@@ -277,34 +283,36 @@ export function EventsExplorer({ events, wings, speakers, initialCategory, initi
       ) : (
         <>
           {upcoming.length > 0 && (
-            <section aria-labelledby="upcoming-h" className="flex flex-col gap-6">
+            <section ref={upcomingTop} aria-labelledby="upcoming-h" className="flex flex-col gap-6">
               <h2 id="upcoming-h" className="flex items-baseline gap-3 font-display text-[clamp(28px,3.4vw,44px)] font-medium tracking-[-0.04em] text-[var(--fg)]">
                 Coming up
                 <span className="font-mono text-[12px] tracking-[0.1em] text-gold">{String(upcoming.length).padStart(2, '0')}</span>
               </h2>
               <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {upcoming.map((e, i) => (
+                {upcomingPager.pageItems.map((e, i) => (
                   <Reveal as="li" key={e.id} delay={Math.min(i, 5) * 70} className="flex">
                     <EventTile className="w-full" event={e} wing={eventWing(e, wings)} speakers={eventSpeakers(e, speakers)} />
                   </Reveal>
                 ))}
               </ul>
+              <Pagination page={upcomingPager.page} pages={upcomingPager.pages} total={upcomingPager.total} pageSize={upcomingPager.pageSize} onChange={upcomingPager.setPage} noun="upcoming events" scrollTo={upcomingTop} className="pt-0" />
             </section>
           )}
 
           {past.length > 0 && (
-            <section aria-labelledby="past-h" className="flex flex-col gap-6 border-t border-mist/[0.08] pt-10">
+            <section ref={pastTop} aria-labelledby="past-h" className="flex flex-col gap-6 border-t border-mist/[0.08] pt-10">
               <h2 id="past-h" className="flex items-baseline gap-3 font-display text-[clamp(24px,2.8vw,36px)] font-medium tracking-[-0.04em] text-[var(--muted)]">
                 Past events
                 <span className="font-mono text-[12px] tracking-[0.1em]">{String(past.length).padStart(2, '0')}</span>
               </h2>
               <ul className="grid grid-cols-1 gap-5 opacity-80 sm:grid-cols-2 lg:grid-cols-3">
-                {past.map((e) => (
+                {pastPager.pageItems.map((e) => (
                   <li key={e.id} className="flex">
                     <EventTile className="w-full" event={e} wing={eventWing(e, wings)} speakers={eventSpeakers(e, speakers)} />
                   </li>
                 ))}
               </ul>
+              <Pagination page={pastPager.page} pages={pastPager.pages} total={pastPager.total} pageSize={pastPager.pageSize} onChange={pastPager.setPage} noun="past events" scrollTo={pastTop} className="pt-0" />
             </section>
           )}
         </>

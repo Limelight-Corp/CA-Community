@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'ASCEND CA Community',
     short_name: 'ASCEND CA',
     description:
-      'A Pan-India community for Chartered Accountants, corporate finance leaders and students. Ten professional wings, masterclasses, and digital passes.',
+      'A Pan-India community for Chartered Accountants, corporate finance leaders and students. Professional wings, masterclasses, and digital passes.',
     start_url: '/',
     display: 'standalone',
     background_color: DEFAULT_DARK_TOKENS.bg,

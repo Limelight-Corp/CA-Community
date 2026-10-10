@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 import {
   CommunityStoreData,
   CommunityContentType,
@@ -25,6 +26,7 @@ import {
 export type ContentType = CommunityContentType;
 
 function findDataDir(): string {
+  if (process.env.DATA_DIR) return process.env.DATA_DIR;
   const candidates = [
     path.resolve(process.cwd(), '../../data'),
     path.resolve(process.cwd(), '../data'),
@@ -34,8 +36,18 @@ function findDataDir(): string {
     if (fs.existsSync(path.join(dir, 'community-store.json'))) return dir;
   }
   const primary = candidates[0]!;
-  fs.mkdirSync(primary, { recursive: true });
-  return primary;
+  try {
+    fs.mkdirSync(primary, { recursive: true });
+    return primary;
+  } catch {
+    const tmpDir = path.join(os.tmpdir(), 'ascend-data');
+    try {
+      fs.mkdirSync(tmpDir, { recursive: true });
+    } catch {
+      // Ignored
+    }
+    return tmpDir;
+  }
 }
 
 function readJson<T>(file: string, fallback: T): T {
@@ -49,9 +61,21 @@ function readJson<T>(file: string, fallback: T): T {
 }
 
 function writeJsonAtomic(file: string, data: unknown): void {
-  const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
-  fs.renameSync(tmp, file);
+  try {
+    const dir = path.dirname(file);
+    if (!fs.existsSync(dir)) {
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch {
+        // Ignored
+      }
+    }
+    const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tmp, file);
+  } catch (err) {
+    console.error(`Failed to write atomic to ${file}:`, err);
+  }
 }
 
 /** Absolute path of the shared data directory (also holds uploaded resource files). */

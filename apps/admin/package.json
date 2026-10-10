@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
+    "prebuild": "npm --prefix ../.. run build:packages",
     "build": "next build",
     "start": "next start -p 3001",
     "admin:seed": "node scripts/seed-admin.mjs",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { saveContactMessage } from '../../../lib/leads';
 import { clientIp, HONEYPOT_FIELD, rateLimit, readJsonBody } from '../../../lib/form-guard';
 import { contactMessageSchema, fieldErrors } from '../../../lib/form-schemas';
+import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstile';
 
 /** Public contact form (Website Checklist §13). Messages go to the PRIVATE store with status "new". */
 export async function POST(request: NextRequest) {
@@ -20,6 +21,10 @@ export async function POST(request: NextRequest) {
   const trap = (body as Record<string, unknown>)[HONEYPOT_FIELD];
   if (typeof trap === 'string' && trap.trim() !== '') {
     return NextResponse.json({ success: true });
+  }
+
+  if (!(await verifyTurnstile(tokenFrom(body), clientIp(request)))) {
+    return NextResponse.json({ success: false, error: CAPTCHA_ERROR }, { status: 400 });
   }
 
   const parsed = contactMessageSchema.safeParse(body);

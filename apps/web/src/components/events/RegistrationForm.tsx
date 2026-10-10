@@ -7,6 +7,7 @@ import { AlertTriangle, ArrowRight, Loader2, Lock, Ticket } from 'lucide-react';
 import { FormField, Stepper, cn, fieldInputClass } from '@ascend/ui';
 import { trackEvent } from '../site/Providers';
 import { useAuth } from '../../context/AuthContext';
+import { Turnstile, useCaptchaEnabled } from '../site/Turnstile';
 
 export interface RegistrationEventSummary {
   slug: string;
@@ -98,6 +99,9 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaOn = useCaptchaEnabled();
   const [saved, setSaved] = useState<{ bookingId: string; accessToken: string } | null>(null);
   const started = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -157,13 +161,18 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
       return;
     }
 
+    if (captchaOn && !captcha) {
+      setFormError('Please complete the security check.');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/registrations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, mobile: normaliseMobile(values.mobile), eventSlug: event.slug }),
+        body: JSON.stringify({ ...values, mobile: normaliseMobile(values.mobile), eventSlug: event.slug, turnstileToken: captcha }),
       });
+      setCaptchaReset((n) => n + 1);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const fe = (data.fieldErrors || {}) as Errors;
@@ -290,6 +299,8 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
               onChange={(ev) => set('website', ev.target.value)}
             />
           </div>
+
+          <Turnstile onToken={setCaptcha} resetKey={captchaReset} />
 
           <div className="flex flex-col gap-2">
             <label className="flex cursor-pointer items-start gap-3 text-[14px] leading-relaxed text-[var(--fg-soft)]">

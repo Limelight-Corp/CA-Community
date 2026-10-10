@@ -4,23 +4,32 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Loader2, MailCheck } from 'lucide-react';
 import { AuthPanel, authButtonClass, authInputClass } from '../../components/auth/AuthPanel';
+import { Turnstile, useCaptchaEnabled } from '../../components/site/Turnstile';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaOn = useCaptchaEnabled();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (captchaOn && !captcha) {
+      setError('Please complete the security check.');
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch('/api/auth/forgot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken: captcha }),
       });
+      setCaptchaReset((n) => n + 1);
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) setError(data.error || 'Something went wrong. Please try again.');
       else setSent(true);
@@ -65,6 +74,7 @@ export default function ForgotPasswordPage() {
           onChange={(e) => setEmail(e.target.value)}
           className={authInputClass}
         />
+        <Turnstile onToken={setCaptcha} resetKey={captchaReset} />
         {error && (
           <span role="alert" className="text-[13px] text-bad">
             {error}

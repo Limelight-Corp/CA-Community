@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowUpRight, Check, CheckCircle2, ImagePlus, Loader2 } from 'lucide-react';
 import { FormField, cn, fieldInputClass } from '@ascend/ui';
 import { HONEYPOT_FIELD, fieldErrors, memberApplicationSchema } from '../../lib/form-schemas';
+import { Turnstile, useCaptchaEnabled } from '../site/Turnstile';
 
 type PlanKey = 'core' | 'associate' | 'student';
 
@@ -35,6 +36,9 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
   const [interests, setInterests] = useState<number[]>(initialWings ?? []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaOn = useCaptchaEnabled();
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
 
@@ -71,13 +75,18 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
     }
 
     setErrors({});
+    if (captchaOn && !captcha) {
+      setStatus({ kind: 'error', message: 'Please complete the security check.' });
+      return;
+    }
     setStatus({ kind: 'submitting' });
     try {
       const res = await fetch('/api/members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, turnstileToken: captcha }),
       });
+      setCaptchaReset((n) => n + 1);
       const json = (await res.json().catch(() => ({}))) as { success?: boolean; status?: string; message?: string; error?: string; fieldErrors?: Record<string, string> };
       if (res.ok && json.success) {
         setStatus({ kind: 'done', duplicate: json.status === 'duplicate', message: json.message });
@@ -253,6 +262,8 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
         <label htmlFor="join-website">Website</label>
         <input id="join-website" type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" />
       </div>
+
+      <Turnstile onToken={setCaptcha} resetKey={captchaReset} />
 
       {/* Consent */}
       <div className="flex flex-col gap-2">

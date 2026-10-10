@@ -5,6 +5,7 @@ import { emailField, fieldErrorsOf, json, mobileField, nameField, sameOrigin, se
 import { hashPassword, mutateAccounts, normaliseEmail, passwordProblem, publicAccount, type MemberAccount } from '../../../../lib/member-accounts';
 import { setSessionCookie } from '../../../../lib/member-session';
 import { newId } from '../../../../lib/community-store';
+import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../../lib/turnstile';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,7 +25,9 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`register:${clientIp(req)}`, 10, 60 * 60_000)) {
     return json({ error: 'Too many sign-ups from this network. Please try again later.' }, 429);
   }
-  const parsed = Input.safeParse(await readJsonBody(req));
+  const body = await readJsonBody(req);
+  if (!(await verifyTurnstile(tokenFrom(body), clientIp(req)))) return json({ error: CAPTCHA_ERROR }, 400);
+  const parsed = Input.safeParse(body);
   if (!parsed.success) return json({ error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsOf(parsed.error) }, 422);
   const input = parsed.data;
   if (input.website) return json({ ok: true }); // honeypot

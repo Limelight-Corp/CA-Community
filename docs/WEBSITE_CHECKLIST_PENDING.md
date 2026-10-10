@@ -43,11 +43,13 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 - [x] Admin: cancel (with message) / undo cancel / reschedule an event → registered attendees emailed; cancelled events shown on the site
 
 ## Step 6 — Security & compliance (§23, §24, §25)
-- [ ] Security headers (CSP, HSTS, X-Frame-Options, Permissions-Policy) in Next config
-- [ ] Cookie consent banner; load GA / Meta Pixel only after consent
-- [ ] CAPTCHA (Cloudflare Turnstile) on public forms — site key **(client)**
-- [ ] Daily backup script for data/*.json
-- [ ] Meta Pixel via env (only if ads are used) **(client)**
+- [x] Security headers (CSP, HSTS, X-Frame-Options, Permissions-Policy, nosniff) on web and admin
+- [x] Cookie consent banner + "Cookie settings" footer link; GA / Meta Pixel load only after "Accept all"
+- [x] CAPTCHA (Cloudflare Turnstile) on contact, join, event registration, sign-up, forgot password — switched on by adding keys
+- [ ] Turnstile keys TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY **(client)**
+- [x] Daily backup of data/ (in-server daily run + `npm run backup`, keeps 14)
+- [x] Meta Pixel support via META_PIXEL_ID (consent-gated, conversion events mapped)
+- [ ] GA4 / Meta Pixel IDs, if used **(client)**
 
 ## Step 7 — Smaller improvements
 - [ ] Speakers linked to events by id, so renaming a speaker doesn't break events — §9

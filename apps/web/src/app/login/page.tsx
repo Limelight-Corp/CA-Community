@@ -7,6 +7,7 @@ import { AccentText, Kicker, cn, useToast } from '@ascend/ui';
 import { useAuth, type MemberUser } from '../../context/AuthContext';
 import { safeNextPath } from '../../lib/auth-paths';
 import { FxCard } from '../../components/home/Interactive';
+import { Turnstile, useCaptchaEnabled } from '../../components/site/Turnstile';
 import {
   AlertCircle,
   ArrowRight,
@@ -57,6 +58,9 @@ export default function MemberLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaOn = useCaptchaEnabled();
 
   const switchMode = (m: Mode) => {
     setMode(m);
@@ -76,6 +80,10 @@ export default function MemberLoginPage() {
       setFieldErrors({ acceptTerms: 'Please accept the terms and privacy policy' });
       return;
     }
+    if (mode === 'register' && captchaOn && !captcha) {
+      setErrorMessage('Please complete the security check.');
+      return;
+    }
     setIsLoading(true);
     try {
       const res = await fetch(mode === 'login' ? '/api/auth/login' : '/api/auth/register', {
@@ -83,9 +91,10 @@ export default function MemberLoginPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify(
-          mode === 'login' ? { email, password } : { name, email, mobile, password, acceptTerms, website: honeypot }
+          mode === 'login' ? { email, password } : { name, email, mobile, password, acceptTerms, website: honeypot, turnstileToken: captcha }
         ),
       });
+      if (mode === 'register') setCaptchaReset((n) => n + 1);
       const data = (await res.json().catch(() => ({}))) as { user?: Omit<MemberUser, 'initials'>; error?: string; fieldErrors?: FieldErrors };
       if (!res.ok || !data.user) {
         setErrorMessage(data.error || 'Something went wrong. Please try again.');
@@ -343,6 +352,8 @@ export default function MemberLoginPage() {
                   </div>
                 </>
               )}
+
+              {mode === 'register' && <Turnstile onToken={setCaptcha} resetKey={captchaReset} />}
 
               <SubmitButton loading={isLoading} loadingLabel={mode === 'login' ? 'Signing in…' : 'Creating account…'}>
                 {mode === 'login' ? 'Log in' : 'Create account'}

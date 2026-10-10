@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { CookieSettingsLink } from './CookieConsent';
 import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react';
 import type { SiteSettings } from '@ascend/shared';
 import { ORG_POSITIONING } from '@ascend/shared';
@@ -143,6 +144,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
                 {l.label}
               </Link>
             ))}
+            <CookieSettingsLink className="draw-underline text-left hover:text-[var(--fg)]" />
           </nav>
         </div>
       </div>

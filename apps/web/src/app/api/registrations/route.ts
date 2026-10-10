@@ -11,6 +11,7 @@ import {
   rateLimit,
   takeSeat,
 } from './_lib/server';
+import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstile';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -59,6 +60,8 @@ export async function POST(req: Request) {
   } catch {
     return json({ error: 'Invalid request.' }, 400);
   }
+
+  if (!(await verifyTurnstile(tokenFrom(body), clientIp(req)))) return json({ error: CAPTCHA_ERROR }, 400);
 
   const parsed = RegistrationInput.safeParse(body);
   if (!parsed.success) {

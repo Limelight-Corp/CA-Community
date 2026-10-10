@@ -4,6 +4,7 @@ import { mutatePrivate, newId } from '../../../lib/community-store';
 import { notifyMemberApplication } from '../../../lib/notifications';
 import { clientIp, HONEYPOT_FIELD, rateLimit, readJsonBody } from '../../../lib/form-guard';
 import { fieldErrors, memberApplicationSchema } from '../../../lib/form-schemas';
+import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstile';
 
 /**
  * Public membership application (Website Checklist §7).
@@ -27,6 +28,10 @@ export async function POST(request: NextRequest) {
   const trap = (body as Record<string, unknown>)[HONEYPOT_FIELD];
   if (typeof trap === 'string' && trap.trim() !== '') {
     return NextResponse.json({ success: true, status: 'received' });
+  }
+
+  if (!(await verifyTurnstile(tokenFrom(body), clientIp(request)))) {
+    return NextResponse.json({ success: false, error: CAPTCHA_ERROR }, { status: 400 });
   }
 
   const parsed = memberApplicationSchema.safeParse(body);

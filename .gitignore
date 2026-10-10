@@ -56,3 +56,6 @@ data/outbox/
 # Member accounts (password hashes, session secret) and uploaded member photos
 data/member-accounts.json
 data/member-photos/
+
+# Data backups (personal data, password hashes)
+backups/

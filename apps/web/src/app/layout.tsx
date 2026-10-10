@@ -93,7 +93,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const themeCss = generateThemeCssVariables(DEFAULT_DARK_TOKENS);
   const settings = getSettings();
-  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  // Read at request time (not inlined at build), so they can be set on the server without a rebuild.
+  const gaId = process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID;
+  const metaPixelId = process.env.META_PIXEL_ID;
+  const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY ? process.env.TURNSTILE_SITE_KEY : undefined;
 
   return (
     <html
@@ -113,7 +116,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <AuthProvider>
-          <Providers gaId={gaId}>
+          <Providers gaId={gaId} metaPixelId={metaPixelId} config={{ turnstileSiteKey }}>
             <SiteHeader siteName={settings.siteName} announcement={settings.announcement} />
             <main id="main" className="relative overflow-x-clip">
               {children}

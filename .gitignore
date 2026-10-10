@@ -52,3 +52,7 @@ data/resource-files/
 
 # Local email outbox (used when SMTP is not configured) - contains personal data
 data/outbox/
+
+# Member accounts (password hashes, session secret) and uploaded member photos
+data/member-accounts.json
+data/member-photos/

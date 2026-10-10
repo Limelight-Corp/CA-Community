@@ -357,3 +357,37 @@ export function adminMemberApplicationEmail(
     }),
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Member account emails
+// ---------------------------------------------------------------------------------------------
+
+/** Confirms the email address of a new member account. */
+export function verifyEmailEmail(brand: EmailBrand, a: { name: string; url: string }): EmailMessage {
+  return {
+    subject: `Confirm your email — ${brand.siteName}`,
+    ...render({
+      brand,
+      preheader: 'One click to confirm your email address.',
+      heading: 'Confirm your email address',
+      intro: [`Hi ${a.name},`, `Welcome to ${brand.siteName}! Please confirm your email address so we can link your event bookings, receipts and certificates to your account.`],
+      cta: { label: 'Confirm my email', url: a.url },
+      outro: ['This link is valid for 48 hours. If you did not create an account, you can ignore this email.'],
+    }),
+  };
+}
+
+/** Password reset link. */
+export function passwordResetEmail(brand: EmailBrand, a: { name: string; url: string }): EmailMessage {
+  return {
+    subject: `Reset your password — ${brand.siteName}`,
+    ...render({
+      brand,
+      preheader: 'Use this link to choose a new password.',
+      heading: 'Reset your password',
+      intro: [`Hi ${a.name},`, 'We received a request to reset the password for your account. Use the button below to choose a new one.'],
+      cta: { label: 'Choose a new password', url: a.url },
+      outro: ['This link is valid for 1 hour and can be used once. If you did not ask for this, you can ignore this email — your password stays the same.'],
+    }),
+  };
+}

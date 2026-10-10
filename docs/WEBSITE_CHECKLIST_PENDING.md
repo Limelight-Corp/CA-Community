@@ -31,11 +31,12 @@ Legend: `[ ]` pending · `[x]` done · **(client)** needs data/keys from the org
 - [ ] Webhook secret + admin Razorpay keys in env **(client)**
 
 ## Step 4 — Real member login & dashboard (§7, §8, §23)
-- [ ] Real member accounts: hashed passwords, server-signed httpOnly session (today: mock login)
-- [ ] Protect /dashboard and the pay page with a verified session
-- [ ] Dashboard from real data: profile edit, my bookings (upcoming/past), receipts, certificates
-- [ ] Member-only resources unlocked for logged-in members
-- [ ] Profile photograph on the Join form
+- [x] Real member accounts: scrypt-hashed passwords, signed httpOnly session, email verification, forgot/reset password, login lockout
+- [x] Protect /dashboard, the pay page and payment retry with a verified session
+- [x] Dashboard from real data: profile edit, my bookings (upcoming/past), receipts, certificates, membership status, change password
+- [x] Member-only resources unlocked for approved members (verified email + approved application)
+- [x] Profile photograph (uploaded from the dashboard; the Join form points there)
+- [ ] Mobile OTP login — needs an SMS provider (e.g. MSG91) **(client)**
 
 ## Step 5 — Event lifecycle (§17, §27)
 - [ ] Event reminder emails (scheduled endpoint, e.g. 1 day before)

@@ -1,29 +1,31 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AccentText, Kicker, cn, useToast } from '@ascend/ui';
-import { useAuth } from '../../context/AuthContext';
-import { safeNextPath } from '../../lib/member-session';
+import { useAuth, type MemberUser } from '../../context/AuthContext';
+import { safeNextPath } from '../../lib/auth-paths';
 import { FxCard } from '../../components/home/Interactive';
 import {
   AlertCircle,
   ArrowRight,
-  Check,
   Eye,
   EyeOff,
   Layers,
   Loader2,
   Lock,
   Mail,
+  Phone,
   Receipt,
-  RotateCcw,
   ShieldCheck,
-  Smartphone,
-  Sparkles,
   Ticket,
+  User,
+  UserPlus,
 } from 'lucide-react';
+
+type Mode = 'login' | 'register';
+type FieldErrors = Partial<Record<'name' | 'email' | 'mobile' | 'password' | 'acceptTerms', string>>;
 
 export default function MemberLoginPage() {
   const router = useRouter();
@@ -31,217 +33,85 @@ export default function MemberLoginPage() {
   const { login, user, isLoading: authLoading } = useAuth();
   // Where to go after signing in, e.g. back to a paid event registration.
   const [nextPath, setNextPath] = useState<string | null>(null);
-  const afterLogin = () => router.push(nextPath ?? '/dashboard');
+  const [mode, setMode] = useState<Mode>('login');
 
   useEffect(() => {
-    setNextPath(safeNextPath(new URLSearchParams(window.location.search).get('next')));
+    const sp = new URLSearchParams(window.location.search);
+    setNextPath(safeNextPath(sp.get('next')));
+    if (sp.get('mode') === 'register') setMode('register');
   }, []);
 
-  // Already signed in and sent here to continue somewhere: go straight there.
-  // Only when the server will see the session cookie too, so the two can never bounce.
+  // Already signed in (verified by the server): go straight on.
   useEffect(() => {
-    if (!authLoading && user && nextPath && /(?:^|;\s*)ascend_member_token=[^;]+/.test(document.cookie)) {
-      router.replace(nextPath);
-    }
+    if (!authLoading && user) router.replace(nextPath ?? '/dashboard');
   }, [authLoading, user, nextPath, router]);
-  const [loginMode, setLoginMode] = useState<'otp' | 'email'>('otp');
 
-  // OTP Form States
-  const [mobile, setMobile] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
-
-  // Email Form States
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // UI States
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  // Handle countdown timer for OTP resend
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (resendTimer > 0) {
-      timer = setTimeout(() => setResendTimer((prev) => prev - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [resendTimer]);
+  const switchMode = (m: Mode) => {
+    setMode(m);
+    setErrorMessage('');
+    setFieldErrors({});
+  };
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanMobile = mobile.replace(/\D/g, '');
-
-    if (!cleanMobile || !/^[6-9]\d{9}$/.test(cleanMobile)) {
-      setErrorMessage('Please enter a valid 10-digit Indian mobile number');
+    setErrorMessage('');
+    setFieldErrors({});
+    if (!email.trim() || !password) {
+      setErrorMessage('Please enter your email and password.');
       return;
     }
-
-    setErrorMessage('');
+    if (mode === 'register' && !acceptTerms) {
+      setFieldErrors({ acceptTerms: 'Please accept the terms and privacy policy' });
+      return;
+    }
     setIsLoading(true);
-
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-      try {
-        const res = await fetch(`${apiUrl}/auth/send-otp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile: cleanMobile }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.message || 'Failed to send OTP');
-        }
-      } catch (_apiErr) {
-        // Fallback gracefully in standalone/mock dev
+      const res = await fetch(mode === 'login' ? '/api/auth/login' : '/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(
+          mode === 'login' ? { email, password } : { name, email, mobile, password, acceptTerms, website: honeypot }
+        ),
+      });
+      const data = (await res.json().catch(() => ({}))) as { user?: Omit<MemberUser, 'initials'>; error?: string; fieldErrors?: FieldErrors };
+      if (!res.ok || !data.user) {
+        setErrorMessage(data.error || 'Something went wrong. Please try again.');
+        setFieldErrors(data.fieldErrors ?? {});
+        return;
       }
-
-      setOtpSent(true);
-      setResendTimer(30);
+      login(data.user);
       toast(
-        IS_DEV
-          ? `OTP sent to +91 ${cleanMobile}. (Dev code: 123456)`
-          : `OTP sent to +91 ${cleanMobile}.`
+        mode === 'register'
+          ? `Account created! We sent a confirmation link to ${data.user.email}.`
+          : nextPath
+            ? 'Logged in — taking you back…'
+            : `Welcome back, ${data.user.name.split(' ')[0]}!`
       );
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to send OTP. Please try again.');
+      router.replace(nextPath ?? '/dashboard');
+      router.refresh();
+    } catch {
+      setErrorMessage('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanOtp = otp.trim();
-
-    if (!cleanOtp || cleanOtp.length < 6) {
-      setErrorMessage('Please enter the 6-digit verification code');
-      return;
-    }
-
-    setErrorMessage('');
-    setIsLoading(true);
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-      const cleanMobile = mobile.replace(/\D/g, '');
-
-      let userObj: { id?: string; name: string; email: string; mobile?: string } = {
-        name: `CA Member ${cleanMobile.slice(-4) || '9876'}`,
-        mobile: cleanMobile,
-        email: `${cleanMobile}@ascend-mobile.in`,
-      };
-      let authToken = 'dev_token_ascend';
-
-      try {
-        const res = await fetch(`${apiUrl}/auth/verify-otp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile: cleanMobile, otp: cleanOtp }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.message || 'Invalid or expired OTP');
-        }
-        if (data.data?.accessToken) {
-          authToken = data.data.accessToken;
-        }
-        if (data.data?.user) {
-          userObj = data.data.user;
-        }
-      } catch (apiErr: any) {
-        if (
-          apiErr?.message &&
-          !apiErr.message.includes('fetch') &&
-          !apiErr.message.includes('Failed')
-        ) {
-          throw apiErr;
-        }
-        if (cleanOtp !== '123456') {
-          throw new Error('Invalid OTP. Use test code 123456 in dev mode.');
-        }
-      }
-
-      login(userObj, authToken);
-      toast(nextPath ? 'Login successful! Taking you back…' : 'Login successful! Redirecting to member dashboard...');
-      setTimeout(() => {
-        afterLogin();
-      }, 500);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Invalid or expired OTP');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setErrorMessage('Please provide both registered email and password');
-      return;
-    }
-
-    setErrorMessage('');
-    setIsLoading(true);
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-      let userObj: { id?: string; name: string; email: string } = {
-        name: email.toLowerCase().includes('kavya')
-          ? 'CA Kavya Reddy'
-          : `CA ${email.split('@')[0]}`,
-        email: email,
-      };
-      let authToken = 'dev_token_ascend';
-
-      try {
-        const res = await fetch(`${apiUrl}/auth/login-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.message || 'Invalid credentials');
-        }
-        if (data.data?.accessToken) {
-          authToken = data.data.accessToken;
-        }
-        if (data.data?.user) {
-          userObj = data.data.user;
-        }
-      } catch (apiErr: any) {
-        if (
-          apiErr?.message &&
-          !apiErr.message.includes('fetch') &&
-          !apiErr.message.includes('Failed')
-        ) {
-          throw apiErr;
-        }
-      }
-
-      login(userObj, authToken);
-      toast('Login successful! Welcome back.');
-      setTimeout(() => {
-        afterLogin();
-      }, 500);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Invalid email or password');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const cleanMobile = mobile.replace(/\D/g, '');
-  const maskedMobile =
-    cleanMobile.length >= 4
-      ? `+91 ${cleanMobile.slice(0, 2)}•• ••• ${cleanMobile.slice(-3)}`
-      : cleanMobile
-        ? `+91 ${cleanMobile}`
-        : '';
-  const passIdentity = loginMode === 'otp' ? maskedMobile : email.trim();
+  const fieldClass =
+    'relative flex items-center rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
+  const inputClass = 'w-full bg-transparent py-4 pl-11 pr-4 text-[15px] text-white outline-none placeholder:text-faint';
 
   return (
     <section className="grain relative -mt-[72px] overflow-hidden pt-[72px]">
@@ -256,15 +126,23 @@ export default function MemberLoginPage() {
           <div className="flex flex-col gap-5">
             <Kicker tone="gold">Member portal</Kicker>
             <h1 className="font-display text-[clamp(44px,7vw,96px)] font-medium leading-[0.9] tracking-[-0.055em] text-[var(--fg)]">
-              Welcome <AccentText tone="hero">back.</AccentText>
+              {mode === 'login' ? (
+                <>
+                  Welcome <AccentText tone="hero">back.</AccentText>
+                </>
+              ) : (
+                <>
+                  Join the <AccentText tone="hero">climb.</AccentText>
+                </>
+              )}
             </h1>
             <p className="max-w-[44ch] text-[16px] leading-relaxed text-[var(--muted)]">
-              Your passes, receipts and wings — in one place. Sign in with a one-time code on your
-              mobile or with your email.
+              Your event passes, receipts and certificates — in one place.{' '}
+              {mode === 'login' ? 'Log in with your email and password.' : 'Create a free account in under a minute.'}
             </p>
           </div>
 
-          <MemberPass identity={passIdentity} mode={loginMode} />
+          <MemberPass identity={email.trim()} mode="email" />
 
           <ul className="hidden gap-2.5 sm:flex sm:flex-wrap">
             {[
@@ -283,71 +161,48 @@ export default function MemberLoginPage() {
           </ul>
         </div>
 
-        {/* ------------------------------------------------------------ Right: login card */}
+        {/* ------------------------------------------------------------ Right: login / register card */}
         <div className="relative min-w-0">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -inset-6 rounded-[48px] bg-brand-500/20 blur-[80px]"
-          />
+          <div aria-hidden className="pointer-events-none absolute -inset-6 rounded-[48px] bg-brand-500/20 blur-[80px]" />
           <div className="shine glass-panel relative overflow-hidden rounded-[32px] p-6 shadow-[0_40px_90px_-40px_rgb(var(--black-rgb)/0.9)] sm:p-9">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gold/20 blur-[80px]"
-            />
+            <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gold/20 blur-[80px]" />
 
             <div className="relative flex items-center justify-between gap-3">
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-gold">
-                  Sign in
-                </p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-gold">{mode === 'login' ? 'Sign in' : 'New account'}</p>
                 <h2 className="mt-1 font-display text-[28px] font-medium tracking-[-0.035em] text-[var(--fg)]">
-                  {loginMode === 'otp'
-                    ? otpSent
-                      ? 'Enter your code'
-                      : 'Use your mobile'
-                    : 'Use your email'}
+                  {mode === 'login' ? 'Log in to your account' : 'Create your account'}
                 </h2>
               </div>
               <span className="grid h-12 w-12 place-items-center rounded-2xl bg-grad-primary text-white shadow-[0_12px_30px_-12px_rgb(var(--lime-rgb)/0.9)]">
-                {loginMode === 'otp' ? (
-                  <Smartphone className="h-5 w-5" aria-hidden />
-                ) : (
-                  <Mail className="h-5 w-5" aria-hidden />
-                )}
+                {mode === 'login' ? <Lock className="h-5 w-5" aria-hidden /> : <UserPlus className="h-5 w-5" aria-hidden />}
               </span>
             </div>
 
             {/* Mode switch with sliding pill */}
-            <div
-              className="relative mt-6 grid grid-cols-2 rounded-full border border-mist/[0.12] bg-bg/60 p-1"
-              role="tablist"
-              aria-label="Sign-in method"
-            >
+            <div className="relative mt-6 grid grid-cols-2 rounded-full border border-mist/[0.12] bg-bg/60 p-1" role="tablist" aria-label="Account">
               <span
                 aria-hidden
                 className={cn(
                   'absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-grad-primary shadow-[0_8px_22px_-8px_rgb(var(--lime-rgb)/0.9)] transition-transform duration-500 [transition-timing-function:var(--ease-out-expo)]',
-                  loginMode === 'email' && 'translate-x-full'
+                  mode === 'register' && 'translate-x-full'
                 )}
               />
               {(
                 [
-                  { key: 'otp', label: 'Mobile OTP', Icon: Smartphone },
-                  { key: 'email', label: 'Email', Icon: Mail },
+                  { key: 'login', label: 'Log in', Icon: Lock },
+                  { key: 'register', label: 'Create account', Icon: UserPlus },
                 ] as const
               ).map(({ key, label, Icon }) => (
                 <button
                   key={key}
                   type="button"
                   role="tab"
-                  aria-selected={loginMode === key}
-                  onClick={() => {
-                    setLoginMode(key);
-                    setErrorMessage('');
-                  }}
+                  aria-selected={mode === key}
+                  onClick={() => switchMode(key)}
                   className={cn(
                     'relative z-10 flex items-center justify-center gap-2 rounded-full py-2.5 text-[13.5px] font-semibold transition-colors',
-                    loginMode === key ? 'text-white' : 'text-[var(--muted)] hover:text-[var(--fg)]'
+                    mode === key ? 'text-white' : 'text-[var(--muted)] hover:text-[var(--fg)]'
                   )}
                 >
                   <Icon className="h-4 w-4" aria-hidden />
@@ -357,281 +212,164 @@ export default function MemberLoginPage() {
             </div>
 
             {nextPath && (
-              <div
-                role="status"
-                className="mt-5 flex items-start gap-2.5 rounded-2xl border border-gold/30 bg-gold/10 p-3.5 text-[13px] text-gold"
-              >
+              <div role="status" className="mt-5 flex items-start gap-2.5 rounded-2xl border border-gold/30 bg-gold/10 p-3.5 text-[13px] text-gold">
                 <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                 <span>
                   {nextPath.startsWith('/events/') || nextPath.startsWith('/registration/')
-                    ? 'Please log in to continue to payment. You will come straight back to your registration.'
+                    ? 'Please log in (or create a free account) to continue to payment. You will come straight back to your registration.'
                     : 'Please log in to continue. You will come straight back afterwards.'}
                 </span>
               </div>
             )}
 
             {errorMessage && (
-              <div
-                role="alert"
-                className="mt-5 flex items-start gap-2.5 rounded-2xl border border-bad/30 bg-bad/10 p-3.5 text-[13px] text-bad"
-              >
+              <div role="alert" className="mt-5 flex items-start gap-2.5 rounded-2xl border border-bad/30 bg-bad/10 p-3.5 text-[13px] text-bad">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                 <span>{errorMessage}</span>
               </div>
             )}
 
-            {/* ---------------- OTP flow */}
-            {loginMode === 'otp' && (
-              <form
-                onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}
-                className="mt-6 flex flex-col gap-5"
-                noValidate
-              >
-                <ol className="flex items-center gap-2 text-[12px]" aria-label="Steps">
-                  {['Mobile number', 'Verification code'].map((step, i) => {
-                    const done = otpSent && i === 0;
-                    const current = (otpSent ? 1 : 0) === i;
-                    return (
-                      <li
-                        key={step}
-                        className="flex flex-1 items-center gap-2"
-                        aria-current={current ? 'step' : undefined}
-                      >
-                        <span
-                          className={cn(
-                            'grid h-6 w-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-semibold transition-colors',
-                            done
-                              ? 'bg-ok/20 text-ok'
-                              : current
-                                ? 'bg-gold text-brand-950'
-                                : 'bg-mist/[0.08] text-[var(--muted)]'
-                          )}
-                        >
-                          {done ? <Check className="h-3.5 w-3.5" aria-hidden /> : i + 1}
-                        </span>
-                        <span
-                          className={cn(
-                            'truncate',
-                            current || done ? 'text-[var(--fg)]' : 'text-[var(--muted)]'
-                          )}
-                        >
-                          {step}
-                        </span>
-                        {i === 0 && (
-                          <span
-                            aria-hidden
-                            className={cn('h-px flex-1', otpSent ? 'bg-ok/50' : 'bg-mist/[0.12]')}
-                          />
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
-
-                {!otpSent ? (
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="login-mobile"
-                      className="text-[13px] font-medium text-[var(--fg)]"
-                    >
-                      Mobile number
-                    </label>
-                    <div className="group flex overflow-hidden rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]">
-                      <span className="flex select-none items-center gap-1.5 border-r border-mist/[0.12] bg-bg/60 px-4 font-mono text-[15px] text-[var(--fg)]">
-                        +91
-                      </span>
+            <form onSubmit={submit} className="mt-6 flex flex-col gap-5" noValidate>
+              {mode === 'register' && (
+                <>
+                  <Field id="reg-name" label="Full name" error={fieldErrors.name}>
+                    <div className={fieldClass}>
+                      <User className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]" aria-hidden />
+                      <input id="reg-name" autoComplete="name" placeholder="CA Your Name" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+                    </div>
+                  </Field>
+                  <Field id="reg-mobile" label="Mobile number" error={fieldErrors.mobile}>
+                    <div className={fieldClass}>
+                      <Phone className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]" aria-hidden />
                       <input
-                        id="login-mobile"
+                        id="reg-mobile"
                         type="tel"
-                        inputMode="numeric"
-                        autoComplete="tel-national"
+                        inputMode="tel"
+                        autoComplete="tel"
                         placeholder="98765 43210"
                         value={mobile}
-                        onChange={(e) =>
-                          setMobile(e.target.value.replace(/[^\d\s]/g, '').slice(0, 11))
-                        }
-                        maxLength={11}
-                        className="min-w-0 flex-1 bg-transparent px-4 py-4 font-mono text-[17px] tracking-wide text-white outline-none placeholder:text-faint"
+                        onChange={(e) => setMobile(e.target.value)}
+                        className={inputClass}
                       />
                     </div>
-                    <p className="text-[12px] text-[var(--muted)]">
-                      We’ll text a 6-digit one-time code to this number.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between rounded-2xl border border-mist/[0.1] bg-field/60 p-3.5">
-                      <div className="flex items-center gap-3">
-                        <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-500/15 text-brand-200">
-                          <Smartphone className="h-4 w-4" aria-hidden />
-                        </span>
-                        <div>
-                          <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--muted)]">
-                            Code sent to
-                          </p>
-                          <p className="font-mono text-[14px] text-white">+91 {cleanMobile}</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOtpSent(false);
-                          setOtp('');
-                          setErrorMessage('');
-                        }}
-                        className="rounded-full border border-mist/[0.14] px-3 py-1.5 text-[12px] text-[var(--fg)] hover:border-gold/50 hover:text-gold"
-                      >
-                        Change
-                      </button>
-                    </div>
+                  </Field>
+                </>
+              )}
 
-                    <OtpBoxes value={otp} onChange={setOtp} />
-
-                    <div className="flex items-center justify-between text-[12.5px] text-[var(--muted)]">
-                      <span>Didn&apos;t get it?</span>
-                      {resendTimer > 0 ? (
-                        <span className="flex items-center gap-2 font-mono text-[12px]">
-                          <ResendRing seconds={resendTimer} total={30} />
-                          Resend in {resendTimer}s
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleSendOtp}
-                          className="flex items-center gap-1.5 font-medium text-brand-200 hover:text-white"
-                        >
-                          <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-                          Resend code
-                        </button>
-                      )}
-                    </div>
-
-                    {IS_DEV && (
-                      <div className="flex items-center justify-between rounded-xl border border-brand-500/20 bg-brand-500/10 px-3.5 py-2.5 text-[12px]">
-                        <span className="flex items-center gap-2 text-brand-100">
-                          <Sparkles className="h-3.5 w-3.5" aria-hidden /> Dev test code:{' '}
-                          <strong className="font-mono text-white">123456</strong>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setOtp('123456')}
-                          className="rounded-md bg-brand-500/20 px-2.5 py-1 font-mono text-[11px] font-semibold text-brand-200 hover:bg-brand-500/40 hover:text-white"
-                        >
-                          Auto-fill
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <SubmitButton
-                  loading={isLoading}
-                  loadingLabel={otpSent ? 'Verifying…' : 'Sending code…'}
-                >
-                  {otpSent ? 'Verify & enter portal' : 'Send one-time code'}
-                </SubmitButton>
-              </form>
-            )}
-
-            {/* ---------------- Email flow */}
-            {loginMode === 'email' && (
-              <form onSubmit={handleEmailLogin} className="mt-6 flex flex-col gap-5" noValidate>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="login-email" className="text-[13px] font-medium text-[var(--fg)]">
-                    Email address
-                  </label>
-                  <div className="relative flex items-center rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]">
-                    <Mail
-                      className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]"
-                      aria-hidden
-                    />
-                    <input
-                      id="login-email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="ca.name@firm.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-transparent py-4 pl-11 pr-4 text-[15px] text-white outline-none placeholder:text-faint"
-                    />
-                  </div>
+              <Field id="login-email" label="Email address" error={fieldErrors.email}>
+                <div className={fieldClass}>
+                  <Mail className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]" aria-hidden />
+                  <input
+                    id="login-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="ca.name@firm.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={inputClass}
+                  />
                 </div>
+              </Field>
 
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="login-password"
-                      className="text-[13px] font-medium text-[var(--fg)]"
-                    >
-                      Password
-                    </label>
-                    <Link
-                      href="/contact?topic=membership#contact-form"
-                      className="text-[12px] text-brand-200 hover:text-white hover:underline"
-                    >
+              <Field
+                id="login-password"
+                label="Password"
+                error={fieldErrors.password}
+                hint={mode === 'register' ? 'At least 8 characters, with letters and a number.' : undefined}
+                aside={
+                  mode === 'login' ? (
+                    <Link href="/forgot-password" className="text-[12px] text-brand-200 hover:text-white hover:underline">
                       Forgot password?
                     </Link>
-                  </div>
-                  <div className="relative flex items-center rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]">
-                    <Lock
-                      className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]"
-                      aria-hidden
-                    />
-                    <input
-                      id="login-password"
-                      type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
-                      placeholder="Your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-transparent py-4 pl-11 pr-12 text-[15px] text-white outline-none placeholder:text-faint"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 grid h-8 w-8 place-items-center rounded-full text-[var(--muted)] hover:bg-mist/[0.06] hover:text-white"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
+                  ) : undefined
+                }
+              >
+                <div className={fieldClass}>
+                  <Lock className="pointer-events-none absolute left-4 h-4 w-4 text-[var(--muted)]" aria-hidden />
+                  <input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    placeholder={mode === 'login' ? 'Your password' : 'Choose a password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-transparent py-4 pl-11 pr-12 text-[15px] text-white outline-none placeholder:text-faint"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 grid h-8 w-8 place-items-center rounded-full text-[var(--muted)] hover:bg-mist/[0.06] hover:text-white"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
+              </Field>
 
-                {IS_DEV && (
-                  <div className="flex items-center justify-between rounded-xl border border-brand-500/20 bg-brand-500/10 px-3.5 py-2.5 text-[12px]">
-                    <span className="text-brand-100">Dev: demo member account</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('kavya.reddy@example.com');
-                        setPassword('Member@2027');
-                      }}
-                      className="rounded-md bg-brand-500/20 px-2.5 py-1 font-mono text-[11px] font-semibold text-brand-200 hover:bg-brand-500/40 hover:text-white"
-                    >
-                      Fill demo
-                    </button>
+              {mode === 'register' && (
+                <>
+                  {/* Honeypot: hidden from people, filled by bots. */}
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    className="absolute -left-[9999px] h-px w-px opacity-0"
+                    aria-hidden
+                  />
+                  <div className="flex flex-col gap-1.5">
+                    <label className="flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-[var(--muted)]">
+                      <input
+                        type="checkbox"
+                        checked={acceptTerms}
+                        onChange={(e) => setAcceptTerms(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--lime)]"
+                      />
+                      <span>
+                        I agree to the{' '}
+                        <Link href="/legal/terms" className="text-[var(--fg)] underline underline-offset-2">
+                          Terms
+                        </Link>{' '}
+                        and{' '}
+                        <Link href="/legal/privacy" className="text-[var(--fg)] underline underline-offset-2">
+                          Privacy Policy
+                        </Link>
+                        .
+                      </span>
+                    </label>
+                    {fieldErrors.acceptTerms && <span className="text-[12px] text-bad">{fieldErrors.acceptTerms}</span>}
                   </div>
-                )}
+                </>
+              )}
 
-                <SubmitButton loading={isLoading} loadingLabel="Signing in…">
-                  Log in
-                </SubmitButton>
-              </form>
-            )}
+              <SubmitButton loading={isLoading} loadingLabel={mode === 'login' ? 'Signing in…' : 'Creating account…'}>
+                {mode === 'login' ? 'Log in' : 'Create account'}
+              </SubmitButton>
+            </form>
 
             <div className="relative mt-8 flex flex-col gap-4 border-t border-mist/[0.1] pt-6">
               <p className="text-center text-[14px] text-[var(--muted)]">
-                New here?{' '}
-                <Link
-                  href="/join"
-                  className="font-semibold text-white underline underline-offset-4 hover:text-gold"
-                >
-                  Become a member →
-                </Link>
+                {mode === 'login' ? (
+                  <>
+                    New here?{' '}
+                    <button type="button" onClick={() => switchMode('register')} className="font-semibold text-white underline underline-offset-4 hover:text-gold">
+                      Create a free account →
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Want full membership?{' '}
+                    <Link href="/join" className="font-semibold text-white underline underline-offset-4 hover:text-gold">
+                      See plans →
+                    </Link>
+                  </>
+                )}
               </p>
               <p className="flex items-center justify-center gap-1.5 text-center text-[11.5px] text-[var(--muted)]">
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-ok" aria-hidden />
-                We never ask for your OTP or password by phone or message.
+                We never ask for your password by phone or message.
               </p>
             </div>
           </div>
@@ -641,7 +379,34 @@ export default function MemberLoginPage() {
   );
 }
 
-const IS_DEV = process.env.NODE_ENV !== 'production';
+function Field({
+  id,
+  label,
+  error,
+  hint,
+  aside,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string;
+  hint?: string;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <label htmlFor={id} className="text-[13px] font-medium text-[var(--fg)]">
+          {label}
+        </label>
+        {aside}
+      </div>
+      {children}
+      {error ? <span className="text-[12px] text-bad">{error}</span> : hint ? <span className="text-[12px] text-[var(--muted)]">{hint}</span> : null}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------------------------------ */
 /* Member pass — 3D holographic card that previews the identity being typed                  */
@@ -733,89 +498,6 @@ function MemberPass({ identity, mode }: { identity: string; mode: 'otp' | 'email
         </div>
       </FxCard>
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------------------------------ */
-/* OTP boxes — one real input (paste / SMS autofill) drawn as six boxes                       */
-/* ------------------------------------------------------------------------------------------ */
-
-function OtpBoxes({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [focused, setFocused] = useState(true);
-  const digits = value.padEnd(6, ' ').slice(0, 6).split('');
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor="login-otp" className="text-[13px] font-medium text-[var(--fg)]">
-        6-digit code
-      </label>
-      <div className="relative">
-        <input
-          id="login-otp"
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          pattern="[0-9]*"
-          maxLength={6}
-          value={value}
-          onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0"
-          autoFocus
-          aria-describedby="login-otp-hint"
-        />
-        <div className="grid grid-cols-6 gap-2 sm:gap-3" aria-hidden>
-          {digits.map((d, i) => {
-            const filled = d.trim() !== '';
-            const active = focused && i === Math.min(value.length, 5);
-            return (
-              <span
-                key={i}
-                className={cn(
-                  'grid aspect-[4/5] place-items-center rounded-2xl border font-display text-[26px] font-semibold text-white transition-all duration-300',
-                  filled
-                    ? 'border-brand-300/60 bg-brand-500/20 shadow-[0_10px_24px_-14px_rgb(var(--lime-rgb)/0.9)]'
-                    : 'border-mist/[0.12] bg-field/80',
-                  active && 'scale-105 border-gold shadow-[0_0_0_4px_rgb(var(--gold-rgb)/0.18)]'
-                )}
-              >
-                {filled ? (
-                  d
-                ) : active ? (
-                  <span className="h-6 w-[2px] animate-pulse rounded bg-gold" />
-                ) : (
-                  ''
-                )}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-      <p id="login-otp-hint" className="text-[12px] text-[var(--muted)]">
-        Paste works too — the code fills all six boxes.
-      </p>
-    </div>
-  );
-}
-
-function ResendRing({ seconds, total }: { seconds: number; total: number }) {
-  const r = 7;
-  const c = 2 * Math.PI * r;
-  return (
-    <svg viewBox="0 0 18 18" className="h-[18px] w-[18px] -rotate-90" aria-hidden>
-      <circle cx="9" cy="9" r={r} fill="none" strokeWidth="2" className="stroke-mist/[0.15]" />
-      <circle
-        cx="9"
-        cy="9"
-        r={r}
-        fill="none"
-        strokeWidth="2"
-        strokeLinecap="round"
-        className="stroke-gold transition-[stroke-dashoffset] duration-1000 ease-linear"
-        strokeDasharray={c}
-        strokeDashoffset={c * (1 - seconds / total)}
-      />
-    </svg>
   );
 }
 

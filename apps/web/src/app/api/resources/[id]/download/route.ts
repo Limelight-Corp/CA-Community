@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { CommunityResource } from '@ascend/shared';
 import { dataDir, getItems, updateItem } from '../../../../../lib/community-store';
 import { safeUrl } from '../../../../../lib/content';
-import { hasMemberSession, loginUrl, memberTokenFromRequest } from '../../../../../lib/member-session';
+import { isApprovedMember } from '../../../../../lib/member-accounts';
+import { loginUrl, memberFromRequest } from '../../../../../lib/member-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,7 @@ function fileName(title: string, ext: string): string {
 
 /**
  * Opens a resource: streams an uploaded file or redirects to its external link.
- * Members-only resources require a member session; visitors are sent to log in first.
+ * Members-only resources need an approved membership; visitors are sent to log in first.
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -37,8 +38,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ success: false, error: 'Resource not found' }, { status: 404 });
   }
 
-  if (resource.isMembersOnly && !hasMemberSession(memberTokenFromRequest(request))) {
-    return NextResponse.redirect(new URL(loginUrl('/resources'), request.url));
+  if (resource.isMembersOnly) {
+    const account = memberFromRequest(request);
+    if (!account) return NextResponse.redirect(new URL(loginUrl('/resources'), request.url));
+    // Signed in but not (yet) an approved member → the dashboard explains the membership status.
+    if (!isApprovedMember(account)) return NextResponse.redirect(new URL('/dashboard?tab=membership', request.url));
   }
 
   const uploaded = UPLOADED.exec(resource.fileUrl);

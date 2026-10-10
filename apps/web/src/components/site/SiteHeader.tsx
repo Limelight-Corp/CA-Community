@@ -92,11 +92,12 @@ export function SiteHeader({
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setOpen(false);
-    logout();
+    await logout();
     toast('You have been logged out');
     if (pathname.startsWith('/dashboard')) router.push('/');
+    else router.refresh();
   };
 
   useEffect(() => {

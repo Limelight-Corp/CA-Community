@@ -211,7 +211,13 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
           ))}
           <div className="flex items-start gap-3 rounded-2xl border border-dashed border-mist/[0.14] p-4 text-[13.5px] text-[var(--muted)] md:col-span-2">
             <ImagePlus className="mt-0.5 h-5 w-5 shrink-0 text-brand-200" aria-hidden />
-            Profile photo: you can add one to your member profile once your membership is confirmed.
+            <span>
+              Profile photograph: add it from your{' '}
+              <Link href="/dashboard?tab=profile" className="font-medium text-[var(--fg)] underline underline-offset-2">
+                member dashboard
+              </Link>{' '}
+              — log in or create a free account with the same email you use here, and your application is linked to it.
+            </span>
           </div>
         </div>
       </fieldset>

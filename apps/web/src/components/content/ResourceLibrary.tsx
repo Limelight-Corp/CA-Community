@@ -107,7 +107,8 @@ const FORMAT_ICON: Record<string, React.ComponentType<{ className?: string }>> =
 
 function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; wide?: boolean }) {
   const Icon = FORMAT_ICON[r.format.toLowerCase().split(/[^a-z]+/)[0] ?? ''] ?? FileText;
-  const isMember = !!useAuth().user;
+  const { user } = useAuth();
+  const isMember = !!user?.isMember;
   return (
     <FxCard
       as="article"
@@ -167,7 +168,7 @@ function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; 
               <Link href="/join" className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-gold hover:text-gold-soft">
                 <Lock className="h-4 w-4" aria-hidden /> Join to unlock<span className="sr-only">: {r.title}</span>
               </Link>
-              {!isMember && r.fileUrl && (
+              {!isMember && !user && r.fileUrl && (
                 <a href={r.fileUrl} className="text-[12.5px] font-medium text-[var(--muted)] underline-offset-4 hover:text-[var(--fg)] hover:underline">
                   Member? Log in<span className="sr-only"> to open {r.title}</span>
                 </a>

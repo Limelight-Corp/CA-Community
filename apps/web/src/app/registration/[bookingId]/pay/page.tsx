@@ -1,13 +1,12 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft, CalendarDays, Clock, Mail, MapPin, Phone, User } from 'lucide-react';
 import { AccentText, Container, Kicker, Stepper } from '@ascend/ui';
 import { getSettings } from '../../../../lib/community-store';
 import { formatEventDate, locationLabel, priceLabel } from '../../../../lib/events';
-import { MEMBER_COOKIE, hasMemberSession, loginUrl } from '../../../../lib/member-session';
+import { currentMember, loginUrl } from '../../../../lib/member-session';
 import { findEventById, findRegistrationWithToken, razorpayConfig } from '../../../api/registrations/_lib/server';
 import { PaymentMethods } from '../../../../components/events/PaymentMethods';
 import { PayPanel } from '../../../../components/events/PayPanel';
@@ -54,7 +53,7 @@ export default async function PaymentPage({
   if (reg.status !== 'pending_payment' || reg.paymentStatus === 'paid' || reg.fee <= 0) redirect(receipt);
 
   // Login is asked for here — only when the visitor is about to pay.
-  if (!hasMemberSession((await cookies()).get(MEMBER_COOKIE)?.value)) redirect(loginUrl(self));
+  if (!(await currentMember())) redirect(loginUrl(self));
 
   const settings = getSettings();
   const event = findEventById(reg.eventId);

@@ -254,7 +254,7 @@ export function SupportChat() {
         </header>
 
         {/* Conversation */}
-        <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4" aria-live="polite">
+        <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-live="polite">
           {messages.length === 0 && (
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl rounded-tl-md border border-mist/[0.1] bg-mist/[0.04] px-4 py-3 text-[14px] leading-relaxed text-[var(--fg-soft)]">

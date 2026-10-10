@@ -8,6 +8,7 @@ import { getSettings } from '../../../lib/community-store';
 import { dateParts, formatEventDate, locationLabel, priceLabel } from '../../../lib/events';
 import { siteUrl } from '../../../lib/seo';
 import { certificatePdfPath, isCertificateValid } from '../../../lib/certificates';
+import { checkinPayload, checkinQrSvg, ensureCheckinCode } from '../../../lib/checkin';
 import { findEventById, findRegistrationWithToken, razorpayConfig } from '../../api/registrations/_lib/server';
 import { mapsLink } from '../../../components/events/event-time';
 import {
@@ -94,6 +95,8 @@ export default async function RegistrationPage({
           ? 'failed'
           : 'pending';
   const badge = BADGE[view];
+  // Entry QR only for confirmed bookings (pending / cancelled bookings are not valid for entry).
+  const qrSvg = view === 'confirmed' ? await checkinQrSvg(checkinPayload(reg, ensureCheckinCode(reg))) : null;
   const gatewayOn = !!razorpayConfig();
   const emailOn = !!process.env.SMTP_HOST;
   const feeLabel = priceLabel(reg.fee);
@@ -309,6 +312,25 @@ export default async function RegistrationPage({
               </div>
             )}
           </div>
+
+          {qrSvg && (
+            <div className="flex flex-col items-center gap-5 border-b border-dashed border-mist/[0.16] p-6 sm:flex-row md:p-8 print:border-black/30">
+              <div
+                className="h-[176px] w-[176px] shrink-0 overflow-hidden rounded-2xl bg-white p-2.5 shadow-[0_18px_40px_-20px_rgb(var(--gold-rgb)/0.8)] ring-2 ring-gold/40 [&>svg]:h-full [&>svg]:w-full"
+                role="img"
+                aria-label={`Entry QR code for booking ${reg.bookingId}`}
+                dangerouslySetInnerHTML={{ __html: qrSvg }}
+              />
+              <div className="text-center sm:text-left">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-gold print:text-black/70">Entry pass</p>
+                <p className="mt-1 font-display text-[22px] font-medium leading-tight text-[var(--fg)] print:text-black">Show this QR at the entrance</p>
+                <p className="mt-1.5 max-w-[46ch] text-[14px] leading-relaxed text-[var(--muted)] print:text-black/70">
+                  Our volunteers scan it to check you in. Keep this page open, take a screenshot or print it. Your booking ID{' '}
+                  <span className="font-mono text-[var(--fg)] print:text-black">{reg.bookingId}</span> also works.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-0 md:grid-cols-2">
             <section aria-labelledby="attendee-h" className="p-6 md:border-r md:border-mist/[0.1] md:p-8 print:border-black/20">

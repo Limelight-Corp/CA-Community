@@ -18,8 +18,8 @@ import {
   Megaphone,
   Mic2,
   Newspaper,
-  Palette,
   Quote,
+  ScanLine,
   Settings,
   Sparkles,
   Ticket,
@@ -55,6 +55,7 @@ const NAV: { heading: string; items: NavItem[] }[] = [
     items: [
       { href: '/events', label: 'Events', icon: CalendarDays },
       { href: '/registrations', label: 'Registrations', icon: Ticket },
+      { href: '/checkin', label: 'Check-in scanner', icon: ScanLine },
       { href: '/payments', label: 'Payments', icon: CreditCard, badge: 'pendingPayments' },
     ],
   },
@@ -83,7 +84,6 @@ const NAV: { heading: string; items: NavItem[] }[] = [
     items: [
       { href: '/settings', label: 'Site Settings', icon: Settings },
       { href: '/settings#announcement', label: 'Announcement bar', icon: Megaphone },
-      { href: '/theme', label: 'Theme Studio', icon: Palette },
     ],
   },
 ];

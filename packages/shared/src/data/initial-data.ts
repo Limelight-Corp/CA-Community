@@ -260,6 +260,8 @@ export interface CommunityRegistration {
   attendedAt?: string;
   /** Issued at check-in; used for the certificate PDF and /verify/<id>. */
   certificateId?: string;
+  /** Random code in the ticket QR (separate from accessToken, so a QR photo can't open the booking). */
+  checkinCode?: string;
   createdAt: string;
   updatedAt: string;
 }

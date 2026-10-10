@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import {
   MEMBERSHIP_PLANS,
+  membershipState,
   ORG_WINGS,
   type CommunityMemberApplication,
   type CommunityRegistration,
@@ -12,7 +13,7 @@ import { MEMBER_STATUS_LABEL, PAYMENT_STATUS_LABEL, REGISTRATION_STATUS_LABEL, s
 import { bad, handleError } from '../../../../lib/api-helpers';
 
 /**
- * Data exports: GET /api/export/{registrations|payments|members}?format=csv|xls&<filters>
+ * Data exports: GET /api/export/{registrations|payments|members}?format=csv|xlsx&<filters>
  *
  * Filters mirror the admin tables (q, event, payment, status, plan, city) so the file contains
  * what the admin sees. Protected by the admin access gate (src/middleware.ts).
@@ -33,8 +34,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
     if (!(DATASETS as readonly string[]).includes(dataset)) return bad('Unknown export', 404);
     const sp = request.nextUrl.searchParams;
     const formatParam = sp.get('format') ?? 'csv';
-    if (formatParam !== 'csv' && formatParam !== 'xls') return bad('Format must be csv or xls');
-    const format = formatParam as ExportFormat;
+    if (formatParam !== 'csv' && formatParam !== 'xlsx' && formatParam !== 'xls') return bad('Format must be csv or xlsx');
+    // "xls" (old links) now gets the modern .xlsx file too.
+    const format: ExportFormat = formatParam === 'csv' ? 'csv' : 'xlsx';
 
     const priv = readPrivate();
     const events = readStore().events;
@@ -62,6 +64,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
           { header: 'Designation', value: (r) => r.designation },
           { header: 'Membership No.', value: (r) => r.membershipNo },
           { header: 'Special requirements', value: (r) => r.requirements },
+          { header: 'WhatsApp opt-in', value: (r) => (r.whatsappOptIn ? 'Yes' : 'No') },
           { header: 'Fee (INR)', value: (r) => Number(r.fee) || 0 },
           { header: 'Registration status', value: (r) => REGISTRATION_STATUS_LABEL[r.status] ?? r.status },
           { header: 'Payment status', value: (r) => PAYMENT_STATUS_LABEL[r.paymentStatus] ?? r.paymentStatus },
@@ -129,6 +132,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
           { header: 'LinkedIn', value: (m) => m.linkedinUrl },
           { header: 'Wing interests', value: wingNames },
           { header: 'Status', value: (m) => MEMBER_STATUS_LABEL[m.status] ?? m.status },
+          { header: 'Membership', value: (m) => ({ active: 'Active', awaiting_payment: 'Payment due', expired: 'Expired' })[membershipState(m) as string] ?? '' },
+          { header: 'Valid until', value: (m) => m.validUntil?.slice(0, 10) },
+          { header: 'Total paid (INR)', value: (m) => (m.payments ?? []).reduce((sum, p) => sum + p.amount, 0) },
+          { header: 'Last receipt', value: (m) => m.payments?.at(-1)?.id },
           { header: 'Applied at', value: (m) => m.createdAt },
           { header: 'Updated at', value: (m) => m.updatedAt },
         ];

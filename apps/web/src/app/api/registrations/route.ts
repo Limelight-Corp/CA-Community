@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { CommunityRegistration } from '@ascend/shared';
 import { mutatePrivate, newId, newSecret } from '../../../lib/community-store';
 import { canRegister, seatsLeft } from '../../../lib/events';
+import { notifyRegistrationCreated } from '../../../lib/notifications';
 import {
   clientIp,
   findPublishedEvent,
@@ -10,6 +11,7 @@ import {
   rateLimit,
   takeSeat,
 } from './_lib/server';
+import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstile';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,6 +40,7 @@ const RegistrationInput = z.object({
   organisation: optionalText(120),
   designation: optionalText(120),
   requirements: optionalText(1000),
+  whatsappOptIn: z.boolean().optional(),
   acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Please accept the event terms' }) }),
   /** Honeypot: real users never see or fill this. */
   website: z.string().optional(),
@@ -58,6 +61,8 @@ export async function POST(req: Request) {
   } catch {
     return json({ error: 'Invalid request.' }, 400);
   }
+
+  if (!(await verifyTurnstile(tokenFrom(body), clientIp(req)))) return json({ error: CAPTCHA_ERROR }, 400);
 
   const parsed = RegistrationInput.safeParse(body);
   if (!parsed.success) {
@@ -85,12 +90,18 @@ export async function POST(req: Request) {
     | { kind: 'closed'; message: string }
     | { kind: 'created'; reg: CommunityRegistration };
 
+  // An unpaid booking left untouched for a day counts as abandoned: it no longer blocks a fresh
+  // registration with the same email. It is kept as-is, so a late payment can still be verified.
+  const abandonedBefore = Date.now() - 24 * 60 * 60 * 1000;
+  const isAbandoned = (r: CommunityRegistration) =>
+    r.status === 'pending_payment' && !r.paidAt && Date.parse(r.updatedAt || r.createdAt) < abandonedBefore;
+
   const outcome = mutatePrivate<Outcome>((data) => {
     const existing = data.registrations.find(
       (r) =>
         r.eventId === event.id &&
         r.email.toLowerCase() === input.email &&
-        (r.status === 'confirmed' || r.status === 'pending_payment')
+        (r.status === 'confirmed' || (r.status === 'pending_payment' && !isAbandoned(r)))
     );
     if (existing) {
       // Only hand back the existing booking to someone who also knows the registered mobile.
@@ -107,6 +118,7 @@ export async function POST(req: Request) {
       id: newId('reg'),
       bookingId: generateBookingId(event, data.registrations),
       accessToken: newSecret(),
+      checkinCode: newSecret(),
       eventId: event.id,
       eventSlug: event.slug,
       eventTitle: event.title,
@@ -118,6 +130,7 @@ export async function POST(req: Request) {
       organisation: input.organisation,
       designation: input.designation,
       requirements: input.requirements,
+      whatsappOptIn: input.whatsappOptIn === true || undefined,
       fee,
       status: fee > 0 ? 'pending_payment' : 'confirmed',
       paymentStatus: fee > 0 ? 'pending' : 'not_required',
@@ -143,6 +156,7 @@ export async function POST(req: Request) {
   const reg = outcome.reg;
   // Free registrations take their seat immediately (synchronously after the private write).
   if (outcome.kind === 'created' && reg.status === 'confirmed') takeSeat(event.id);
+  if (outcome.kind === 'created') notifyRegistrationCreated(reg, event);
 
   // Paid bookings are paid on the separate payment page (which requires a member login).
   return json(

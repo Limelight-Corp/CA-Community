@@ -1,3 +1,4 @@
+import { EVENT_CATEGORIES } from '../constants/organisation';
 import { z } from 'zod';
 
 export const AgendaItemSchema = z.object({
@@ -10,7 +11,7 @@ export const CreateEventSchema = z.object({
   slug: z.string().trim().min(2).regex(/^[a-z0-9-]+$/, 'Slug must be URL-safe lowercase with hyphens'),
   title: z.string().trim().min(3, 'Title is required'),
   wingNumber: z.number().int().min(1).max(10),
-  category: z.enum(['Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Career']),
+  category: z.enum(EVENT_CATEGORIES),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
   time: z.string().trim().min(2, 'Time is required (e.g. 10:00 AM)'),
   venue: z.string().trim().min(2, 'Venue is required'),
@@ -32,7 +33,7 @@ export const EventFilterSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
   q: z.string().optional(),
-  category: z.enum(['All', 'Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Career']).default('All'),
+  category: z.enum(['All', ...EVENT_CATEGORIES]).default('All'),
   mode: z.enum(['', 'Online', 'Offline']).optional(),
   wing: z.coerce.number().int().min(1).max(10).optional(),
   city: z.string().optional(),

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import type { CommunityRegistration } from '@ascend/shared';
 import { mutatePrivate } from '../../../../lib/community-store';
+import { notifyPaymentConfirmed, notifyPaymentFailed } from '../../../../lib/notifications';
 import { clientIp, rateLimit, safeEqual, takeSeat, verifyRazorpaySignature } from '../_lib/server';
 
 export const runtime = 'nodejs';
@@ -34,8 +36,8 @@ export async function POST(req: Request) {
 
   type Result =
     | { kind: 'notfound' }
-    | { kind: 'paid'; eventId: string; firstTime: boolean; status: string; paymentStatus: string }
-    | { kind: 'failed'; status: string; paymentStatus: string };
+    | { kind: 'paid'; eventId: string; firstTime: boolean; status: string; paymentStatus: string; reg: CommunityRegistration }
+    | { kind: 'failed'; status: string; paymentStatus: string; reg: CommunityRegistration; newlyFailed: boolean };
 
   const result = mutatePrivate<Result>((data) => {
     const reg = data.registrations.find((r) => r.bookingId === input.bookingId);
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
 
     // Idempotent: an already-paid registration stays paid and never takes a second seat.
     if (reg.paymentStatus === 'paid') {
-      return { kind: 'paid', eventId: reg.eventId, firstTime: false, status: reg.status, paymentStatus: reg.paymentStatus };
+      return { kind: 'paid', eventId: reg.eventId, firstTime: false, status: reg.status, paymentStatus: reg.paymentStatus, reg: { ...reg } };
     }
 
     const orderMatches = !!reg.gatewayOrderId && safeEqual(reg.gatewayOrderId, input.razorpay_order_id || '');
@@ -54,22 +56,29 @@ export async function POST(req: Request) {
       reg.gatewayPaymentId = input.razorpay_payment_id;
       reg.paidAt = stamp;
       reg.updatedAt = stamp;
-      return { kind: 'paid', eventId: reg.eventId, firstTime: true, status: reg.status, paymentStatus: reg.paymentStatus };
+      return { kind: 'paid', eventId: reg.eventId, firstTime: true, status: reg.status, paymentStatus: reg.paymentStatus, reg: { ...reg } };
     }
 
     // Keep the registration; the registrant can retry with a fresh order.
+    let newlyFailed = false;
     if (reg.status === 'pending_payment') {
+      newlyFailed = reg.paymentStatus !== 'failed';
       reg.paymentStatus = 'failed';
       reg.updatedAt = stamp;
     }
-    return { kind: 'failed', status: reg.status, paymentStatus: reg.paymentStatus };
+    return { kind: 'failed', status: reg.status, paymentStatus: reg.paymentStatus, reg: { ...reg }, newlyFailed };
   });
 
   if (result.kind === 'notfound') return json({ error: 'Registration not found.' }, 404);
   if (result.kind === 'paid') {
-    if (result.firstTime) takeSeat(result.eventId);
+    if (result.firstTime) {
+      takeSeat(result.eventId);
+      notifyPaymentConfirmed(result.reg);
+    }
     return json({ ok: true, status: result.status, paymentStatus: result.paymentStatus });
   }
+  // One "payment failed" email per attempt (a retry resets the status to pending).
+  if (result.newlyFailed) notifyPaymentFailed(result.reg);
   return json(
     {
       ok: false,

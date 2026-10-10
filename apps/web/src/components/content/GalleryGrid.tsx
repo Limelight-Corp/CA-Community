@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, Images, MapPin, Play, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Images, MapPin, Maximize2, Play, X } from 'lucide-react';
 import { EmptyState, cn } from '@ascend/ui';
 import { chipClass } from './ui';
+import { FxCard } from '../home/Interactive';
 
 export interface GalleryCardData {
   id: string;
@@ -22,6 +23,20 @@ export interface GalleryCardData {
 /** Bento rhythm: some tiles span two columns / rows for a magazine feel. */
 const SPANS = ['sm:col-span-2 sm:row-span-2', '', 'sm:row-span-2', '', 'sm:col-span-2', '', '', 'sm:row-span-2'];
 
+/** Grid cells a tile takes (columns × rows) for its span class. */
+const cells = (span: string) => (span.includes('col-span-2') ? 2 : 1) * (span.includes('row-span-2') ? 2 : 1);
+
+/** Span per tile; widens the last plain tile when exactly one cell would be left empty in a 4-column grid. */
+function tileSpans(count: number): string[] {
+  const spans = Array.from({ length: count }, (_, i) => SPANS[i % SPANS.length]!);
+  const total = spans.reduce((n, sp) => n + cells(sp), 0);
+  if (total % 4 === 3 || total % 2 === 1) {
+    const last = spans.length - 1;
+    if (last >= 0 && spans[last] === '') spans[last] = 'sm:col-span-2';
+  }
+  return spans;
+}
+
 export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; categories: string[] }) {
   const [active, setActive] = useState('All');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -31,6 +46,8 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
     () => (active === 'All' ? items : items.filter((g) => g.category.toLowerCase() === active.toLowerCase())),
     [items, active]
   );
+
+  const spans = useMemo(() => tileSpans(visible.length), [visible.length]);
 
   const close = useCallback(() => {
     setOpenIndex(null);
@@ -55,8 +72,9 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
       {visible.length === 0 ? (
         <EmptyState icon={<Images />} title="No moments here yet" description="Photos and videos will appear after our first events." />
       ) : (
-        <ul className="grid auto-rows-[220px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid grid-flow-row-dense auto-rows-[220px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {visible.map((g, i) => {
+            const span = spans[i] ?? '';
             const hasMedia = !!(g.image || g.embedUrl);
             const isVideo = !!(g.embedUrl || g.videoUrl);
             const inner = (
@@ -65,18 +83,32 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={g.image} alt={g.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
                 ) : (
-                  <div className="grain absolute inset-0 transition-transform duration-700 group-hover:scale-[1.06]" style={{ background: g.gradient }} aria-hidden />
+                  <div className="grain absolute inset-0 overflow-hidden bg-brand-950" aria-hidden>
+                    <div className="mesh-drift" style={{ background: g.gradient, animationDelay: `${-i * 2.7}s` }} />
+                    <div
+                      className="absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-100"
+                      style={{ background: `radial-gradient(55% 65% at ${i % 2 ? '25%' : '78%'} 22%, rgb(var(--${i % 3 === 1 ? 'gold' : 'lime'}-rgb) / 0.45), transparent 70%)` }}
+                    />
+                    <span className="fx-ghost text-outline pointer-events-none absolute -right-2 -top-6 select-none font-display text-[clamp(110px,12vw,180px)] font-semibold leading-none tracking-[-0.06em] opacity-50">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                  </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-bg/90 via-bg/20 to-transparent" aria-hidden />
-                {isVideo && (
+                {isVideo ? (
                   <span className="absolute right-4 top-4 grid h-12 w-12 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-transform duration-500 group-hover:scale-110" aria-hidden>
+                    <span className="absolute inset-0 animate-ping rounded-full bg-white/20 motion-reduce:hidden" />
                     <Play className="h-5 w-5 fill-current" />
                   </span>
-                )}
+                ) : hasMedia ? (
+                  <span className="reveal-up absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md" aria-hidden>
+                    <Maximize2 className="h-4 w-4" />
+                  </span>
+                ) : null}
                 <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-5 text-left">
                   <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-gold-soft">{g.category}</span>
-                  <span className="font-display text-[clamp(18px,1.8vw,24px)] font-medium leading-tight tracking-[-0.03em] text-white">{g.title}</span>
-                  <span className="flex items-center gap-1.5 text-[12.5px] text-white/70">
+                  <span className="font-display text-[clamp(18px,1.8vw,24px)] font-medium leading-tight tracking-[-0.03em] text-white transition-transform duration-500 group-hover:-translate-y-1">{g.title}</span>
+                  <span className="reveal-up flex items-center gap-1.5 text-[12.5px] text-white/70">
                     {g.location && <MapPin className="h-3.5 w-3.5" aria-hidden />}
                     {[g.location, g.date].filter(Boolean).join(' · ')}
                   </span>
@@ -85,7 +117,7 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
             );
             const tileClass = cn('group relative block h-full w-full overflow-hidden rounded-[24px] border border-mist/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold');
             return (
-              <li key={g.id} className={cn(SPANS[i % SPANS.length])}>
+              <FxCard as="li" key={g.id} max={4} className={cn('rounded-[24px]', span)}>
                 {hasMedia ? (
                   <button
                     type="button"
@@ -105,7 +137,7 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
                 ) : (
                   <div className={tileClass}>{inner}</div>
                 )}
-              </li>
+              </FxCard>
             );
           })}
         </ul>

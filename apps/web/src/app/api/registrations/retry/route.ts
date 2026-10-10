@@ -9,7 +9,7 @@ import {
   findRegistrationWithToken,
   rateLimit,
 } from '../_lib/server';
-import { hasMemberSession, memberTokenFromRequest } from '../../../../lib/member-session';
+import { memberFromRequest } from '../../../../lib/member-session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   if (!rateLimit(`retry:${clientIp(req)}`, 15, 10 * 60_000)) {
     return json({ error: 'Too many attempts. Please wait a few minutes.' }, 429);
   }
-  if (!hasMemberSession(memberTokenFromRequest(req))) {
+  if (!memberFromRequest(req)) {
     return json({ error: 'Please log in to pay for this registration.', loginRequired: true }, 401);
   }
   const parsed = RetryInput.safeParse(await req.json().catch(() => null));
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
   const event = findEventById(reg.eventId);
   const status = event ? eventStatus(event) : 'closed';
-  if (!event || status === 'past' || status === 'closed' || seatsLeft(event) <= 0) {
+  if (!event || status === 'past' || status === 'closed' || status === 'cancelled' || seatsLeft(event) <= 0) {
     return json({ ...base, error: 'Payments for this event are closed. Please contact us for help.' }, 409);
   }
 

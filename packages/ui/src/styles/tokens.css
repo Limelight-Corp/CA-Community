@@ -1810,3 +1810,92 @@ footer .wrap {
 @media (prefers-reduced-motion: reduce) {
   .holo::before, .btn-shimmer::after { animation: none !important; }
 }
+
+/* ==========================================================================================
+ * Listing pages (events, speakers, resources, news, gallery, join)
+ * ========================================================================================== */
+
+/* Generated cover art that slowly drifts (put on an oversized absolute layer) */
+.mesh-drift {
+  position: absolute;
+  inset: -8%;
+  animation: mesh-drift 14s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes mesh-drift {
+  0% { transform: translate3d(-3%, -2%, 0) scale(1); }
+  100% { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+
+/* Ticket perforation between an event banner and its details */
+.ticket-cut {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed rgb(var(--mist-rgb) / 0.16);
+}
+.ticket-cut::before,
+.ticket-cut::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px rgb(var(--mist-rgb) / 0.1);
+}
+.ticket-cut::before { left: -32px; }
+.ticket-cut::after { right: -32px; }
+
+/* Seats meter */
+.meter {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--mist-rgb) / 0.1);
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--grad-gold);
+  box-shadow: 0 0 12px rgb(var(--gold-rgb) / 0.55);
+  transform-origin: left;
+  animation: meter-fill 1.4s var(--ease-out-expo) both;
+}
+@keyframes meter-fill { from { transform: scaleX(0); } }
+
+/* Spinning conic halo behind an avatar — brightens on hover / when live on touch */
+.halo {
+  position: relative;
+  isolation: isolate;
+}
+.halo::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.35;
+  background: conic-gradient(from var(--shine-angle, 0deg), var(--gold), var(--brand-300), transparent 45%, var(--gold));
+  animation: shine-spin 6s linear infinite;
+  transition: opacity 0.4s;
+}
+.group:hover .halo::before,
+.fx-live .halo::before { opacity: 1; }
+
+/* Content that slides up from the bottom of a tile on hover / when live on touch */
+.reveal-up {
+  transform: translateY(10px);
+  opacity: 0.0001;
+  transition: transform 0.5s var(--ease-out-expo), opacity 0.4s;
+}
+.group:hover .reveal-up,
+.group:focus-visible .reveal-up,
+.fx-live .reveal-up { transform: none; opacity: 1; }
+@media (hover: none) { .reveal-up { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mesh-drift, .meter > span, .halo::before { animation: none !important; }
+  .reveal-up { transition: none; }
+}

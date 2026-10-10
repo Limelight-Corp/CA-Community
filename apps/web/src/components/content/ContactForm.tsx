@@ -5,12 +5,16 @@ import Link from 'next/link';
 import { ArrowUpRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { FormField, fieldInputClass } from '@ascend/ui';
 import { HONEYPOT_FIELD, contactMessageSchema, fieldErrors } from '../../lib/form-schemas';
+import { Turnstile, useCaptchaEnabled } from '../site/Turnstile';
 
 type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'done' } | { kind: 'error'; message: string };
 
 export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaOn = useCaptchaEnabled();
   const formRef = useRef<HTMLFormElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
 
@@ -35,13 +39,18 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
       return;
     }
     setErrors({});
+    if (captchaOn && !captcha) {
+      setStatus({ kind: 'error', message: 'Please complete the security check.' });
+      return;
+    }
     setStatus({ kind: 'submitting' });
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, turnstileToken: captcha }),
       });
+      setCaptchaReset((n) => n + 1);
       const json = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string; fieldErrors?: Record<string, string> };
       if (res.ok && json.success) {
         setStatus({ kind: 'done' });
@@ -105,6 +114,8 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
         <label htmlFor="contact-website">Website</label>
         <input id="contact-website" type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" />
       </div>
+
+      <Turnstile onToken={setCaptcha} resetKey={captchaReset} className="md:col-span-2" />
 
       <p className="text-[12.5px] leading-relaxed text-[var(--muted)] md:col-span-2">
         We use your details only to reply to you. See our{' '}

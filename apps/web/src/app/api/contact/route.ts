@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { CommunityContactMessage } from '@ascend/shared';
-import { mutatePrivate, newId } from '../../../lib/community-store';
+import { saveContactMessage } from '../../../lib/leads';
 import { clientIp, HONEYPOT_FIELD, rateLimit, readJsonBody } from '../../../lib/form-guard';
 import { contactMessageSchema, fieldErrors } from '../../../lib/form-schemas';
+import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstile';
 
 /** Public contact form (Website Checklist §13). Messages go to the PRIVATE store with status "new". */
 export async function POST(request: NextRequest) {
@@ -23,6 +23,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  if (!(await verifyTurnstile(tokenFrom(body), clientIp(request)))) {
+    return NextResponse.json({ success: false, error: CAPTCHA_ERROR }, { status: 400 });
+  }
+
   const parsed = contactMessageSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -32,15 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    mutatePrivate((data) => {
-      const message: CommunityContactMessage = {
-        id: newId('msg'),
-        ...parsed.data,
-        status: 'new',
-        createdAt: new Date().toISOString(),
-      };
-      data.messages.push(message);
-    });
+    saveContactMessage(parsed.data);
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.error('Failed to save contact message:', error);

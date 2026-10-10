@@ -61,6 +61,11 @@ export function safeUrl(url?: string): string | undefined {
   }
 }
 
+/** Public link for a resource file; the route enforces members-only access. */
+export function resourceDownloadUrl(id: string): string {
+  return `/api/resources/${encodeURIComponent(id)}/download`;
+}
+
 function hash(seed: string): number {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;

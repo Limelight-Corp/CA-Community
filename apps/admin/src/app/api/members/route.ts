@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { readPrivate } from '../../../lib/community-store';
+import { membershipFeeFor, type CommunityMemberApplication } from '@ascend/shared';
+import { getSettings, readPrivate } from '../../../lib/community-store';
+import { notifyMembershipApproved } from '../../../lib/notifications';
 import { updateMember } from '../../../lib/admin-data';
 import { externalUrl, issuesToFieldErrors } from '../../../lib/content-validation';
 import { byNewest, filterMembers } from '../../../lib/filters';
@@ -53,7 +55,15 @@ export async function PATCH(request: NextRequest) {
       const fieldErrors = issuesToFieldErrors(parsed.error);
       return bad(Object.values(fieldErrors)[0] ?? 'Invalid data', 422, fieldErrors);
     }
-    const item = updateMember(id, parsed.data);
+    const before = readPrivate().members.find((m) => m.id === id);
+    const changes: Partial<CommunityMemberApplication> = { ...parsed.data };
+    const approving = parsed.data.status === 'approved' && before?.status !== 'approved';
+    // Approval fixes the annual fee the applicant will pay (unless they already paid).
+    if (approving && !before?.payments?.length) {
+      changes.membershipFee = membershipFeeFor(parsed.data.plan ?? before?.plan ?? 'core', getSettings());
+    }
+    const item = updateMember(id, changes);
+    if (approving && !item.payments?.length) notifyMembershipApproved(item);
     return NextResponse.json({ success: true, item });
   } catch (error) {
     return handleError(error, 'Members PATCH');

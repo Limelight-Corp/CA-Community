@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { wingSlug } from '@ascend/shared';
 import { cn } from '@ascend/ui';
 
 export interface OrbitWing {
@@ -38,7 +39,7 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
           return (
             <li key={w.id}>
               <Link
-                href="/about#wings"
+                href={`/wings/${wingSlug(w.name)}`}
                 {...handlers(w)}
                 className={cn(
                   'group relative flex items-center gap-4 overflow-hidden border-b border-mist/[0.08] py-3.5 pl-3 pr-2 transition-all duration-500',
@@ -158,7 +159,7 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
               >
                 <div className="orbit-node">
                   <Link
-                    href="/about#wings"
+                    href={`/wings/${wingSlug(w.name)}`}
                     tabIndex={-1}
                     {...handlers(w)}
                     className={cn(

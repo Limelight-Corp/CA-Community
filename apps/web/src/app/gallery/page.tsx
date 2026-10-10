@@ -43,7 +43,7 @@ export default function GalleryPage() {
         lead="Conferences, workshops, networking nights and community days — the energy, captured."
         ghost="FRAMES"
       />
-      <Section>
+      <Section className="pt-12 md:pt-16">
         <Container size="wide">
           <GalleryGrid items={items} categories={mergeCategories(GALLERY_CATEGORIES, gallery)} />
         </Container>

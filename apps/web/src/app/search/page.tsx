@@ -1,12 +1,13 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowUpRight, CalendarDays, FileText, Mic2, Newspaper, Search } from 'lucide-react';
+import { ArrowUpRight, BriefcaseBusiness, CalendarDays, FileText, Mic2, Newspaper, Search } from 'lucide-react';
 import type { CommunityEvent, CommunityNews, CommunityResource, CommunitySpeaker } from '@ascend/shared';
 import { AccentText, Avatar, Container, Kicker, cn, fieldInputClass } from '@ascend/ui';
 import { getItems } from '../../lib/community-store';
 import { formatEventDate, locationLabel } from '../../lib/events';
 import { formatDisplayDate, safeUrl, truncate } from '../../lib/content';
+import { openJobs } from '../../lib/jobs';
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 
@@ -43,13 +44,15 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
   const speakers = has
     ? getItems<CommunitySpeaker>('speakers', true).filter((s) => matches(terms, s.name, s.title, s.bio, s.organisation, s.qualification, s.expertise))
     : [];
-  const total = events.length + news.length + resources.length + speakers.length;
+  const jobs = has ? openJobs().filter((j) => matches(terms, j.title, j.organisation, j.type, j.location, j.description, j.experience, j.wing)) : [];
+  const total = events.length + news.length + resources.length + speakers.length + jobs.length;
 
   const groups = [
     { id: 'events', label: 'Events', count: events.length, icon: CalendarDays },
     { id: 'news', label: 'News & articles', count: news.length, icon: Newspaper },
     { id: 'resources', label: 'Resources', count: resources.length, icon: FileText },
     { id: 'speakers', label: 'Speakers', count: speakers.length, icon: Mic2 },
+    { id: 'careers', label: 'Careers', count: jobs.length, icon: BriefcaseBusiness },
   ];
 
   return (
@@ -186,6 +189,13 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
                 text={s.expertise.join(' · ')}
                 media={<Avatar name={s.name} src={safeUrl(s.avatarUrl)} size={52} rounded="xl" />}
               />
+            ))}
+          </ResultGroup>
+        )}
+        {jobs.length > 0 && (
+          <ResultGroup id="careers" title="Careers & articleship" count={jobs.length}>
+            {jobs.map((j) => (
+              <ResultRow key={j.id} href={`/careers/${j.slug}`} title={j.title} meta={`${j.organisation} · ${j.type} · ${j.location}`} text={truncate(j.description, 160)} />
             ))}
           </ResultGroup>
         )}

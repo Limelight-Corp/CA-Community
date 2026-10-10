@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, ArrowRight, CreditCard, Loader2, Lock } from 'lucide-react';
 import { cn } from '@ascend/ui';
 import { trackEvent } from '../site/Providers';
-import { loginUrl } from '../../lib/member-session';
+import { loginUrl } from '../../lib/auth-paths';
 import { payWithRazorpay, type PaymentInit } from './razorpay-client';
 
 export interface PayPanelProps {

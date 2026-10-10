@@ -1,12 +1,14 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { Briefcase, Check, GraduationCap, Handshake, Lightbulb, Rocket, Users } from 'lucide-react';
+import { Briefcase, Check, ChevronDown, GraduationCap, Handshake, Lightbulb, Rocket, Users } from 'lucide-react';
 import {
   MEMBERSHIP_PLANS,
+  membershipFeeFor,
   MEMBER_IDENTITIES,
   MEMBER_JOURNEY,
   ORG_POSITIONING,
   ORG_WINGS,
+  wingSlug,
   WHY_JOIN,
   type CommunityWing,
   type MembershipPlan,
@@ -16,6 +18,7 @@ import { Marquee, Reveal } from '../../components/ui-client';
 import { getItems, getSettings } from '../../lib/community-store';
 import { PageHero, PillLink, Section } from '../../components/content/ui';
 import { JoinForm } from '../../components/content/JoinForm';
+import { FxCard } from '../../components/home/Interactive';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -36,7 +39,7 @@ const WHY_ICONS = {
 } as const;
 
 function priceLabel(p: MembershipPlan) {
-  return `₹${p.price.toLocaleString('en-IN')} / ${p.period}${p.priceNote ? ` ${p.priceNote}` : ''}`;
+  return `₹${p.price.toLocaleString('en-IN')} / ${p.period}`;
 }
 
 type PlanKey = MembershipPlan['key'];
@@ -45,8 +48,12 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const requested = typeof sp.plan === 'string' ? sp.plan : undefined;
   const initialPlan = MEMBERSHIP_PLANS.some((p) => p.key === requested) ? (requested as PlanKey) : undefined;
+  const requestedWing = typeof sp.wing === 'string' ? ORG_WINGS.find((w) => wingSlug(w.name) === sp.wing) : undefined;
 
   const storeWings = getItems<CommunityWing>('wings', true);
+  // Annual fees come from Site Settings (defaults: the Blueprint prices).
+  const settingsForFees = getSettings();
+  const plans = MEMBERSHIP_PLANS.map((p) => ({ ...p, price: membershipFeeFor(p.key, settingsForFees) }));
   const wings = ORG_WINGS.map((w) => ({
     number: w.number,
     name: w.name,
@@ -83,71 +90,133 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                 Pick your <AccentText tone="gold">lane.</AccentText>
               </h2>
             </div>
-            <p className="font-mono text-[11.5px] uppercase tracking-[0.12em] text-[var(--muted)]">Proposed plans — subject to confirmation</p>
+            <p className="font-mono text-[11.5px] uppercase tracking-[0.12em] text-[var(--muted)]">Annual fees · pay after your application is approved · valid 12 months</p>
           </div>
 
-          <ul className="mt-14 grid gap-5 lg:grid-cols-3">
-            {MEMBERSHIP_PLANS.map((plan, i) => (
-              <Reveal as="li" key={plan.key} delay={i * 100} className="h-full">
-                <article
-                  className={cn(
-                    'shine relative flex h-full flex-col gap-7 overflow-hidden rounded-[30px] border p-7 md:p-9',
-                    plan.featured ? 'grain border-gold/50 bg-grad-surface shadow-[0_30px_80px_-40px_rgb(var(--gold-rgb)/0.6)] lg:-translate-y-4' : 'border-mist/[0.1] bg-grad-surface'
-                  )}
-                  aria-labelledby={`plan-${plan.key}`}
-                >
-                  {plan.featured && (
-                    <>
-                      <div className="aurora opacity-50" aria-hidden>
-                        <i />
-                      </div>
-                      <span className="absolute right-6 top-6 z-10 rounded-full bg-grad-gold px-3 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-brand-950">
-                        Most popular
+          <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {plans.map((plan, i) => {
+              const top = plan.benefits.slice(0, 4);
+              const more = plan.benefits.slice(4);
+              return (
+                <Reveal as="li" key={plan.key} delay={i * 100} className={cn('h-full', plan.featured && 'md:col-span-2 lg:col-span-1')}>
+                  <FxCard
+                    as="article"
+                    max={6}
+                    className={cn(
+                      'group flex h-full flex-col gap-5 rounded-[28px] p-3',
+                      plan.featured
+                        ? 'border border-transparent [background:var(--grad-surface)_padding-box,linear-gradient(160deg,rgb(var(--gold-rgb)/0.75),rgb(var(--brand-300-rgb)/0.35)_45%,rgb(var(--gold-rgb)/0.5))_border-box] shadow-[0_30px_80px_-45px_rgb(var(--gold-rgb)/0.7)]'
+                        : 'border border-mist/[0.1] bg-grad-surface'
+                    )}
+                  >
+                    {plan.featured && (
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent"
+                      />
+                    )}
+                    {/* The plan as a membership card */}
+                    <div
+                      className={cn(
+                        'holo grain relative flex aspect-[1.75/1] flex-col justify-between overflow-hidden rounded-[20px] border p-5',
+                        plan.featured ? 'border-gold/50 shadow-[0_24px_60px_-30px_rgb(var(--gold-rgb)/0.8)]' : 'border-mist/[0.14]'
+                      )}
+                    >
+                      <div
+                        aria-hidden
+                        className="mesh-drift"
+                        style={{
+                          background: plan.featured
+                            ? 'radial-gradient(55% 75% at 75% 25%, rgb(var(--gold-rgb) / 0.6), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--lime-rgb) / 0.45), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-950))'
+                            : `radial-gradient(55% 75% at 75% 25%, rgb(var(--lime-rgb) / ${i === 1 ? 0.65 : 0.5}), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--gold-rgb) / 0.25), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-950))`,
+                          animationDelay: `${-i * 4}s`,
+                        }}
+                      />
+                      <span
+                        aria-hidden
+                        className="fx-ghost text-outline pointer-events-none absolute -bottom-8 right-2 select-none font-display text-[150px] font-semibold leading-none tracking-[-0.06em] opacity-60"
+                      >
+                        {plan.name.slice(0, 1)}
                       </span>
-                    </>
-                  )}
-                  <div className="relative z-10 flex flex-col gap-2">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">{plan.audience}</span>
-                    <h3 id={`plan-${plan.key}`} className="font-display text-[34px] font-medium leading-none tracking-[-0.04em] text-[var(--fg)]">
-                      {plan.name}
-                    </h3>
-                  </div>
-                  <div className="relative z-10 flex flex-wrap items-baseline gap-x-2">
-                    <span className={cn('font-display text-[clamp(56px,6vw,80px)] font-semibold leading-none tracking-[-0.05em]', plan.featured ? 'text-gold-gradient' : 'text-[var(--fg)]')}>
-                      ₹{plan.price.toLocaleString('en-IN')}
-                    </span>
-                    <span className="text-[15px] text-[var(--muted)]">/ {plan.period}</span>
-                    {plan.priceNote && <span className="w-full pt-2 font-serif text-[18px] italic text-gold-soft">{plan.priceNote}</span>}
-                  </div>
-                  <div className="relative z-10">
-                    <h4 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Ideal for</h4>
-                    <ul className="mt-3 flex flex-wrap gap-1.5">
-                      {plan.idealFor.map((x) => (
-                        <li key={x} className="rounded-full border border-mist/[0.12] px-2.5 py-1 text-[12.5px] text-[var(--fg)]">
-                          {x}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="relative z-10 border-t border-[var(--line)] pt-6">
-                    <h4 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Benefits</h4>
-                    <ul className="mt-4 grid gap-2.5">
-                      {plan.benefits.map((b) => (
-                        <li key={b} className="flex gap-3 text-[14.5px] text-[var(--fg)]">
-                          <Check className={cn('mt-0.5 h-4 w-4 shrink-0', plan.featured ? 'text-gold' : 'text-brand-200')} aria-hidden />
-                          {b}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="relative z-10 mt-auto pt-2">
-                    <PillLink href={`/join?plan=${plan.key}#register`} variant={plan.featured ? 'gold' : 'ghost'} className="w-full">
-                      Choose {plan.name}
-                    </PillLink>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
+                      <div className="relative flex items-start justify-between gap-3">
+                        <span aria-hidden className="h-7 w-10 rounded-md bg-grad-gold opacity-90 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.25)]" />
+                        {plan.featured ? (
+                          <span className="rounded-full bg-grad-gold px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-950">
+                            Most popular
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">ASCEND</span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/70">{plan.audience}</span>
+                        <h3 id={`plan-${plan.key}`} className="mt-1 font-display text-[24px] font-medium leading-none tracking-[-0.035em] text-white">
+                          {plan.name}
+                        </h3>
+                        <p className="mt-3 flex flex-wrap items-baseline gap-x-1.5">
+                          <span
+                            className={cn(
+                              'font-display text-[clamp(34px,3.4vw,44px)] font-semibold leading-none tracking-[-0.05em]',
+                              plan.featured ? 'text-gold-gradient' : 'text-white'
+                            )}
+                          >
+                            ₹{plan.price.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-[13px] text-white/70">/ {plan.period}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-1 flex-col gap-4 px-3 pb-3">
+                      <div>
+                        <h4 className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">Ideal for</h4>
+                        <ul className="mt-2 flex flex-wrap gap-1.5">
+                          {plan.idealFor.map((x) => (
+                            <li key={x} className="rounded-full border border-mist/[0.12] px-2.5 py-0.5 text-[12px] text-[var(--fg)]">
+                              {x}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="border-t border-[var(--line)] pt-4">
+                        <h4 className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">Benefits</h4>
+                        <ul className="mt-2.5 grid gap-1.5">
+                          {top.map((b) => (
+                            <li key={b} className="flex gap-2.5 text-[13.5px] leading-snug text-[var(--fg)]">
+                              <Check className={cn('mt-0.5 h-4 w-4 shrink-0', plan.featured ? 'text-gold' : 'text-brand-200')} aria-hidden />
+                              {b}
+                            </li>
+                          ))}
+                        </ul>
+                        {more.length > 0 && (
+                          <details className="mt-1.5 [&[open]_.chev]:rotate-180">
+                            <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full py-1 text-[13px] font-semibold text-brand-200 hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 [&::-webkit-details-marker]:hidden">
+                              All {plan.benefits.length} benefits
+                              <ChevronDown className="chev h-4 w-4 transition-transform duration-300" aria-hidden />
+                            </summary>
+                            <ul className="mt-1.5 grid gap-1.5">
+                              {more.map((b) => (
+                                <li key={b} className="flex gap-2.5 text-[13.5px] leading-snug text-[var(--fg)]">
+                                  <Check className={cn('mt-0.5 h-4 w-4 shrink-0', plan.featured ? 'text-gold' : 'text-brand-200')} aria-hidden />
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
+                      </div>
+
+                      <div className="mt-auto pt-1">
+                        <PillLink href={`/join?plan=${plan.key}#register`} variant={plan.featured ? 'gold' : 'ghost'} className="w-full whitespace-nowrap text-[14px]">
+                          Choose {plan.name}
+                        </PillLink>
+                      </div>
+                    </div>
+                  </FxCard>
+                </Reveal>
+              );
+            })}
           </ul>
         </Container>
       </Section>
@@ -161,27 +230,33 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
               More than a <AccentText>membership card.</AccentText>
             </h2>
           </div>
-          <ul className="mt-14 grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {WHY_JOIN.map((w, i) => {
               const Icon = WHY_ICONS[w.key];
               const big = i === 0 || i === 5;
               return (
-                <Reveal
-                  as="li"
-                  key={w.key}
-                  delay={(i % 4) * 80}
-                  className={cn(
-                    'group flex flex-col justify-between gap-10 rounded-[28px] border p-7 transition-transform duration-500 hover:-translate-y-1',
-                    big ? 'border-gold/25 bg-gold/[0.06] lg:col-span-2' : 'border-mist/[0.1] bg-bg/60'
-                  )}
-                >
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-500/15 text-brand-200 transition-transform duration-500 group-hover:rotate-[-8deg]">
-                    <Icon className="h-6 w-6" aria-hidden />
-                  </span>
-                  <div>
-                    <h3 className={cn('font-display font-medium leading-tight tracking-[-0.035em] text-[var(--fg)]', big ? 'text-[34px]' : 'text-[24px]')}>{w.title}</h3>
-                    <p className="mt-2 text-[14.5px] leading-relaxed text-[var(--muted)]">{w.text}</p>
-                  </div>
+                <Reveal as="li" key={w.key} delay={(i % 4) * 80} className={cn('h-full', big && 'lg:col-span-2')}>
+                  <FxCard
+                    max={6}
+                    className={cn(
+                      'group flex h-full flex-col justify-between gap-6 overflow-hidden rounded-[24px] border p-6',
+                      big ? 'border-gold/25 bg-gold/[0.06]' : 'border-mist/[0.1] bg-bg/60'
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className="fx-ghost text-outline pointer-events-none absolute -right-1 -top-5 select-none font-display text-[96px] font-semibold leading-none tracking-[-0.06em] opacity-40"
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="fx-icon relative grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/15 text-brand-200">
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </span>
+                    <div className="relative">
+                      <h3 className={cn('font-display font-medium leading-tight tracking-[-0.035em] text-[var(--fg)]', big ? 'text-[28px]' : 'text-[22px]')}>{w.title}</h3>
+                      <p className="mt-2 text-[14px] leading-relaxed text-[var(--muted)]">{w.text}</p>
+                    </div>
+                  </FxCard>
                 </Reveal>
               );
             })}
@@ -231,40 +306,36 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
             <p className="max-w-[40ch] text-[16px] leading-relaxed text-[var(--muted)]">Nine steps. Most people take the first three in a week — the rest is where it gets interesting.</p>
           </div>
 
-          <ol className="relative mt-16 grid gap-x-5 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ol className="relative mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {MEMBER_JOURNEY.map((step, i) => {
               const last = i === MEMBER_JOURNEY.length - 1;
               return (
-                <Reveal
-                  as="li"
-                  key={step.title}
-                  delay={(i % 3) * 110}
-                  className={cn(
-                    'group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[28px] border p-7 transition-transform duration-500 hover:-translate-y-1.5',
-                    last ? 'border-gold/50 bg-gold/[0.08] sm:col-span-2 lg:col-span-1' : 'border-mist/[0.1] bg-bg/70 backdrop-blur',
-                    i % 3 === 1 && 'lg:translate-y-10',
-                    i % 3 === 2 && 'lg:translate-y-20'
-                  )}
-                >
-                  <span
-                    aria-hidden
+                <Reveal as="li" key={step.title} delay={(i % 3) * 90} className="h-full">
+                  <FxCard
+                    max={6}
                     className={cn(
-                      'pointer-events-none absolute -right-3 -top-8 select-none font-display text-[150px] font-semibold leading-none tracking-[-0.06em] transition-transform duration-700 group-hover:-translate-x-2',
-                      last ? 'text-gold-gradient opacity-90' : 'text-outline opacity-60'
+                      'group flex h-full gap-4 overflow-hidden rounded-[24px] border p-5',
+                      last ? 'border-gold/50 bg-gold/[0.08]' : 'border-mist/[0.1] bg-bg/70 backdrop-blur'
                     )}
                   >
-                    {i + 1}
-                  </span>
-                  <span className="relative font-mono text-[11px] uppercase tracking-[0.14em] text-gold">Step {String(i + 1).padStart(2, '0')}</span>
-                  <div className="relative">
-                    <h3 className="font-display text-[28px] font-medium leading-tight tracking-[-0.035em] text-[var(--fg)]">{step.title}</h3>
-                    <p className="mt-2 max-w-[32ch] text-[14.5px] leading-relaxed text-[var(--muted)]">{step.text}</p>
-                  </div>
+                    <span
+                      className={cn(
+                        'fx-icon grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-display text-[20px] font-semibold',
+                        last ? 'bg-grad-gold text-brand-950' : 'bg-brand-500/15 text-brand-200'
+                      )}
+                    >
+                      {i + 1}
+                    </span>
+                    <div className="relative min-w-0">
+                      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold">Step {String(i + 1).padStart(2, '0')}</span>
+                      <h3 className="mt-1 font-display text-[22px] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)]">{step.title}</h3>
+                      <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--muted)]">{step.text}</p>
+                    </div>
+                  </FxCard>
                 </Reveal>
               );
             })}
           </ol>
-          <div className="h-20" aria-hidden />
         </Container>
       </Section>
 
@@ -290,10 +361,11 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           </div>
           <div className="rounded-[32px] border border-mist/[0.1] bg-grad-surface p-6 sm:p-8 md:p-12">
             <JoinForm
-              key={initialPlan ?? "none"}
+              key={`${initialPlan ?? 'none'}-${requestedWing?.number ?? 0}`}
               initialPlan={initialPlan}
+              initialWings={requestedWing ? [requestedWing.number] : undefined}
               wings={wings}
-              plans={MEMBERSHIP_PLANS.map((p) => ({ key: p.key, name: p.name, audience: p.audience, priceLabel: priceLabel(p) }))}
+              plans={plans.map((p) => ({ key: p.key, name: p.name, audience: p.audience, priceLabel: priceLabel(p) }))}
             />
           </div>
         </Container>

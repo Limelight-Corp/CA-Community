@@ -8,7 +8,7 @@ import type { AdminRegistration } from '../../lib/filters';
 import { formatFee } from '../../lib/format';
 import { ConfirmDialog } from '../ui/Controls';
 
-export type ConfirmableAction = 'mark_paid' | 'cancel' | 'mark_refunded';
+export type ConfirmableAction = 'mark_paid' | 'cancel' | 'mark_refunded' | 'refund';
 
 const COPY: Record<ConfirmableAction, { title: string; label: string; danger?: boolean; body: (r: AdminRegistration) => string }> = {
   mark_paid: {
@@ -27,6 +27,15 @@ const COPY: Record<ConfirmableAction, { title: string; label: string; danger?: b
       `${r.name}'s booking ${r.bookingId} will be cancelled${r.status === 'confirmed' ? ' and the seat released' : ''}.${
         r.paymentStatus === 'paid' ? ' The payment is not refunded automatically — mark it refunded once the refund is processed.' : ''
       }`,
+  },
+  refund: {
+    title: 'Refund through Razorpay?',
+    label: 'Refund now',
+    danger: true,
+    body: (r) =>
+      `${formatFee(r.fee)} will be refunded in full to ${r.name}'s original payment method (payment ${r.gatewayPaymentId}). The booking will be cancelled${
+        r.status === 'confirmed' ? ' and the seat released' : ''
+      }, and ${r.name} will get an email. This cannot be undone.`,
   },
   mark_refunded: {
     title: 'Mark payment refunded?',
@@ -78,7 +87,13 @@ export function useRegistrationAction() {
         void run(
           pending.row,
           { action: pending.action },
-          pending.action === 'mark_paid' ? 'Payment recorded' : pending.action === 'cancel' ? 'Registration cancelled' : 'Refund recorded'
+          pending.action === 'mark_paid'
+            ? 'Payment recorded'
+            : pending.action === 'cancel'
+              ? 'Registration cancelled'
+              : pending.action === 'refund'
+                ? 'Refund initiated with Razorpay'
+                : 'Refund recorded'
         )
       }
     />
@@ -95,4 +110,8 @@ export function canCancel(r: AdminRegistration) {
 }
 export function canRefund(r: AdminRegistration) {
   return r.paymentStatus === 'paid';
+}
+/** Paid online, so it can be refunded through the gateway. */
+export function canGatewayRefund(r: AdminRegistration) {
+  return r.paymentStatus === 'paid' && /^pay_/.test(r.gatewayPaymentId ?? '');
 }

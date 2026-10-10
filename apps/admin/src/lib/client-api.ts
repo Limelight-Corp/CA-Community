@@ -6,6 +6,8 @@ export interface ApiResult<T> {
   data?: T;
   error?: string;
   fieldErrors?: Record<string, string>;
+  /** The full JSON body (for extra fields next to `item`). */
+  raw?: Record<string, unknown>;
 }
 
 export async function api<T = unknown>(
@@ -34,7 +36,7 @@ export async function api<T = unknown>(
         fieldErrors: (json?.fieldErrors as Record<string, string>) || undefined,
       };
     }
-    return { ok: true, status: res.status, data: (json.item ?? json.data ?? json) as T };
+    return { ok: true, status: res.status, data: (json.item ?? json.data ?? json) as T, raw: json };
   } catch {
     return { ok: false, status: 0, error: 'Network error — check your connection and try again.' };
   }

@@ -50,7 +50,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: 'CA Member Directory',
         short_name: 'Directory',
         url: '/directory',
-        description: 'Pan-India directory of verified Chartered Accountants',
+        description: 'Members-only directory of fellow members',
       },
     ],
   };

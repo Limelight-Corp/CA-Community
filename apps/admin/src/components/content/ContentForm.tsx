@@ -8,7 +8,8 @@ import { api } from '../../lib/client-api';
 import { CONTENT_TYPES, defaultValues, type FieldDef, type ManagedContentType } from '../../lib/content-config';
 import { slugify } from '../../lib/format';
 import { Panel } from '../ui/Display';
-import { ConfirmDialog, ImageUpload, ListField, SelectField, Switch, TextAreaField, TextField } from '../ui/Controls';
+import { ConfirmDialog, FileUpload, ImageUpload, ListField, SelectField, Switch, TextAreaField, TextField } from '../ui/Controls';
+import { PointsEditor, StatsEditor, type StatItem } from './ListEditors';
 
 type Values = Record<string, unknown>;
 
@@ -65,8 +66,16 @@ function validateField(f: FieldDef, value: unknown, taken: Set<string>): string 
         return /^\/(?!\/)\S*$/.test(str) || /^https?:\/\/\S+$/i.test(str) ? undefined : 'Enter a site path starting with / or a full https:// URL';
       }
       return /^https?:\/\/\S+$/i.test(str) ? undefined : 'Enter a full URL starting with https://';
+    case 'file':
+      if (!str) return undefined;
+      return /^\/(?!\/)\S*$/.test(str) || /^https?:\/\/\S+$/i.test(str) ? undefined : 'Upload a file or paste a full https:// link';
     case 'color':
       return /^#[0-9a-fA-F]{6}$/.test(str) ? undefined : 'Use a hex colour like #2F6FE4';
+    case 'stats': {
+      const rows = ((value as StatItem[]) ?? []).filter((s) => s.value.trim() || s.label.trim());
+      if (rows.some((s) => !s.value.trim() || !s.label.trim())) return 'Each number needs both a value and a label';
+      return undefined;
+    }
     default:
       return undefined;
   }
@@ -121,7 +130,18 @@ export function ContentForm({
     const payload: Values = {};
     for (const f of config.fields) {
       const v = values[f.name];
-      payload[f.name] = f.kind === 'number' ? Number(v) : typeof v === 'string' ? v.trim() : v;
+      payload[f.name] =
+        f.kind === 'number'
+          ? Number(v)
+          : f.kind === 'points'
+            ? ((v as string[]) ?? []).map((s) => s.trim()).filter(Boolean)
+            : f.kind === 'stats'
+              ? ((v as StatItem[]) ?? [])
+                  .map((s) => ({ value: s.value.trim(), label: s.label.trim() }))
+                  .filter((s) => s.value || s.label)
+              : typeof v === 'string'
+                ? v.trim()
+                : v;
     }
     setSaving(true);
     const res = isEdit
@@ -208,6 +228,44 @@ export function ContentForm({
             aspect={f.aspect ?? 'banner'}
             error={errors[f.name]}
             className={cn(f.full && 'md:col-span-2')}
+          />
+        );
+      case 'file':
+        return (
+          <FileUpload
+            key={f.name}
+            label={f.label}
+            hint={f.hint}
+            value={String(v ?? '')}
+            onChange={(x) => set(f.name, x)}
+            error={errors[f.name]}
+            className={cn(f.full && 'md:col-span-2')}
+          />
+        );
+      case 'points':
+        return (
+          <PointsEditor
+            key={f.name}
+            label={f.label}
+            hint={f.hint}
+            error={errors[f.name]}
+            className={cn(f.full && 'md:col-span-2')}
+            value={(v as string[]) ?? []}
+            onChange={(x) => set(f.name, x)}
+            max={f.max}
+          />
+        );
+      case 'stats':
+        return (
+          <StatsEditor
+            key={f.name}
+            label={f.label}
+            hint={f.hint}
+            error={errors[f.name]}
+            className={cn(f.full && 'md:col-span-2')}
+            value={(v as StatItem[]) ?? []}
+            onChange={(x) => set(f.name, x)}
+            max={f.max}
           />
         );
       case 'tags':

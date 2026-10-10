@@ -2,13 +2,17 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowUpRight, CalendarDays, CheckCircle2, Clock, CreditCard, Hourglass, MapPin, Navigation, XCircle } from 'lucide-react';
+import { ArrowUpRight, Award, CalendarDays, CheckCircle2, Clock, CreditCard, Download, Hourglass, MapPin, Navigation, ShieldCheck, XCircle } from 'lucide-react';
 import { AccentText, Container, Kicker, cn } from '@ascend/ui';
 import { getSettings } from '../../../lib/community-store';
 import { dateParts, formatEventDate, locationLabel, priceLabel } from '../../../lib/events';
 import { siteUrl } from '../../../lib/seo';
+import { certificatePdfPath, isCertificateValid } from '../../../lib/certificates';
+import { checkinPayload, checkinQrSvg, ensureCheckinCode } from '../../../lib/checkin';
 import { findEventById, findRegistrationWithToken, razorpayConfig } from '../../api/registrations/_lib/server';
 import { mapsLink } from '../../../components/events/event-time';
+import { mailConfigured } from '../../../lib/mailer';
+import { receiptKind, receiptPdfPath } from '../../../lib/receipts';
 import {
   AddToCalendarButton,
   CopyBookingId,
@@ -93,8 +97,10 @@ export default async function RegistrationPage({
           ? 'failed'
           : 'pending';
   const badge = BADGE[view];
+  // Entry QR only for confirmed bookings (pending / cancelled bookings are not valid for entry).
+  const qrSvg = view === 'confirmed' ? await checkinQrSvg(checkinPayload(reg, ensureCheckinCode(reg))) : null;
   const gatewayOn = !!razorpayConfig();
-  const emailOn = !!process.env.SMTP_HOST;
+  const emailOn = mailConfigured();
   const feeLabel = priceLabel(reg.fee);
   const d = event ? dateParts(event) : null;
   const maps = event ? mapsLink(event) : null;
@@ -211,6 +217,40 @@ export default async function RegistrationPage({
             </div>
           )}
 
+          {view === 'confirmed' && (
+            <div className="mt-6 flex flex-col gap-4 rounded-[24px] border border-gold/30 bg-gold/[0.06] p-5 print:hidden sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-grad-gold text-brand-950">
+                  <Award className="h-5 w-5" aria-hidden />
+                </span>
+                <div>
+                  <p className="font-display text-[18px] font-medium text-[var(--fg)]">Certificate of participation</p>
+                  <p className="text-[13.5px] text-[var(--muted)]">
+                    {isCertificateValid(reg)
+                      ? `Ready${event?.cpeHours ? ` · ${event.cpeHours} CPE / learning hours` : ''} · ID ${reg.certificateId}`
+                      : 'Available here after you are checked in at the event.'}
+                  </p>
+                </div>
+              </div>
+              {isCertificateValid(reg) && (
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={certificatePdfPath(reg.certificateId!, token)}
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950 hover:brightness-105"
+                  >
+                    <Download className="h-4 w-4" aria-hidden /> Download PDF
+                  </a>
+                  <Link
+                    href={`/verify/${reg.certificateId}`}
+                    className="inline-flex h-11 items-center gap-2 rounded-full border border-mist/[0.18] px-4 text-[14px] font-semibold text-[var(--fg)] hover:border-mist/50"
+                  >
+                    <ShieldCheck className="h-4 w-4" aria-hidden /> Verify
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mt-8 flex flex-wrap gap-3">
             {event && view !== 'cancelled' && (
               <AddToCalendarButton
@@ -226,6 +266,14 @@ export default async function RegistrationPage({
                   url: eventUrl,
                 }}
               />
+            )}
+            {receiptKind(reg) && token && (
+              <a
+                href={receiptPdfPath(reg.bookingId, token)}
+                className="inline-flex h-12 items-center gap-2 rounded-full border border-mist/[0.16] px-5 text-[14.5px] font-semibold text-[var(--fg)] transition hover:border-brand-300/60 hover:bg-brand-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+              >
+                <Download className="h-4 w-4" aria-hidden /> {reg.fee > 0 ? 'Download receipt (PDF)' : 'Download confirmation (PDF)'}
+              </a>
             )}
             <PrintButton />
           </div>
@@ -274,6 +322,25 @@ export default async function RegistrationPage({
               </div>
             )}
           </div>
+
+          {qrSvg && (
+            <div className="flex flex-col items-center gap-5 border-b border-dashed border-mist/[0.16] p-6 sm:flex-row md:p-8 print:border-black/30">
+              <div
+                className="h-[176px] w-[176px] shrink-0 overflow-hidden rounded-2xl bg-white p-2.5 shadow-[0_18px_40px_-20px_rgb(var(--gold-rgb)/0.8)] ring-2 ring-gold/40 [&>svg]:h-full [&>svg]:w-full"
+                role="img"
+                aria-label={`Entry QR code for booking ${reg.bookingId}`}
+                dangerouslySetInnerHTML={{ __html: qrSvg }}
+              />
+              <div className="text-center sm:text-left">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-gold print:text-black/70">Entry pass</p>
+                <p className="mt-1 font-display text-[22px] font-medium leading-tight text-[var(--fg)] print:text-black">Show this QR at the entrance</p>
+                <p className="mt-1.5 max-w-[46ch] text-[14px] leading-relaxed text-[var(--muted)] print:text-black/70">
+                  Our volunteers scan it to check you in. Keep this page open, take a screenshot or print it. Your booking ID{' '}
+                  <span className="font-mono text-[var(--fg)] print:text-black">{reg.bookingId}</span> also works.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-0 md:grid-cols-2">
             <section aria-labelledby="attendee-h" className="p-6 md:border-r md:border-mist/[0.1] md:p-8 print:border-black/20">

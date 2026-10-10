@@ -6,7 +6,10 @@
  */
 import {
   GALLERY_CATEGORIES,
+  JOB_TYPES,
   NEWS_CATEGORIES,
+  ORG_WINGS,
+  WORK_MODES,
   RESOURCE_CATEGORIES,
   type CommunityContentType,
 } from '@ascend/shared';
@@ -20,11 +23,17 @@ export type FieldKind =
   | 'select'
   | 'toggle'
   | 'image'
+  /** Uploaded document (PDF/Office) or a pasted link. */
+  | 'file'
   | 'url'
   | 'tags'
   | 'lines'
   | 'slug'
-  | 'color';
+  | 'color'
+  /** Numbered bullet points edited row by row (string[]). */
+  | 'points'
+  /** Number + label pairs ({ value, label }[]). */
+  | 'stats';
 
 export interface FieldDef {
   name: string;
@@ -98,7 +107,6 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
     description: 'Articles, guides, tax updates, webinars and downloads.',
     titleField: 'title',
     subtitleFields: ['category', 'format'],
-    imageField: 'fileUrl',
     allowCreate: true,
     allowDelete: true,
     createDefaults: { downloads: 0 },
@@ -106,7 +114,8 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'title', label: 'Title', kind: 'text', required: true, max: 200, full: true },
       { name: 'category', label: 'Category', kind: 'select', options: RESOURCE_CATEGORIES, allowCustom: true, required: true },
       { name: 'format', label: 'Format', kind: 'text', required: true, max: 80, placeholder: 'PDF · 18 pages' },
-      { name: 'fileUrl', label: 'Cover image', kind: 'image', full: true },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'Optional — shows this resource on the wing’s page' },
+      { name: 'fileUrl', label: 'File or link', kind: 'file', full: true, hint: 'Upload a PDF, Word, Excel or PowerPoint file (up to 15 MB), or paste a link such as a YouTube webinar.' },
       { name: 'isMembersOnly', label: 'Members only', kind: 'toggle', defaultValue: false },
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
     ],
@@ -149,9 +158,14 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'qualification', label: 'Qualification', kind: 'text', max: 120, placeholder: 'FCA, LL.B' },
       { name: 'organisation', label: 'Organisation', kind: 'text', max: 160 },
       { name: 'linkedinUrl', label: 'LinkedIn profile', kind: 'url' },
+      { name: 'headline', label: 'Headline', kind: 'text', max: 140, full: true, placeholder: 'e.g. Helping businesses win GST appeals', hint: 'One line shown under the name on the speaker page' },
       { name: 'avatarUrl', label: 'Photo', kind: 'image', aspect: 'square', full: true },
       { name: 'expertise', label: 'Expertise', kind: 'tags', hint: 'Comma-separated, e.g. GST, Audit', full: true },
       { name: 'bio', label: 'Short bio', kind: 'textarea', required: true, max: 2000, full: true },
+      { name: 'stats', label: 'Numbers', kind: 'stats', max: 4, full: true, hint: 'Shown as big numbers on the speaker page, e.g. 15+ · Years in practice' },
+      { name: 'highlights', label: 'Highlights', kind: 'points', max: 10, full: true, hint: 'Point-wise achievements. Press Enter for the next point; use the arrows to reorder.' },
+      { name: 'talks', label: 'Signature talks', kind: 'points', max: 6, full: true, hint: 'Session topics this speaker is known for' },
+      { name: 'quote', label: 'Quote', kind: 'textarea', max: 300, full: true, hint: 'Optional — a line in the speaker’s own words' },
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
     ],
   },
@@ -169,6 +183,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'name', label: 'Full name', kind: 'text', required: true, max: 120 },
       { name: 'designation', label: 'Designation', kind: 'text', required: true, max: 160 },
       { name: 'group', label: 'Group', kind: 'select', options: TEAM_GROUPS, required: true, defaultValue: 'Core Team' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'For wing conveners and committee members — shows them on the wing’s page' },
       { name: 'order', label: 'Display order', kind: 'number', min: 0, max: 999, defaultValue: 10, hint: 'Lower numbers appear first' },
       { name: 'photoUrl', label: 'Photo', kind: 'image', aspect: 'square', full: true },
       { name: 'linkedinUrl', label: 'LinkedIn profile', kind: 'url', full: true },
@@ -215,6 +230,37 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
     ],
   },
+  jobs: {
+    type: 'jobs',
+    label: 'Jobs & articleship',
+    singular: 'Opening',
+    description: 'Articleship, jobs and internships shown on the Careers board. Posts hide automatically after their last date.',
+    titleField: 'title',
+    subtitleFields: ['organisation', 'type', 'location'],
+    imageField: 'logoUrl',
+    allowCreate: true,
+    allowDelete: true,
+    fields: [
+      { name: 'title', label: 'Role / title', kind: 'text', required: true, max: 160, full: true, placeholder: 'Articled Assistant — Direct Tax' },
+      { name: 'slug', label: 'URL slug', kind: 'slug', slugFrom: 'title', required: true, hint: 'Used in the link: /careers/your-slug' },
+      { name: 'organisation', label: 'Firm / company', kind: 'text', required: true, max: 160 },
+      { name: 'type', label: 'Type', kind: 'select', options: JOB_TYPES, required: true },
+      { name: 'location', label: 'City / location', kind: 'text', required: true, max: 120 },
+      { name: 'workMode', label: 'Work mode', kind: 'select', options: WORK_MODES, required: true },
+      { name: 'experience', label: 'Eligibility / experience', kind: 'text', max: 120, placeholder: 'CA Inter cleared · 0–2 years' },
+      { name: 'compensation', label: 'Stipend / salary', kind: 'text', max: 120, placeholder: 'As per ICAI norms / ₹… per month' },
+      { name: 'deadline', label: 'Last date to apply', kind: 'date', hint: 'The post is hidden from the board after this date' },
+      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), hint: 'Optional — related wing' },
+      { name: 'description', label: 'About the role', kind: 'richtext', required: true, max: 8000, full: true, hint: 'Plain text; blank lines separate paragraphs.' },
+      { name: 'requirements', label: 'Requirements', kind: 'lines', full: true, hint: 'One per line' },
+      { name: 'applyUrl', label: 'Apply link', kind: 'url', hint: 'Application form or careers page (https://…)' },
+      { name: 'applyEmail', label: 'Apply by email', kind: 'text', max: 200, placeholder: 'careers@firm.com', hint: 'Used when there is no apply link' },
+      { name: 'logoUrl', label: 'Firm logo', kind: 'image', aspect: 'square', full: true },
+      { name: 'isMembersOnly', label: 'How to apply visible to members only', kind: 'toggle', defaultValue: false },
+      { name: 'featured', label: 'Featured', kind: 'toggle', defaultValue: false },
+      { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
+    ],
+  },
   wings: {
     type: 'wings',
     label: 'Wings',
@@ -243,6 +289,7 @@ export const CONTENT_TYPE_ORDER: ManagedContentType[] = [
   'team',
   'testimonials',
   'initiatives',
+  'jobs',
   'wings',
 ];
 
@@ -256,7 +303,7 @@ export function defaultValues(config: ContentTypeConfig): Record<string, unknown
   for (const f of config.fields) {
     if (f.defaultValue !== undefined) values[f.name] = f.defaultValue;
     else if (f.kind === 'toggle') values[f.name] = false;
-    else if (f.kind === 'tags' || f.kind === 'lines') values[f.name] = [];
+    else if (f.kind === 'tags' || f.kind === 'lines' || f.kind === 'points' || f.kind === 'stats') values[f.name] = [];
     else if (f.kind === 'number') values[f.name] = f.min ?? 0;
     else values[f.name] = '';
   }

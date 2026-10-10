@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, ArrowRight, Loader2, Lock, Ticket } from 'lucide-react';
 import { FormField, Stepper, cn, fieldInputClass } from '@ascend/ui';
-import { trackEvent } from '../site/Providers';
+import { trackEvent, useSiteConfig } from '../site/Providers';
 import { useAuth } from '../../context/AuthContext';
+import { Turnstile, useCaptchaEnabled } from '../site/Turnstile';
 
 export interface RegistrationEventSummary {
   slug: string;
@@ -33,6 +34,7 @@ type Values = {
   designation: string;
   requirements: string;
   acceptTerms: boolean;
+  whatsappOptIn: boolean;
   website: string;
 };
 
@@ -58,6 +60,7 @@ const EMPTY: Values = {
   designation: '',
   requirements: '',
   acceptTerms: false,
+  whatsappOptIn: false,
   website: '',
 };
 
@@ -98,6 +101,10 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaOn = useCaptchaEnabled();
+  const whatsappOn = !!useSiteConfig().whatsappEnabled;
   const [saved, setSaved] = useState<{ bookingId: string; accessToken: string } | null>(null);
   const started = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -157,13 +164,18 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
       return;
     }
 
+    if (captchaOn && !captcha) {
+      setFormError('Please complete the security check.');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/registrations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, mobile: normaliseMobile(values.mobile), eventSlug: event.slug }),
+        body: JSON.stringify({ ...values, mobile: normaliseMobile(values.mobile), eventSlug: event.slug, turnstileToken: captcha }),
       });
+      setCaptchaReset((n) => n + 1);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const fe = (data.fieldErrors || {}) as Errors;
@@ -196,7 +208,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
 
   /* ---------------------------------------------------------------------------------------- */
 
-  const input = (key: Exclude<FieldKey, 'acceptTerms'>, extra: React.InputHTMLAttributes<HTMLInputElement> = {}) =>
+  const input = (key: Exclude<FieldKey, 'acceptTerms' | 'whatsappOptIn'>, extra: React.InputHTMLAttributes<HTMLInputElement> = {}) =>
     function Control(control: { id: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean; required?: boolean }) {
       return (
         <input
@@ -290,6 +302,24 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
               onChange={(ev) => set('website', ev.target.value)}
             />
           </div>
+
+          {whatsappOn && (
+            <label className="flex cursor-pointer items-start gap-3 text-[14px] leading-relaxed text-[var(--fg-soft)]">
+              <input
+                type="checkbox"
+                name="whatsappOptIn"
+                checked={values.whatsappOptIn}
+                onChange={(ev) => set('whatsappOptIn', ev.target.checked)}
+                className="mt-1 h-5 w-5 shrink-0 cursor-pointer rounded accent-[var(--brand-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+              />
+              <span>
+                Send me my booking confirmation, reminders and event updates on <strong className="text-[var(--fg)]">WhatsApp</strong> at
+                this mobile number. You can stop them anytime by replying STOP.
+              </span>
+            </label>
+          )}
+
+          <Turnstile onToken={setCaptcha} resetKey={captchaReset} />
 
           <div className="flex flex-col gap-2">
             <label className="flex cursor-pointer items-start gap-3 text-[14px] leading-relaxed text-[var(--fg-soft)]">

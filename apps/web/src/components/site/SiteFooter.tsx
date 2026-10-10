@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { CookieSettingsLink } from './CookieConsent';
 import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react';
 import type { SiteSettings } from '@ascend/shared';
 import { ORG_POSITIONING } from '@ascend/shared';
@@ -13,12 +14,14 @@ const IMPORTANT_LINKS = [
   { label: 'Resources', href: '/resources' },
   { label: 'News & Updates', href: '/news' },
   { label: 'Gallery', href: '/gallery' },
+  { label: 'Careers & Articleship', href: '/careers' },
+  { label: 'Mentorship', href: '/mentorship' },
 ];
 
 const ABOUT_LINKS = [
   { label: 'About Us', href: '/about' },
   { label: 'Leadership', href: '/about#leadership' },
-  { label: '10 Wings', href: '/about#wings' },
+  { label: '10 Wings', href: '/wings' },
   { label: 'Membership Plans', href: '/join#plans' },
   { label: 'Contact', href: '/contact' },
 ];
@@ -143,6 +146,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
                 {l.label}
               </Link>
             ))}
+            <CookieSettingsLink className="draw-underline text-left hover:text-[var(--fg)]" />
           </nav>
         </div>
       </div>

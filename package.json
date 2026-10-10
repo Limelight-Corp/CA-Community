@@ -26,6 +26,8 @@
     "db:migrate": "npm run db:migrate --workspace=@ascend/api",
     "db:seed": "npm run db:seed --workspace=@ascend/api",
     "admin:seed": "npm run admin:seed --workspace=@ascend/admin --",
+    "member:seed": "node scripts/seed-member.mjs",
+    "backup": "node scripts/backup-data.mjs",
     "seed:test": "node scripts/seed-test-data.mjs",
     "docs:openapi": "npm run docs:openapi --workspace=@ascend/api"
   },

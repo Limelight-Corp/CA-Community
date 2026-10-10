@@ -49,6 +49,7 @@ const STATUS_STYLE: Record<EventStatus, string> = {
   soldout: 'bg-bad/15 text-bad border-bad/30',
   closed: 'bg-mist/10 text-[var(--muted)] border-mist/20',
   past: 'bg-mist/10 text-[var(--muted)] border-mist/20',
+  cancelled: 'bg-bad/15 text-bad border-bad/30',
 };
 
 function summary(e: CommunityEvent): string {
@@ -99,7 +100,7 @@ export default async function EventDetailPage({ params }: { params: Params }) {
     description: (event.description || summary(event)).slice(0, 5000),
     startDate: toIstIso(start),
     endDate: toIstIso(end),
-    eventStatus: 'https://schema.org/EventScheduled',
+    eventStatus: event.cancelledAt ? 'https://schema.org/EventCancelled' : 'https://schema.org/EventScheduled',
     eventAttendanceMode:
       event.mode === 'Online' ? 'https://schema.org/OnlineEventAttendanceMode' : 'https://schema.org/OfflineEventAttendanceMode',
     location:
@@ -180,6 +181,13 @@ export default async function EventDetailPage({ params }: { params: Params }) {
           <h1 className="mt-6 max-w-[18ch] text-balance font-display text-[clamp(40px,7.2vw,104px)] font-medium leading-[0.92] tracking-[-0.055em] text-[var(--fg)]">
             {event.title}
           </h1>
+
+          {event.cancelledAt && (
+            <div role="status" className="mt-6 max-w-[62ch] rounded-2xl border border-bad/30 bg-bad/10 p-4 text-[15px] leading-relaxed text-[var(--fg)]">
+              <strong className="text-bad">This event has been cancelled.</strong> Registered attendees have been informed by email.
+              {event.cancellationNote ? ` ${event.cancellationNote}` : ''}
+            </div>
+          )}
 
           <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-[15px] text-[var(--fg-soft)]">
             <li className="flex items-center gap-2">

@@ -88,15 +88,16 @@ export function SiteHeader({
   const pathname = usePathname() || '/';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, isLoading: authLoading, logout } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setOpen(false);
-    logout();
+    await logout();
     toast('You have been logged out');
     if (pathname.startsWith('/dashboard')) router.push('/');
+    else router.refresh();
   };
 
   useEffect(() => {
@@ -174,7 +175,10 @@ export function SiteHeader({
             >
               <Search className="h-[18px] w-[18px]" />
             </Link>
-            {user ? (
+            {authLoading ? (
+              // Keeps the slot while the session is checked, so "Log in" doesn't flash for signed-in members.
+              <span className="hidden h-10 w-24 rounded-full bg-mist/[0.06] sm:block" aria-hidden />
+            ) : user ? (
               <UserMenu user={user} onLogout={handleLogout} />
             ) : (
               <Link
@@ -183,6 +187,15 @@ export function SiteHeader({
               >
                 <User className="h-4 w-4" aria-hidden />
                 Log in
+              </Link>
+            )}
+            {!user && !authLoading && (
+              <Link
+                href="/join"
+                className="hidden h-10 items-center rounded-full border border-gold/40 px-4 text-[13.5px] font-semibold text-gold transition hover:border-gold hover:bg-gold/10 lg:flex"
+              >
+                <span className="hidden whitespace-nowrap 2xl:inline">Join the Community</span>
+                <span className="whitespace-nowrap 2xl:hidden">Join</span>
               </Link>
             )}
             <Link

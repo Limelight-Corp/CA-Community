@@ -78,6 +78,11 @@ function writeJsonAtomic(file: string, data: unknown): void {
   }
 }
 
+/** Absolute path of the shared data directory (also holds uploaded resource files). */
+export function dataDir(): string {
+  return findDataDir();
+}
+
 const contentFile = () => path.join(findDataDir(), 'community-store.json');
 const privateFile = () => path.join(findDataDir(), 'private-store.json');
 
@@ -97,6 +102,7 @@ function normalize(data: Partial<CommunityStoreData>): CommunityStoreData {
     team: data.team ?? INITIAL_COMMUNITY_DATA.team,
     testimonials: data.testimonials ?? [],
     initiatives: data.initiatives ?? INITIAL_COMMUNITY_DATA.initiatives,
+    jobs: data.jobs ?? [],
     settings: {
       ...DEFAULT_SITE_SETTINGS,
       ...(data.settings ?? {}),
@@ -184,6 +190,8 @@ export function readPrivate(): PrivateStoreData {
     registrations: data.registrations ?? [],
     members: data.members ?? [],
     messages: data.messages ?? [],
+    mentors: data.mentors ?? [],
+    mentorshipRequests: data.mentorshipRequests ?? [],
   };
 }
 

@@ -2,8 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Pencil, X } from 'lucide-react';
-import { MEMBERSHIP_PLANS, ORG_WINGS, type CommunityMemberApplication } from '@ascend/shared';
+import { Check, IndianRupee, Pencil, X } from 'lucide-react';
+import { MEMBERSHIP_PLANS, ORG_WINGS, membershipFeeFor, membershipState, type CommunityMemberApplication, type SiteSettings } from '@ascend/shared';
 import { Avatar, Button, Modal, useToast } from '@ascend/ui';
 import { api } from '../../lib/client-api';
 import { filterMembers } from '../../lib/filters';
@@ -36,12 +36,22 @@ function toEdit(m: CommunityMemberApplication): EditState {
   };
 }
 
+const STATE_CHIP: Record<string, { label: string; cls: string }> = {
+  active: { label: 'Active', cls: 'border-ok/30 bg-ok/10 text-ok' },
+  awaiting_payment: { label: 'Payment due', cls: 'border-gold/30 bg-gold/10 text-gold' },
+  expired: { label: 'Expired', cls: 'border-bad/30 bg-bad/10 text-bad' },
+};
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
 export function MembersManager({
   rows,
   initial = {},
+  fees,
 }: {
   rows: CommunityMemberApplication[];
   initial?: { q?: string; plan?: string; status?: string; city?: string };
+  /** Current membership fee overrides from Site Settings. */
+  fees?: SiteSettings['membershipFees'];
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -55,6 +65,32 @@ export function MembersManager({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [rejecting, setRejecting] = useState<CommunityMemberApplication | null>(null);
+  const [paying, setPaying] = useState<CommunityMemberApplication | null>(null);
+  const [payAmount, setPayAmount] = useState('');
+
+  const openPay = (m: CommunityMemberApplication) => {
+    const due = membershipState(m) === 'awaiting_payment' && m.membershipFee !== undefined ? m.membershipFee : membershipFeeFor(m.plan, { membershipFees: fees });
+    setPayAmount(String(due));
+    setPaying(m);
+  };
+  const recordPayment = async () => {
+    if (!paying) return;
+    const amount = Number(payAmount);
+    if (!Number.isInteger(amount) || amount < 0) {
+      toast('Enter the amount received in whole rupees');
+      return;
+    }
+    setBusy(paying.id);
+    const res = await api(`/api/members/${encodeURIComponent(paying.id)}/payment`, { method: 'POST', body: { amount } });
+    setBusy(null);
+    if (!res.ok) {
+      toast(res.error ?? 'Could not record the payment');
+      return;
+    }
+    toast(`Payment recorded — ${paying.name} is active for 12 months`);
+    setPaying(null);
+    router.refresh();
+  };
 
   const cities = useMemo(() => {
     const map = new Map<string, string>();
@@ -126,6 +162,7 @@ export function MembersManager({
             <th scope="col">Organisation</th>
             <th scope="col">Applied</th>
             <th scope="col">Status</th>
+            <th scope="col">Membership</th>
             <th scope="col" className="text-right">
               <span className="sr-only">Actions</span>
             </th>
@@ -133,7 +170,7 @@ export function MembersManager({
         </thead>
         <tbody>
           {filtered.length === 0 && (
-            <EmptyRow colSpan={7}>{rows.length === 0 ? 'No membership applications yet.' : 'No applications match these filters.'}</EmptyRow>
+            <EmptyRow colSpan={8}>{rows.length === 0 ? 'No membership applications yet.' : 'No applications match these filters.'}</EmptyRow>
           )}
           {filtered.map((m) => (
             <tr key={m.id}>
@@ -154,8 +191,38 @@ export function MembersManager({
               <td>
                 <MemberChip status={m.status} />
               </td>
+              <td className="whitespace-nowrap">
+                {(() => {
+                  const st = membershipState(m);
+                  const chip = STATE_CHIP[st];
+                  if (!chip) return <span className="text-[12px] text-[var(--muted)]">—</span>;
+                  return (
+                    <>
+                      <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${chip.cls}`}>{chip.label}</span>
+                      {m.validUntil && (
+                        <span className="mt-1 block text-[11.5px] text-[var(--muted)]">
+                          {st === 'expired' ? 'Expired' : 'Until'} {shortDate(m.validUntil)}
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
+              </td>
               <td>
                 <div className="flex items-center justify-end gap-1.5">
+                  {m.status === 'approved' && membershipState(m) !== 'active' && (
+                    <button
+                      type="button"
+                      disabled={busy === m.id}
+                      onClick={() => openPay(m)}
+                      className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-[12px] font-medium text-gold transition hover:bg-gold/20 disabled:opacity-40"
+                      title="Record a payment received outside the website"
+                    >
+                      <IndianRupee className="h-3.5 w-3.5" aria-hidden />
+                      Mark paid
+                      <span className="sr-only"> for {m.name}</span>
+                    </button>
+                  )}
                   {m.status !== 'approved' && (
                     <button
                       type="button"
@@ -194,6 +261,22 @@ export function MembersManager({
           ))}
         </tbody>
       </DataTable>
+
+      <ConfirmDialog
+        open={!!paying}
+        title="Record an offline payment?"
+        description={
+          paying
+            ? `${paying.name}'s ${planName(paying.plan)} becomes active for 12 months${membershipState(paying) === 'expired' ? ' from today' : ''} and they get a receipt by email. Use 0 for a complimentary membership.`
+            : ''
+        }
+        confirmLabel="Record payment"
+        busy={!!paying && busy === paying.id}
+        onConfirm={() => void recordPayment()}
+        onClose={() => setPaying(null)}
+      >
+        <TextField label="Amount received (₹)" value={payAmount} onChange={setPayAmount} inputMode="numeric" />
+      </ConfirmDialog>
 
       <ConfirmDialog
         open={rejecting !== null}

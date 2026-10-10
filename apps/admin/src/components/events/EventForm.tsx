@@ -39,6 +39,7 @@ interface FormState {
   fee: string;
   memberFee: string;
   seatsTotal: string;
+  cpeHours: string;
   speakerSlugs: string[];
   description: string;
   agenda: CommunityAgendaItem[];
@@ -65,6 +66,7 @@ function toState(e?: CommunityEvent): FormState {
     fee: String(e?.fee ?? 0),
     memberFee: String(e?.memberFee ?? 0),
     seatsTotal: String(e?.seatsTotal ?? 100),
+    cpeHours: e?.cpeHours ? String(e.cpeHours) : '',
     speakerSlugs: e?.speakerSlugs ?? [],
     description: e?.description ?? '',
     agenda: e?.agenda ?? [],
@@ -103,6 +105,8 @@ export function EventForm({
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  /** Email registered attendees when the date, time or venue changes. */
+  const [notifyAttendees, setNotifyAttendees] = useState(true);
   const [speakerQuery, setSpeakerQuery] = useState('');
   const taken = useMemo(() => new Set(takenSlugs), [takenSlugs]);
 
@@ -146,6 +150,10 @@ export function EventForm({
     if (!Number.isFinite(memberFee) || memberFee < 0) e.memberFee = 'Enter 0 or a positive amount';
     else if (memberFee > fee) e.memberFee = 'Member fee should not exceed the standard fee';
     if (!Number.isInteger(seats) || seats < 0) e.seatsTotal = 'Enter a whole number of seats';
+    if (form.cpeHours.trim() !== '') {
+      const h = Number(form.cpeHours);
+      if (!Number.isFinite(h) || h < 0 || h > 100) e.cpeHours = 'Enter hours between 0 and 100';
+    }
     else if (event && seats < (Number(event.seatsTaken) || 0)) {
       e.seatsTotal = `Capacity cannot be below the ${event.seatsTaken} seats already taken`;
     }
@@ -173,10 +181,11 @@ export function EventForm({
       fee: Number(form.fee),
       memberFee: Number(form.memberFee),
       seatsTotal: Number(form.seatsTotal),
+      cpeHours: form.cpeHours.trim() === '' ? 0 : Number(form.cpeHours),
       agenda: form.agenda.map((a) => ({ time: a.time.trim(), title: a.title.trim(), speaker: a.speaker?.trim() || undefined })),
     };
     const res = isEdit
-      ? await api<CommunityEvent>('/api/community', { method: 'PUT', body: { type: 'events', id: event!.id, updates: payload } })
+      ? await api<CommunityEvent>('/api/community', { method: 'PUT', body: { type: 'events', id: event!.id, updates: payload, notifyAttendees } })
       : await api<CommunityEvent>('/api/community', { method: 'POST', body: { type: 'events', item: payload } });
     setSaving(false);
     if (!res.ok) {
@@ -184,7 +193,8 @@ export function EventForm({
       toast(res.error ?? 'Could not save the event');
       return;
     }
-    toast(isEdit ? 'Event saved' : 'Event created');
+    const notified = Number(res.raw?.notified) || 0;
+    toast(isEdit ? (notified ? `Event saved — ${notified} registered attendee${notified === 1 ? '' : 's'} emailed about the change` : 'Event saved') : 'Event created');
     if (!isEdit && res.data?.id) router.push(`/events/${res.data.id}`);
     router.refresh();
   };
@@ -307,6 +317,19 @@ export function EventForm({
                 hint={event ? `${event.seatsTaken ?? 0} seats taken` : undefined}
               />
             </div>
+            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+              <TextField
+                label="CPE / learning hours"
+                type="number"
+                min={0}
+                step={0.5}
+                inputMode="decimal"
+                value={form.cpeHours}
+                onChange={(v) => set('cpeHours', v)}
+                error={errors.cpeHours}
+                hint="Optional — printed on attendees’ certificates. Leave empty if not applicable."
+              />
+            </div>
           </Panel>
 
           <Panel
@@ -404,12 +427,18 @@ export function EventForm({
       </div>
 
       <div className="sticky bottom-3 z-20 flex flex-col-reverse gap-3 rounded-token-lg border border-mist/[0.12] bg-panel/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           {isEdit && (
             <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(true)} className="text-bad">
               <Trash2 className="h-4 w-4" aria-hidden />
               Delete event
             </Button>
+          )}
+          {isEdit && (
+            <label className="flex cursor-pointer items-center gap-2 px-2 text-[12.5px] text-[var(--muted)]">
+              <input type="checkbox" checked={notifyAttendees} onChange={(e) => setNotifyAttendees(e.target.checked)} className="h-4 w-4 accent-[var(--lime)]" />
+              Email registered attendees if the date, time or venue changes
+            </label>
           )}
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">

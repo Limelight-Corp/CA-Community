@@ -55,11 +55,13 @@ function fieldSchema(field: FieldDef): z.ZodTypeAny {
         const s = z.string().trim().max(80);
         return field.required ? s.min(1, `${field.label} is required`) : s;
       }
-      return z.string().refine((v) => opts.includes(v), `Choose a valid ${field.label.toLowerCase()}`);
+      // Optional selects may be left empty.
+      return z.string().refine((v) => opts.includes(v) || (!field.required && v === ''), `Choose a valid ${field.label.toLowerCase()}`);
     }
     case 'toggle':
       return z.boolean();
     case 'image':
+    case 'file':
     case 'url':
       return field.kind === 'url' && field.name !== 'ctaUrl' ? externalUrl : safeLink;
     case 'tags':
@@ -67,6 +69,25 @@ function fieldSchema(field: FieldDef): z.ZodTypeAny {
       return z.array(z.string().trim().min(1).max(200)).max(50);
     case 'color':
       return z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex colour like #2F6FE4');
+    case 'points':
+      return z
+        .array(z.string().trim().max(240, 'Keep each point under 240 characters'))
+        .transform((list) => list.filter(Boolean))
+        .pipe(z.array(z.string()).max(field.max ?? 10, `Up to ${field.max ?? 10} points`));
+    case 'stats':
+      return z
+        .array(z.object({ value: z.string().trim().max(12), label: z.string().trim().max(60) }))
+        .transform((list) => list.filter((s) => s.value || s.label))
+        .pipe(
+          z
+            .array(
+              z.object({
+                value: z.string().min(1, 'Each number needs a value'),
+                label: z.string().min(1, 'Each number needs a label'),
+              })
+            )
+            .max(field.max ?? 4, `Up to ${field.max ?? 4} numbers`)
+        );
   }
 }
 
@@ -110,6 +131,7 @@ export const eventBaseSchema = z.object({
     fee: z.coerce.number().finite().min(0, 'Fee cannot be negative').max(10_000_000),
     memberFee: z.coerce.number().finite().min(0, 'Member fee cannot be negative').max(10_000_000),
     seatsTotal: z.coerce.number().int().min(0, 'Capacity cannot be negative').max(1_000_000),
+    cpeHours: z.coerce.number().finite().min(0, 'CPE hours cannot be negative').max(100, 'Up to 100 hours').optional(),
     speakerSlugs: z.array(z.string().trim().max(80)).max(50),
     description: z.string().trim().min(1, 'Description is required').max(20000),
     agenda: z.array(agendaItem).max(100),

@@ -2,14 +2,19 @@
  * Server-only admin data operations on top of the file store: dashboard statistics and
  * registration / member / message mutations. Never import this from a client component.
  */
-import type {
-  CommunityContactMessage,
-  CommunityEvent,
-  CommunityMemberApplication,
-  CommunityRegistration,
+import { randomBytes } from 'crypto';
+import {
+  newMembershipReceiptId,
+  recordMembershipPayment,
+  type CommunityContactMessage,
+  type CommunityEvent,
+  type CommunityMemberApplication,
+  type CommunityRegistration,
+  type MembershipPayment,
 } from '@ascend/shared';
 import { mutatePrivate, readPrivate, readStore, writeStore } from './community-store';
 import { todayISO } from './format';
+import { razorpayConfigured, refundPayment } from './razorpay';
 
 // ---------------------------------------------------------------------------------------------
 // Statistics
@@ -89,6 +94,19 @@ export type RegistrationAction =
   | { action: 'mark_refunded' }
   | { action: 'set_attended'; value: boolean };
 
+const CERT_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** `ASC-CERT-XXXXXXXX`, unique among existing certificate IDs. */
+function newCertificateId(taken: Set<string | undefined>): string {
+  for (;;) {
+    const bytes = randomBytes(8);
+    let code = '';
+    for (const b of bytes) code += CERT_ALPHABET[b % CERT_ALPHABET.length];
+    const id = `ASC-CERT-${code}`;
+    if (!taken.has(id)) return id;
+  }
+}
+
 export class ActionError extends Error {
   constructor(message: string, public status = 400) {
     super(message);
@@ -142,11 +160,21 @@ export function applyRegistrationAction(id: string, input: RegistrationAction): 
         reg.paymentStatus = 'refunded';
         reg.status = 'cancelled';
         reg.attended = false;
+        reg.refundedAt = now;
+        reg.refundAmount = reg.refundAmount ?? reg.fee;
         break;
       }
       case 'set_attended': {
         if (reg.status !== 'confirmed') throw new ActionError('Only confirmed registrations can be checked in', 409);
         reg.attended = input.value;
+        if (input.value) {
+          // First check-in issues the certificate; the ID is kept if they are marked absent and back.
+          reg.attendedAt = reg.attendedAt ?? now;
+          if (!reg.certificateId) {
+            const taken = new Set(data.registrations.map((r) => r.certificateId).filter(Boolean));
+            reg.certificateId = newCertificateId(taken);
+          }
+        }
         break;
       }
     }
@@ -168,6 +196,34 @@ export function applyRegistrationAction(id: string, input: RegistrationAction): 
   return updated;
 }
 
+/**
+ * Refunds a paid booking in full through Razorpay, then records it like `mark_refunded`
+ * (booking cancelled, seat released) plus the gateway refund ID.
+ */
+export async function refundRegistration(id: string): Promise<CommunityRegistration> {
+  const reg = readPrivate().registrations.find((r) => r.id === id);
+  if (!reg) throw new ActionError('Registration not found', 404);
+  if (reg.paymentStatus !== 'paid') throw new ActionError('Only paid registrations can be refunded', 409);
+  if (!reg.gatewayPaymentId) {
+    throw new ActionError('This payment was recorded offline — refund it outside the gateway, then use "Mark refunded".', 409);
+  }
+  if (!razorpayConfigured()) {
+    throw new ActionError('Razorpay keys are not configured for the admin console. Refund from the Razorpay dashboard, then use "Mark refunded".', 409);
+  }
+
+  const result = await refundPayment(reg.gatewayPaymentId, reg.fee, reg.bookingId);
+  if (!result.ok) throw new ActionError(result.error, 502);
+
+  applyRegistrationAction(id, { action: 'mark_refunded' });
+  return mutatePrivate((data) => {
+    const r = data.registrations.find((x) => x.id === id)!;
+    r.refundId = result.refundId;
+    r.refundAmount = r.fee;
+    r.updatedAt = new Date().toISOString();
+    return { ...r };
+  });
+}
+
 // ---------------------------------------------------------------------------------------------
 // Members & messages
 // ---------------------------------------------------------------------------------------------
@@ -181,6 +237,26 @@ export function updateMember(
     if (!m) throw new ActionError('Application not found', 404);
     Object.assign(m, updates, { id: m.id, createdAt: m.createdAt, updatedAt: new Date().toISOString() });
     return { ...m };
+  });
+}
+
+/**
+ * Marks a membership paid outside the gateway (cash, bank transfer, complimentary) for one
+ * 12-month term at the given amount. Only approved applications can be paid.
+ */
+export function recordOfflineMembershipPayment(
+  id: string,
+  amount: number,
+  recordedBy: string
+): { app: CommunityMemberApplication; payment: MembershipPayment; renewal: boolean } {
+  return mutatePrivate((data) => {
+    const m = data.members.find((x) => x.id === id);
+    if (!m) throw new ActionError('Application not found', 404);
+    if (m.status !== 'approved') throw new ActionError('Approve the application before recording a payment', 409);
+    const renewal = (m.payments?.length ?? 0) > 0;
+    const taken = new Set(data.members.flatMap((x) => (x.payments ?? []).map((p) => p.id)));
+    const { payment } = recordMembershipPayment(m, { id: newMembershipReceiptId(taken), amount, method: 'offline', recordedBy });
+    return { app: { ...m }, payment, renewal };
   });
 }
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowUpRight, Check, CheckCircle2, ImagePlus, Loader2 } from 'lucide-react';
 import { FormField, cn, fieldInputClass } from '@ascend/ui';
 import { HONEYPOT_FIELD, fieldErrors, memberApplicationSchema } from '../../lib/form-schemas';
+import { Turnstile, useCaptchaEnabled } from '../site/Turnstile';
 
 type PlanKey = 'core' | 'associate' | 'student';
 
@@ -12,6 +13,8 @@ export interface JoinFormProps {
   plans: { key: PlanKey; name: string; audience: string; priceLabel: string }[];
   wings: { number: number; name: string; color: string }[];
   initialPlan?: PlanKey;
+  /** Wing numbers to pre-select, e.g. from a wing page's “Join this Wing”. */
+  initialWings?: number[];
 }
 
 type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'done'; duplicate: boolean; message?: string } | { kind: 'error'; message: string };
@@ -28,11 +31,14 @@ const TEXT_FIELDS = [
   { name: 'linkedinUrl', label: 'LinkedIn profile', type: 'url', placeholder: 'https://linkedin.com/in/…' },
 ] as const;
 
-export function JoinForm({ plans, wings, initialPlan }: JoinFormProps) {
+export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormProps) {
   const [plan, setPlan] = useState<PlanKey | ''>(initialPlan ?? '');
-  const [interests, setInterests] = useState<number[]>([]);
+  const [interests, setInterests] = useState<number[]>(initialWings ?? []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaOn = useCaptchaEnabled();
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
 
@@ -69,13 +75,18 @@ export function JoinForm({ plans, wings, initialPlan }: JoinFormProps) {
     }
 
     setErrors({});
+    if (captchaOn && !captcha) {
+      setStatus({ kind: 'error', message: 'Please complete the security check.' });
+      return;
+    }
     setStatus({ kind: 'submitting' });
     try {
       const res = await fetch('/api/members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, turnstileToken: captcha }),
       });
+      setCaptchaReset((n) => n + 1);
       const json = (await res.json().catch(() => ({}))) as { success?: boolean; status?: string; message?: string; error?: string; fieldErrors?: Record<string, string> };
       if (res.ok && json.success) {
         setStatus({ kind: 'done', duplicate: json.status === 'duplicate', message: json.message });
@@ -117,7 +128,7 @@ export function JoinForm({ plans, wings, initialPlan }: JoinFormProps) {
             <Link href="/events" className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-primary px-5 text-[14px] font-semibold text-white">
               Explore events <ArrowUpRight className="h-4 w-4" aria-hidden />
             </Link>
-            <Link href="/about#wings" className="inline-flex h-11 items-center rounded-full border border-mist/[0.18] px-5 text-[14px] font-semibold text-[var(--fg)]">
+            <Link href="/wings" className="inline-flex h-11 items-center rounded-full border border-mist/[0.18] px-5 text-[14px] font-semibold text-[var(--fg)]">
               Meet the wings
             </Link>
           </div>
@@ -209,7 +220,13 @@ export function JoinForm({ plans, wings, initialPlan }: JoinFormProps) {
           ))}
           <div className="flex items-start gap-3 rounded-2xl border border-dashed border-mist/[0.14] p-4 text-[13.5px] text-[var(--muted)] md:col-span-2">
             <ImagePlus className="mt-0.5 h-5 w-5 shrink-0 text-brand-200" aria-hidden />
-            Profile photo: you can add one to your member profile once your membership is confirmed.
+            <span>
+              Profile photograph: add it from your{' '}
+              <Link href="/dashboard?tab=profile" className="font-medium text-[var(--fg)] underline underline-offset-2">
+                member dashboard
+              </Link>{' '}
+              — log in or create a free account with the same email you use here, and your application is linked to it.
+            </span>
           </div>
         </div>
       </fieldset>
@@ -245,6 +262,8 @@ export function JoinForm({ plans, wings, initialPlan }: JoinFormProps) {
         <label htmlFor="join-website">Website</label>
         <input id="join-website" type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" />
       </div>
+
+      <Turnstile onToken={setCaptcha} resetKey={captchaReset} />
 
       {/* Consent */}
       <div className="flex flex-col gap-2">

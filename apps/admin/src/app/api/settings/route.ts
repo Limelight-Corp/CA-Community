@@ -17,7 +17,19 @@ const settingsSchema = z
     heroHeadline: text(160).min(1, 'Hero headline is required'),
     heroHeadlineAccent: text(120),
     heroIntro: text(600),
+    heroImageUrl: z
+      .string()
+      .trim()
+      .max(500)
+      .refine((v) => v === '' || /^\/(?!\/)\S*$/.test(v) || /^https:\/\/\S+$/i.test(v), 'Upload an image or use a full https:// link'),
     announcement: text(300),
+    membershipFees: z
+      .object({
+        core: z.number().int().min(0).max(1_000_000),
+        associate: z.number().int().min(0).max(1_000_000),
+        student: z.number().int().min(0).max(1_000_000),
+      })
+      .partial(),
     contact: z
       .object({
         email: z

@@ -68,6 +68,25 @@ function fieldSchema(field: FieldDef): z.ZodTypeAny {
       return z.array(z.string().trim().min(1).max(200)).max(50);
     case 'color':
       return z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex colour like #2F6FE4');
+    case 'points':
+      return z
+        .array(z.string().trim().max(240, 'Keep each point under 240 characters'))
+        .transform((list) => list.filter(Boolean))
+        .pipe(z.array(z.string()).max(field.max ?? 10, `Up to ${field.max ?? 10} points`));
+    case 'stats':
+      return z
+        .array(z.object({ value: z.string().trim().max(12), label: z.string().trim().max(60) }))
+        .transform((list) => list.filter((s) => s.value || s.label))
+        .pipe(
+          z
+            .array(
+              z.object({
+                value: z.string().min(1, 'Each number needs a value'),
+                label: z.string().min(1, 'Each number needs a label'),
+              })
+            )
+            .max(field.max ?? 4, `Up to ${field.max ?? 4} numbers`)
+        );
   }
 }
 

@@ -25,7 +25,11 @@ export type FieldKind =
   | 'tags'
   | 'lines'
   | 'slug'
-  | 'color';
+  | 'color'
+  /** Numbered bullet points edited row by row (string[]). */
+  | 'points'
+  /** Number + label pairs ({ value, label }[]). */
+  | 'stats';
 
 export interface FieldDef {
   name: string;
@@ -151,9 +155,14 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'qualification', label: 'Qualification', kind: 'text', max: 120, placeholder: 'FCA, LL.B' },
       { name: 'organisation', label: 'Organisation', kind: 'text', max: 160 },
       { name: 'linkedinUrl', label: 'LinkedIn profile', kind: 'url' },
+      { name: 'headline', label: 'Headline', kind: 'text', max: 140, full: true, placeholder: 'e.g. Helping businesses win GST appeals', hint: 'One line shown under the name on the speaker page' },
       { name: 'avatarUrl', label: 'Photo', kind: 'image', aspect: 'square', full: true },
       { name: 'expertise', label: 'Expertise', kind: 'tags', hint: 'Comma-separated, e.g. GST, Audit', full: true },
       { name: 'bio', label: 'Short bio', kind: 'textarea', required: true, max: 2000, full: true },
+      { name: 'stats', label: 'Numbers', kind: 'stats', max: 4, full: true, hint: 'Shown as big numbers on the speaker page, e.g. 15+ · Years in practice' },
+      { name: 'highlights', label: 'Highlights', kind: 'points', max: 10, full: true, hint: 'Point-wise achievements. Press Enter for the next point; use the arrows to reorder.' },
+      { name: 'talks', label: 'Signature talks', kind: 'points', max: 6, full: true, hint: 'Session topics this speaker is known for' },
+      { name: 'quote', label: 'Quote', kind: 'textarea', max: 300, full: true, hint: 'Optional — a line in the speaker’s own words' },
       { name: 'isPublished', label: 'Published on website', kind: 'toggle', defaultValue: true },
     ],
   },
@@ -259,7 +268,7 @@ export function defaultValues(config: ContentTypeConfig): Record<string, unknown
   for (const f of config.fields) {
     if (f.defaultValue !== undefined) values[f.name] = f.defaultValue;
     else if (f.kind === 'toggle') values[f.name] = false;
-    else if (f.kind === 'tags' || f.kind === 'lines') values[f.name] = [];
+    else if (f.kind === 'tags' || f.kind === 'lines' || f.kind === 'points' || f.kind === 'stats') values[f.name] = [];
     else if (f.kind === 'number') values[f.name] = f.min ?? 0;
     else values[f.name] = '';
   }

@@ -71,6 +71,16 @@ export interface CommunitySpeaker {
   expertise: string[];
   avatarUrl?: string;
   linkedinUrl?: string;
+  /** One-line introduction shown under the name. */
+  headline?: string;
+  /** Point-wise highlights / achievements. */
+  highlights?: string[];
+  /** Number-wise stats, e.g. { value: "15+", label: "Years in practice" }. */
+  stats?: { value: string; label: string }[];
+  /** Talks / session topics they speak on. */
+  talks?: string[];
+  /** Signature quote. */
+  quote?: string;
   isPublished: boolean;
   createdAt?: string;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { Briefcase, Check, GraduationCap, Handshake, Lightbulb, Rocket, Users } from 'lucide-react';
+import { Briefcase, Check, ChevronDown, GraduationCap, Handshake, Lightbulb, Rocket, Users } from 'lucide-react';
 import {
   MEMBERSHIP_PLANS,
   MEMBER_IDENTITIES,
@@ -87,73 +87,123 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
             <p className="font-mono text-[11.5px] uppercase tracking-[0.12em] text-[var(--muted)]">Proposed plans — subject to confirmation</p>
           </div>
 
-          <ul className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {MEMBERSHIP_PLANS.map((plan, i) => (
-              <Reveal as="li" key={plan.key} delay={i * 100} className={cn('h-full', plan.featured && 'md:col-span-2 lg:col-span-1')}>
-                <FxCard
-                  as="article"
-                  max={5}
-                  className={cn(
-                    'group flex h-full flex-col gap-5 overflow-hidden rounded-[28px] border p-6 md:p-7',
-                    plan.featured ? 'grain holo border-gold/50 bg-grad-surface shadow-[0_30px_80px_-40px_rgb(var(--gold-rgb)/0.6)]' : 'border-mist/[0.1] bg-grad-surface'
-                  )}
-                >
-                  {plan.featured && (
-                    <>
-                      <div className="aurora opacity-50" aria-hidden>
-                        <i />
-                      </div>
-                    </>
-                  )}
-                  <div className="relative z-10 flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">{plan.audience}</span>
-                      {plan.featured && (
-                        <span className="rounded-full bg-grad-gold px-3 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-brand-950">
-                          Most popular
-                        </span>
+          <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {MEMBERSHIP_PLANS.map((plan, i) => {
+              const top = plan.benefits.slice(0, 4);
+              const more = plan.benefits.slice(4);
+              return (
+                <Reveal as="li" key={plan.key} delay={i * 100} className={cn('h-full', plan.featured && 'md:col-span-2 lg:col-span-1')}>
+                  <FxCard
+                    as="article"
+                    max={6}
+                    className={cn(
+                      'group flex h-full flex-col gap-5 rounded-[28px] border p-3',
+                      plan.featured ? 'border-gold/40 bg-gold/[0.04]' : 'border-mist/[0.1] bg-grad-surface'
+                    )}
+                  >
+                    {/* The plan as a membership card */}
+                    <div
+                      className={cn(
+                        'holo grain relative flex aspect-[1.75/1] flex-col justify-between overflow-hidden rounded-[20px] border p-5',
+                        plan.featured ? 'border-gold/50 shadow-[0_24px_60px_-30px_rgb(var(--gold-rgb)/0.8)]' : 'border-mist/[0.14]'
                       )}
+                    >
+                      <div
+                        aria-hidden
+                        className="mesh-drift"
+                        style={{
+                          background: plan.featured
+                            ? 'radial-gradient(55% 75% at 75% 25%, rgb(var(--gold-rgb) / 0.6), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--lime-rgb) / 0.45), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-950))'
+                            : `radial-gradient(55% 75% at 75% 25%, rgb(var(--lime-rgb) / ${i === 1 ? 0.65 : 0.5}), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--gold-rgb) / 0.25), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-950))`,
+                          animationDelay: `${-i * 4}s`,
+                        }}
+                      />
+                      <span
+                        aria-hidden
+                        className="fx-ghost text-outline pointer-events-none absolute -bottom-8 right-2 select-none font-display text-[150px] font-semibold leading-none tracking-[-0.06em] opacity-60"
+                      >
+                        {plan.name.slice(0, 1)}
+                      </span>
+                      <div className="relative flex items-start justify-between gap-3">
+                        <span aria-hidden className="h-7 w-10 rounded-md bg-grad-gold opacity-90 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.25)]" />
+                        {plan.featured ? (
+                          <span className="rounded-full bg-grad-gold px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-950">
+                            Most popular
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">ASCEND</span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/70">{plan.audience}</span>
+                        <h3 id={`plan-${plan.key}`} className="mt-1 font-display text-[24px] font-medium leading-none tracking-[-0.035em] text-white">
+                          {plan.name}
+                        </h3>
+                        <p className="mt-3 flex flex-wrap items-baseline gap-x-1.5">
+                          <span
+                            className={cn(
+                              'font-display text-[clamp(34px,3.4vw,44px)] font-semibold leading-none tracking-[-0.05em]',
+                              plan.featured ? 'text-gold-gradient' : 'text-white'
+                            )}
+                          >
+                            ₹{plan.price.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-[13px] text-white/70">/ {plan.period}</span>
+                          {plan.priceNote && <span className="font-serif text-[14px] italic text-gold-soft">{plan.priceNote}</span>}
+                        </p>
+                      </div>
                     </div>
-                    <h3 id={`plan-${plan.key}`} className="font-display text-[28px] font-medium leading-none tracking-[-0.04em] text-[var(--fg)]">
-                      {plan.name}
-                    </h3>
-                  </div>
-                  <div className="relative z-10 flex flex-wrap items-baseline gap-x-2">
-                    <span className={cn('font-display text-[clamp(40px,4.2vw,56px)] font-semibold leading-none tracking-[-0.05em]', plan.featured ? 'text-gold-gradient' : 'text-[var(--fg)]')}>
-                      ₹{plan.price.toLocaleString('en-IN')}
-                    </span>
-                    <span className="text-[15px] text-[var(--muted)]">/ {plan.period}</span>
-                    {plan.priceNote && <span className="w-full pt-1.5 font-serif text-[16px] italic text-gold-soft">{plan.priceNote}</span>}
-                  </div>
-                  <div className="relative z-10">
-                    <h4 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Ideal for</h4>
-                    <ul className="mt-2.5 flex flex-wrap gap-1.5">
-                      {plan.idealFor.map((x) => (
-                        <li key={x} className="rounded-full border border-mist/[0.12] px-2.5 py-1 text-[12px] text-[var(--fg)]">
-                          {x}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="relative z-10 border-t border-[var(--line)] pt-5">
-                    <h4 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Benefits</h4>
-                    <ul className="mt-3 grid gap-1.5">
-                      {plan.benefits.map((b) => (
-                        <li key={b} className="flex gap-2.5 text-[13.5px] leading-snug text-[var(--fg)]">
-                          <Check className={cn('mt-0.5 h-4 w-4 shrink-0', plan.featured ? 'text-gold' : 'text-brand-200')} aria-hidden />
-                          {b}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="relative z-10 mt-auto pt-1">
-                    <PillLink href={`/join?plan=${plan.key}#register`} variant={plan.featured ? 'gold' : 'ghost'} className="w-full">
-                      Choose {plan.name}
-                    </PillLink>
-                  </div>
-                </FxCard>
-              </Reveal>
-            ))}
+
+                    <div className="flex flex-1 flex-col gap-4 px-3 pb-3">
+                      <div>
+                        <h4 className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">Ideal for</h4>
+                        <ul className="mt-2 flex flex-wrap gap-1.5">
+                          {plan.idealFor.map((x) => (
+                            <li key={x} className="rounded-full border border-mist/[0.12] px-2.5 py-0.5 text-[12px] text-[var(--fg)]">
+                              {x}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="border-t border-[var(--line)] pt-4">
+                        <h4 className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">Benefits</h4>
+                        <ul className="mt-2.5 grid gap-1.5">
+                          {top.map((b) => (
+                            <li key={b} className="flex gap-2.5 text-[13.5px] leading-snug text-[var(--fg)]">
+                              <Check className={cn('mt-0.5 h-4 w-4 shrink-0', plan.featured ? 'text-gold' : 'text-brand-200')} aria-hidden />
+                              {b}
+                            </li>
+                          ))}
+                        </ul>
+                        {more.length > 0 && (
+                          <details className="mt-1.5 [&[open]_.chev]:rotate-180">
+                            <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full py-1 text-[13px] font-semibold text-brand-200 hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 [&::-webkit-details-marker]:hidden">
+                              All {plan.benefits.length} benefits
+                              <ChevronDown className="chev h-4 w-4 transition-transform duration-300" aria-hidden />
+                            </summary>
+                            <ul className="mt-1.5 grid gap-1.5">
+                              {more.map((b) => (
+                                <li key={b} className="flex gap-2.5 text-[13.5px] leading-snug text-[var(--fg)]">
+                                  <Check className={cn('mt-0.5 h-4 w-4 shrink-0', plan.featured ? 'text-gold' : 'text-brand-200')} aria-hidden />
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
+                      </div>
+
+                      <div className="mt-auto pt-1">
+                        <PillLink href={`/join?plan=${plan.key}#register`} variant={plan.featured ? 'gold' : 'ghost'} className="w-full">
+                          Choose {plan.name}
+                        </PillLink>
+                      </div>
+                    </div>
+                  </FxCard>
+                </Reveal>
+              );
+            })}
           </ul>
         </Container>
       </Section>

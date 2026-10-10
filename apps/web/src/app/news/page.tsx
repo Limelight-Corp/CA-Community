@@ -40,7 +40,7 @@ export default function NewsPage() {
         lead="Announcements, professional updates, partnerships and member wins — straight from the community."
         ghost="NEWS"
       />
-      <Section>
+      <Section className="pt-12 md:pt-16">
         <Container size="wide">
           <NewsBrowser items={items} categories={mergeCategories(NEWS_CATEGORIES, news)} />
         </Container>

@@ -42,7 +42,7 @@ export default function ResourcesPage() {
         lead="Guides, tax updates, career resources, webinars and downloads curated by the wings. Some resources are reserved for members."
         ghost="LIBRARY"
       />
-      <Section>
+      <Section className="pt-12 md:pt-16">
         <Container size="wide">
           <ResourceLibrary items={items} categories={mergeCategories(RESOURCE_CATEGORIES, resources)} />
         </Container>

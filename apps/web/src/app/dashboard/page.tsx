@@ -17,6 +17,7 @@ import {
   useToast,
 } from '@ascend/ui';
 import { useAuth } from '../../context/AuthContext';
+import { MyCertificates } from '../../components/dashboard/MyCertificates';
 
 interface MemberEvent {
   id: string;
@@ -42,7 +43,7 @@ interface MemberReceipt {
 export default function MemberDashboardPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'events' | 'receipts' | 'profile' | 'wings'>('events');
+  const [activeTab, setActiveTab] = useState<'events' | 'certificates' | 'receipts' | 'profile' | 'wings'>('events');
   const [selectedPass, setSelectedPass] = useState<MemberEvent | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<MemberReceipt | null>(null);
 
@@ -172,6 +173,7 @@ export default function MemberDashboardPage() {
           <nav className="flex md:flex-col gap-1 border-b md:border-b-0 md:sticky md:top-24 border-[var(--line)] overflow-x-auto pb-2 md:pb-0">
             {[
               { id: 'events', label: 'My Event Passes' },
+              { id: 'certificates', label: 'My Certificates' },
               { id: 'receipts', label: 'GST Tax Invoices' },
               { id: 'wings', label: 'My Active Wings' },
               { id: 'profile', label: 'Profile & Credentials' },
@@ -221,6 +223,8 @@ export default function MemberDashboardPage() {
                 <span>City Chapter: <strong className="text-[var(--fg)]">{profileData.city}</strong></span>
               </div>
             </div>
+
+            {activeTab === 'certificates' && <MyCertificates />}
 
             {/* My Event Passes Tab */}
             {activeTab === 'events' && (

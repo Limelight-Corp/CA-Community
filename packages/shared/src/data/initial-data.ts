@@ -23,6 +23,8 @@ export interface CommunityEvent {
   category: CommunityEventCategory;
   date: string;
   time: string;
+  /** CPE / learning hours shown on the certificate (optional, set by the organiser). */
+  cpeHours?: number;
   endTime?: string;
   venue: string;
   city: string;
@@ -254,6 +256,10 @@ export interface CommunityRegistration {
   gatewayPaymentId?: string;
   paidAt?: string;
   attended?: boolean;
+  /** First check-in time (ISO). */
+  attendedAt?: string;
+  /** Issued at check-in; used for the certificate PDF and /verify/<id>. */
+  certificateId?: string;
   createdAt: string;
   updatedAt: string;
 }

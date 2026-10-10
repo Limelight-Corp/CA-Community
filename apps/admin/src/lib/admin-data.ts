@@ -2,6 +2,7 @@
  * Server-only admin data operations on top of the file store: dashboard statistics and
  * registration / member / message mutations. Never import this from a client component.
  */
+import { randomBytes } from 'crypto';
 import type {
   CommunityContactMessage,
   CommunityEvent,
@@ -89,6 +90,19 @@ export type RegistrationAction =
   | { action: 'mark_refunded' }
   | { action: 'set_attended'; value: boolean };
 
+const CERT_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** `ASC-CERT-XXXXXXXX`, unique among existing certificate IDs. */
+function newCertificateId(taken: Set<string | undefined>): string {
+  for (;;) {
+    const bytes = randomBytes(8);
+    let code = '';
+    for (const b of bytes) code += CERT_ALPHABET[b % CERT_ALPHABET.length];
+    const id = `ASC-CERT-${code}`;
+    if (!taken.has(id)) return id;
+  }
+}
+
 export class ActionError extends Error {
   constructor(message: string, public status = 400) {
     super(message);
@@ -147,6 +161,14 @@ export function applyRegistrationAction(id: string, input: RegistrationAction): 
       case 'set_attended': {
         if (reg.status !== 'confirmed') throw new ActionError('Only confirmed registrations can be checked in', 409);
         reg.attended = input.value;
+        if (input.value) {
+          // First check-in issues the certificate; the ID is kept if they are marked absent and back.
+          reg.attendedAt = reg.attendedAt ?? now;
+          if (!reg.certificateId) {
+            const taken = new Set(data.registrations.map((r) => r.certificateId).filter(Boolean));
+            reg.certificateId = newCertificateId(taken);
+          }
+        }
         break;
       }
     }

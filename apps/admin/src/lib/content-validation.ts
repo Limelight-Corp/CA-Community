@@ -130,6 +130,7 @@ export const eventBaseSchema = z.object({
     fee: z.coerce.number().finite().min(0, 'Fee cannot be negative').max(10_000_000),
     memberFee: z.coerce.number().finite().min(0, 'Member fee cannot be negative').max(10_000_000),
     seatsTotal: z.coerce.number().int().min(0, 'Capacity cannot be negative').max(1_000_000),
+    cpeHours: z.coerce.number().finite().min(0, 'CPE hours cannot be negative').max(100, 'Up to 100 hours').optional(),
     speakerSlugs: z.array(z.string().trim().max(80)).max(50),
     description: z.string().trim().min(1, 'Description is required').max(20000),
     agenda: z.array(agendaItem).max(100),

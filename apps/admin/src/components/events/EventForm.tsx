@@ -39,6 +39,7 @@ interface FormState {
   fee: string;
   memberFee: string;
   seatsTotal: string;
+  cpeHours: string;
   speakerSlugs: string[];
   description: string;
   agenda: CommunityAgendaItem[];
@@ -65,6 +66,7 @@ function toState(e?: CommunityEvent): FormState {
     fee: String(e?.fee ?? 0),
     memberFee: String(e?.memberFee ?? 0),
     seatsTotal: String(e?.seatsTotal ?? 100),
+    cpeHours: e?.cpeHours ? String(e.cpeHours) : '',
     speakerSlugs: e?.speakerSlugs ?? [],
     description: e?.description ?? '',
     agenda: e?.agenda ?? [],
@@ -146,6 +148,10 @@ export function EventForm({
     if (!Number.isFinite(memberFee) || memberFee < 0) e.memberFee = 'Enter 0 or a positive amount';
     else if (memberFee > fee) e.memberFee = 'Member fee should not exceed the standard fee';
     if (!Number.isInteger(seats) || seats < 0) e.seatsTotal = 'Enter a whole number of seats';
+    if (form.cpeHours.trim() !== '') {
+      const h = Number(form.cpeHours);
+      if (!Number.isFinite(h) || h < 0 || h > 100) e.cpeHours = 'Enter hours between 0 and 100';
+    }
     else if (event && seats < (Number(event.seatsTaken) || 0)) {
       e.seatsTotal = `Capacity cannot be below the ${event.seatsTaken} seats already taken`;
     }
@@ -173,6 +179,7 @@ export function EventForm({
       fee: Number(form.fee),
       memberFee: Number(form.memberFee),
       seatsTotal: Number(form.seatsTotal),
+      cpeHours: form.cpeHours.trim() === '' ? 0 : Number(form.cpeHours),
       agenda: form.agenda.map((a) => ({ time: a.time.trim(), title: a.title.trim(), speaker: a.speaker?.trim() || undefined })),
     };
     const res = isEdit
@@ -305,6 +312,19 @@ export function EventForm({
                 onChange={(v) => set('seatsTotal', v)}
                 error={errors.seatsTotal}
                 hint={event ? `${event.seatsTaken ?? 0} seats taken` : undefined}
+              />
+            </div>
+            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+              <TextField
+                label="CPE / learning hours"
+                type="number"
+                min={0}
+                step={0.5}
+                inputMode="decimal"
+                value={form.cpeHours}
+                onChange={(v) => set('cpeHours', v)}
+                error={errors.cpeHours}
+                hint="Optional — printed on attendees’ certificates. Leave empty if not applicable."
               />
             </div>
           </Panel>

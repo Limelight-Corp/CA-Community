@@ -2,11 +2,12 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowUpRight, CalendarDays, CheckCircle2, Clock, CreditCard, Hourglass, MapPin, Navigation, XCircle } from 'lucide-react';
+import { ArrowUpRight, Award, CalendarDays, CheckCircle2, Clock, CreditCard, Download, Hourglass, MapPin, Navigation, ShieldCheck, XCircle } from 'lucide-react';
 import { AccentText, Container, Kicker, cn } from '@ascend/ui';
 import { getSettings } from '../../../lib/community-store';
 import { dateParts, formatEventDate, locationLabel, priceLabel } from '../../../lib/events';
 import { siteUrl } from '../../../lib/seo';
+import { certificatePdfPath, isCertificateValid } from '../../../lib/certificates';
 import { findEventById, findRegistrationWithToken, razorpayConfig } from '../../api/registrations/_lib/server';
 import { mapsLink } from '../../../components/events/event-time';
 import {
@@ -208,6 +209,40 @@ export default async function RegistrationPage({
               >
                 <CreditCard className="h-4 w-4" aria-hidden /> {view === 'failed' ? 'Retry payment' : 'Complete payment'} · {feeLabel}
               </Link>
+            </div>
+          )}
+
+          {view === 'confirmed' && (
+            <div className="mt-6 flex flex-col gap-4 rounded-[24px] border border-gold/30 bg-gold/[0.06] p-5 print:hidden sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-grad-gold text-brand-950">
+                  <Award className="h-5 w-5" aria-hidden />
+                </span>
+                <div>
+                  <p className="font-display text-[18px] font-medium text-[var(--fg)]">Certificate of participation</p>
+                  <p className="text-[13.5px] text-[var(--muted)]">
+                    {isCertificateValid(reg)
+                      ? `Ready${event?.cpeHours ? ` · ${event.cpeHours} CPE / learning hours` : ''} · ID ${reg.certificateId}`
+                      : 'Available here after you are checked in at the event.'}
+                  </p>
+                </div>
+              </div>
+              {isCertificateValid(reg) && (
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={certificatePdfPath(reg.certificateId!, token)}
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950 hover:brightness-105"
+                  >
+                    <Download className="h-4 w-4" aria-hidden /> Download PDF
+                  </a>
+                  <Link
+                    href={`/verify/${reg.certificateId}`}
+                    className="inline-flex h-11 items-center gap-2 rounded-full border border-mist/[0.18] px-4 text-[14px] font-semibold text-[var(--fg)] hover:border-mist/50"
+                  >
+                    <ShieldCheck className="h-4 w-4" aria-hidden /> Verify
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

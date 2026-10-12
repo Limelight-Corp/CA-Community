@@ -3,11 +3,12 @@ import { MEMBERSHIP_PLANS } from '@ascend/shared';
 import { readPrivate, readStore } from '../../../lib/community-store';
 import { publicRegistration } from '../../../lib/admin-data';
 import { byNewest, paymentRows } from '../../../lib/filters';
-import { formatDateTime, formatINR } from '../../../lib/format';
-import { DataTable, EmptyRow, PageHeader, Panel, StatCard } from '../../../components/ui/Display';
+import { formatINR } from '../../../lib/format';
+import { PageHeader, Panel, StatCard } from '../../../components/ui/Display';
 import { ExportButtons } from '../../../components/ui/Controls';
 import { razorpayConfigured } from '../../../lib/razorpay';
 import { PaymentsTable } from '../../../components/payments/PaymentsTable';
+import { MembershipPaymentsTable } from '../../../components/payments/MembershipPaymentsTable';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,42 +47,22 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
       </Panel>
       <Panel
         title={<span className="inline-flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-ok" aria-hidden />Membership payments</span>}
-        description={`${memberPayments.length} payments · ${formatINR(memberTotal)} received. The latest 25 are shown; the report has all of them.`}
+        description={`${memberPayments.length} payments · ${formatINR(memberTotal)} received.`}
         actions={<ExportButtons dataset="membership-payments" label="Download membership payment report" />}
       >
-        <DataTable label="Membership payments">
-          <thead>
-            <tr>
-              <th scope="col">Receipt</th>
-              <th scope="col">Member</th>
-              <th scope="col">Plan</th>
-              <th scope="col">Amount</th>
-              <th scope="col">Method</th>
-              <th scope="col">Paid at</th>
-              <th scope="col">Valid until</th>
-            </tr>
-          </thead>
-          <tbody>
-            {memberPayments.length === 0 && <EmptyRow colSpan={7}>No membership payments yet.</EmptyRow>}
-            {memberPayments.slice(0, 25).map(({ member, payment }) => (
-              <tr key={payment.id}>
-                <td className="font-mono text-[12.5px]">{payment.id}</td>
-                <td>
-                  <div className="font-medium text-[var(--fg)]">{member.name}</div>
-                  <div className="text-[12px] text-[var(--muted)]">{member.email}</div>
-                </td>
-                <td>{planName(member.plan)}</td>
-                <td className="font-medium">{formatINR(payment.amount)}</td>
-                <td>
-                  {payment.method === 'razorpay' ? 'Online' : 'Offline'}
-                  {payment.gatewayPaymentId && <div className="font-mono text-[11.5px] text-[var(--muted)]">{payment.gatewayPaymentId}</div>}
-                </td>
-                <td>{formatDateTime(payment.paidAt)}</td>
-                <td>{payment.validUntil.slice(0, 10)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </DataTable>
+        <MembershipPaymentsTable
+          rows={memberPayments.map(({ member, payment }) => ({
+            receipt: payment.id,
+            name: member.name,
+            email: member.email,
+            plan: planName(member.plan),
+            amount: payment.amount,
+            method: payment.method,
+            gatewayPaymentId: payment.gatewayPaymentId,
+            paidAt: payment.paidAt,
+            validUntil: payment.validUntil,
+          }))}
+        />
       </Panel>
     </>
   );

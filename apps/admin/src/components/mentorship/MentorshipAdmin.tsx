@@ -54,8 +54,8 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
   const [choice, setChoice] = useState<Record<string, string>>({});
   const [declining, setDeclining] = useState<RequestRow | null>(null);
   const [note, setNote] = useState('');
-  const reqPager = usePagination(requests, 20);
-  const mentorPager = usePagination(mentors, 20);
+  const reqPager = usePagination(requests, 10);
+  const mentorPager = usePagination(mentors, 10);
 
   const run = async (key: string, url: string, method: 'PATCH' | 'POST', body: unknown, success: string) => {
     setBusy(key);
@@ -185,7 +185,7 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
             })}
           </tbody>
         </DataTable>
-        <Pagination page={reqPager.page} pages={reqPager.pages} total={reqPager.total} pageSize={reqPager.pageSize} onChange={reqPager.setPage} noun="requests" />
+        <Pagination page={reqPager.page} pages={reqPager.pages} total={reqPager.total} pageSize={reqPager.pageSize} onChange={reqPager.setPage} onPageSizeChange={reqPager.setPageSize} noun="requests" />
       </section>
 
       <section>
@@ -263,7 +263,7 @@ export function MentorshipAdmin({ mentors, requests, mentorAccounts }: { mentors
             ))}
           </tbody>
         </DataTable>
-        <Pagination page={mentorPager.page} pages={mentorPager.pages} total={mentorPager.total} pageSize={mentorPager.pageSize} onChange={mentorPager.setPage} noun="mentors" />
+        <Pagination page={mentorPager.page} pages={mentorPager.pages} total={mentorPager.total} pageSize={mentorPager.pageSize} onChange={mentorPager.setPage} onPageSizeChange={mentorPager.setPageSize} noun="mentors" />
       </section>
 
       <ConfirmDialog

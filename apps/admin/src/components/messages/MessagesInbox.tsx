@@ -26,7 +26,7 @@ export function MessagesInbox({ rows }: { rows: CommunityContactMessage[] }) {
   const [busy, setBusy] = useState<string | null>(null);
 
   const filtered = useMemo(() => filterMessages(rows, view, q), [rows, view, q]);
-  const pager = usePagination(filtered, 20, [view, q]);
+  const pager = usePagination(filtered, 10, [view, q]);
   const counts = {
     inbox: rows.filter((m) => m.status !== 'archived').length,
     new: rows.filter((m) => m.status === 'new').length,
@@ -147,7 +147,7 @@ export function MessagesInbox({ rows }: { rows: CommunityContactMessage[] }) {
           })}
         </ul>
       )}
-      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="messages" />
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} onPageSizeChange={pager.setPageSize} noun="messages" />
     </div>
   );
 }

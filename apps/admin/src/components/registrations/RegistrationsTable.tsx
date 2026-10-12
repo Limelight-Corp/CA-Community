@@ -47,7 +47,7 @@ export function RegistrationsTable({
     () => filterRegistrations(rows, { q, event: eventId || undefined, payment: payment || undefined, status: status || undefined }),
     [rows, q, eventId, payment, status]
   );
-  const pager = usePagination(filtered, 25, [q, eventId, payment, status]);
+  const pager = usePagination(filtered, 10, [q, eventId, payment, status]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -147,7 +147,7 @@ export function RegistrationsTable({
           ))}
         </tbody>
       </DataTable>
-      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="registrations" />
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} onPageSizeChange={pager.setPageSize} noun="registrations" />
 
       {dialog}
 

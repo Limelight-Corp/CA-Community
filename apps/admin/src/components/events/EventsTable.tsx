@@ -107,7 +107,7 @@ export function EventsTable({ rows, initialStatus = '' }: { rows: EventRow[]; in
       }
     });
   }, [rows, q, status, today]);
-  const pager = usePagination(filtered, 20, [q, status]);
+  const pager = usePagination(filtered, 10, [q, status]);
 
   const toggle = async (row: EventRow, field: 'isPublished' | 'registrationOpen') => {
     setBusyId(row.id);
@@ -244,7 +244,7 @@ export function EventsTable({ rows, initialStatus = '' }: { rows: EventRow[]; in
             ))}
           </tbody>
         </DataTable>
-        <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="events" />
+        <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} onPageSizeChange={pager.setPageSize} noun="events" />
       </div>
     </Panel>
   );

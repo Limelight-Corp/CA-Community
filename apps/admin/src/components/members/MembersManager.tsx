@@ -102,7 +102,7 @@ export function MembersManager({
   }, [rows]);
 
   const filtered = useMemo(() => filterMembers(rows, { q, plan, status, city }), [rows, q, plan, status, city]);
-  const pager = usePagination(filtered, 25, [q, plan, status, city]);
+  const pager = usePagination(filtered, 10, [q, plan, status, city]);
 
   const patch = async (m: CommunityMemberApplication, updates: Partial<EditState>, success: string) => {
     setBusy(m.id);
@@ -265,7 +265,7 @@ export function MembersManager({
           ))}
         </tbody>
       </DataTable>
-      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="applications" />
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} onPageSizeChange={pager.setPageSize} noun="applications" />
 
       <ConfirmDialog
         open={!!paying}

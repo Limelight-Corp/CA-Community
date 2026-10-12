@@ -29,7 +29,7 @@ export function ContentList({ type, items }: { type: ManagedContentType; items: 
       return [config.titleField, ...config.subtitleFields].some((k) => String(it[k] ?? '').toLowerCase().includes(needle));
     });
   }, [items, q, visibility, config]);
-  const pager = usePagination(filtered, 24, [q, visibility]);
+  const pager = usePagination(filtered, 10, [q, visibility]);
 
   const togglePublish = async (it: Item) => {
     setBusy(it.id);
@@ -127,7 +127,7 @@ export function ContentList({ type, items }: { type: ManagedContentType; items: 
           })}
         </ul>
       )}
-      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="items" />
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} onPageSizeChange={pager.setPageSize} noun="items" />
     </div>
   );
 }

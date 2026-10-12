@@ -18,12 +18,21 @@ export function pageWindow(page: number, pages: number): (number | null)[] {
   return out;
 }
 
+/** Choices for the "rows per page" selector. */
+export const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+
 /**
  * Client-side paging over an already filtered list. The page resets to 1 whenever `resetKey`
- * changes (pass the active filters) and is clamped when the list shrinks.
+ * changes (pass the active filters) or the page size changes, and is clamped when the list
+ * shrinks. `initialPageSize` is the starting page size; `setPageSize` changes it.
  */
-export function usePagination<T>(items: readonly T[], pageSize: number, resetKey?: unknown) {
+export function usePagination<T>(items: readonly T[], initialPageSize: number, resetKey?: unknown) {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSizeState] = useState(initialPageSize);
+  const setPageSize = (size: number) => {
+    setPageSizeState(size);
+    setPage(1);
+  };
   const key = JSON.stringify(resetKey ?? null);
   const first = useRef(true);
   useEffect(() => {
@@ -36,7 +45,7 @@ export function usePagination<T>(items: readonly T[], pageSize: number, resetKey
   const pages = Math.max(1, Math.ceil(items.length / pageSize));
   const current = Math.min(page, pages);
   const pageItems = useMemo(() => items.slice((current - 1) * pageSize, current * pageSize), [items, current, pageSize]);
-  return { page: current, pages, setPage, pageItems, total: items.length, pageSize };
+  return { page: current, pages, setPage, pageItems, total: items.length, pageSize, setPageSize };
 }
 
 export interface PaginationProps {
@@ -50,10 +59,26 @@ export interface PaginationProps {
   /** Element to bring into view after changing page (the top of the list). */
   scrollTo?: React.RefObject<HTMLElement | null>;
   className?: string;
+  /** Shows a "rows per page" selector when set. */
+  onPageSizeChange?: (size: number) => void;
+  pageSizeOptions?: readonly number[];
 }
 
-export function Pagination({ page, pages, total, pageSize, onChange, noun = 'items', scrollTo, className }: PaginationProps) {
-  if (total <= pageSize) return null;
+export function Pagination({
+  page,
+  pages,
+  total,
+  pageSize,
+  onChange,
+  noun = 'items',
+  scrollTo,
+  className,
+  onPageSizeChange,
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
+}: PaginationProps) {
+  const sizes = onPageSizeChange ? [...new Set([...pageSizeOptions, pageSize])].sort((a, b) => a - b) : [];
+  // With a size selector the bar stays while the list is longer than the smallest page size.
+  if (total <= (sizes.length ? Math.min(...sizes) : pageSize)) return null;
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
   const go = (p: number) => {
@@ -70,9 +95,27 @@ export function Pagination({ page, pages, total, pageSize, onChange, noun = 'ite
   const idle = 'border-[rgb(var(--mist-rgb)/0.14)] text-[var(--muted)] hover:border-[rgb(var(--mist-rgb)/0.35)] hover:text-[var(--fg)]';
   return (
     <nav aria-label={`${noun} pages`} className={cn('flex flex-col items-center justify-between gap-3 pt-6 sm:flex-row', className)}>
-      <p className="text-[12.5px] text-[var(--muted)] tabular-nums" aria-live="polite">
-        Showing {from.toLocaleString('en-IN')}–{to.toLocaleString('en-IN')} of {total.toLocaleString('en-IN')} {noun}
-      </p>
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+        <p className="text-[12.5px] text-[var(--muted)] tabular-nums" aria-live="polite">
+          Showing {from.toLocaleString('en-IN')}–{to.toLocaleString('en-IN')} of {total.toLocaleString('en-IN')} {noun}
+        </p>
+        {onPageSizeChange && (
+          <label className="inline-flex items-center gap-2 text-[12.5px] text-[var(--muted)]">
+            Rows per page
+            <select
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              className="h-8 cursor-pointer rounded-full border border-[rgb(var(--mist-rgb)/0.14)] bg-transparent px-3 text-[12.5px] font-medium tabular-nums text-[var(--fg)] outline-none transition hover:border-[rgb(var(--mist-rgb)/0.35)] focus-visible:ring-2 focus-visible:ring-[var(--brand-500)] [&>option]:bg-[var(--bg)]"
+            >
+              {sizes.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
       <div className="flex flex-wrap items-center justify-center gap-1.5">
         <button type="button" className={cn(btn, idle)} onClick={() => go(page - 1)} disabled={page === 1} aria-label="Previous page">
           ‹ <span className="ml-1 hidden sm:inline">Prev</span>

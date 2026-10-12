@@ -40,7 +40,7 @@ export function PaymentsTable({
     () => filterPayments(rows, { q, event: eventId || undefined, payment: payment || undefined }),
     [rows, q, eventId, payment]
   );
-  const pager = usePagination(filtered, 25, [q, eventId, payment]);
+  const pager = usePagination(filtered, 10, [q, eventId, payment]);
   const total = filtered.reduce((s, r) => s + (r.paymentStatus === 'paid' ? Number(r.fee) || 0 : 0), 0);
 
   return (
@@ -131,7 +131,7 @@ export function PaymentsTable({
           ))}
         </tbody>
       </DataTable>
-      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} noun="transactions" />
+      <Pagination page={pager.page} pages={pager.pages} total={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} onPageSizeChange={pager.setPageSize} noun="transactions" />
       {dialog}
     </div>
   );

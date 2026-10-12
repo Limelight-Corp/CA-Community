@@ -47,7 +47,7 @@ export async function findWingHub(slug: string): Promise<WingHub | undefined> {
 
 export async function wingPeople(hub: WingHub): Promise<{ conveners: CommunityTeamMember[]; committee: CommunityTeamMember[] }> {
   const team = (await getItems<CommunityTeamMember>('team', true))
-    .filter((m) => sameWing(m.wing, hub.name))
+    .filter((m) => (m.wings?.length ? m.wings : [m.wing]).some((w) => sameWing(w, hub.name)))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   return {
     conveners: team.filter((m) => m.group === 'Wing Conveners'),

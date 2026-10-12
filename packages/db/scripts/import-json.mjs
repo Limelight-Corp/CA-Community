@@ -72,7 +72,7 @@ const TAXONOMY = { eventCategories: 'EVENT_CATEGORY', newsCategories: 'NEWS_CATE
 const TABLES = [
   'audit_logs', 'notification_outbox', 'contact_messages', 'mentorship_request_wings', 'mentorship_requests', 'mentor_wings', 'mentors',
   'membership_interests', 'membership_payments', 'memberships', 'event_registrations', 'auth_tokens', 'member_profiles', 'member_accounts',
-  'admin_users', 'event_speakers', 'event_agenda_items', 'events', 'speakers', 'news_articles', 'resources', 'gallery_items', 'team_members',
+  'admin_users', 'event_speakers', 'event_agenda_items', 'events', 'speakers', 'news_articles', 'resources', 'gallery_items', 'team_member_wings', 'team_members',
   'testimonials', 'initiatives', 'jobs', 'wings', 'taxonomy_terms', 'site_settings', 'rate_limit_buckets',
 ];
 
@@ -194,13 +194,16 @@ await db.$transaction(
           videoUrl: blank(g.videoUrl), isPublished: g.isPublished !== false, createdAt: date(g.createdAt) ?? undefined, updatedAt: date(g.updatedAt) ?? undefined,
         },
       });
-    for (const t of store.team ?? [])
+    for (const t of store.team ?? []) {
+      const teamWingId = wingFor(t.wing, `team member "${t.name}"`);
       await tx.teamMember.create({
         data: {
-          id: t.id, name: t.name, designation: t.designation, group: up(t.group), wingId: wingFor(t.wing, `team member "${t.name}"`), background: blank(t.background),
+          id: t.id, name: t.name, designation: t.designation, group: up(t.group), wingId: teamWingId, background: blank(t.background),
           photoUrl: blank(t.photoUrl), linkedinUrl: blank(t.linkedinUrl), sortOrder: t.order ?? 10, isPublished: t.isPublished !== false, createdAt: date(t.createdAt) ?? undefined, updatedAt: date(t.updatedAt) ?? undefined,
         },
       });
+      if (teamWingId) await tx.teamMemberWing.create({ data: { teamMemberId: t.id, wingId: teamWingId, position: 0 } });
+    }
     for (const t of store.testimonials ?? [])
       await tx.testimonial.create({ data: { id: t.id, name: t.name, designation: blank(t.designation), quote: t.quote, photoUrl: blank(t.photoUrl), isPublished: t.isPublished !== false } });
     for (const i of store.initiatives ?? [])

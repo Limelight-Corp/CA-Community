@@ -226,6 +226,7 @@ model Wing {
   events      Event[]
   resources   Resource[]
   team        TeamMember[]
+  teamWings   TeamMemberWing[]
   jobs        Job[]
   memberships MembershipInterest[]
   mentors     MentorWing[]
@@ -398,6 +399,7 @@ model TeamMember {
   name        String    @db.VarChar(120)
   designation String    @db.VarChar(160)
   group       TeamGroup @map("team_group")
+  /// Primary wing: the first of `wings` (kept in sync by the store).
   wingId      String?   @map("wing_id")
   background  String?   @db.VarChar(2000)
   photoUrl    String?   @map("photo_url") @db.VarChar(500)
@@ -407,11 +409,26 @@ model TeamMember {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  wing Wing? @relation(fields: [wingId], references: [id], onDelete: Restrict)
+  wing  Wing?            @relation(fields: [wingId], references: [id], onDelete: Restrict)
+  wings TeamMemberWing[]
 
   @@index([isPublished, group, sortOrder])
   @@index([wingId])
   @@map("team_members")
+}
+
+/// A team member can belong to several wings (shown on each wing's page).
+model TeamMemberWing {
+  teamMemberId String @map("team_member_id")
+  wingId       String @map("wing_id")
+  position     Int    @default(0) @db.SmallInt
+
+  teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  wing       Wing       @relation(fields: [wingId], references: [id], onDelete: Restrict)
+
+  @@id([teamMemberId, wingId])
+  @@index([wingId])
+  @@map("team_member_wings")
 }
 
 model Testimonial {

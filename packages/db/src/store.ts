@@ -308,9 +308,18 @@ export async function listContent<K extends CommunityContentType>(type: K, publi
       );
       break;
     case 'team':
-      out = (await db.teamMember.findMany({ where, include: { wing: wingName }, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] })).map(
+      out = (
+        await db.teamMember.findMany({
+          where,
+          include: { wing: wingName, wings: { orderBy: { position: 'asc' }, select: { wing: wingName } } },
+          orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        })
+      ).map(
         (t): CommunityTeamMember => ({
-          id: t.id, name: t.name, designation: t.designation, group: TEAM_GROUP[t.group]!, wing: t.wing?.name, background: opt(t.background),
+          id: t.id, name: t.name, designation: t.designation, group: TEAM_GROUP[t.group]!,
+          // All wings (in the order chosen); `wing` is the first one, for older code.
+          wings: t.wings.length ? t.wings.map((w) => w.wing.name) : t.wing ? [t.wing.name] : [],
+          wing: t.wings[0]?.wing.name ?? t.wing?.name, background: opt(t.background),
           photoUrl: opt(t.photoUrl), linkedinUrl: opt(t.linkedinUrl), order: t.sortOrder, isPublished: t.isPublished, createdAt: iso(t.createdAt), updatedAt: iso(t.updatedAt),
         })
       );
@@ -417,7 +426,9 @@ async function contentData(type: CommunityContentType, d: AnyItem, db: Tx): Prom
       };
     case 'team':
       return {
-        name: d.name, designation: d.designation, group: d.group === undefined ? undefined : upper(String(d.group)), wingId: await wingIdByName(db, d.wing),
+        name: d.name, designation: d.designation, group: d.group === undefined ? undefined : upper(String(d.group)),
+        // Primary wing = the first of `wings` (or the single `wing` older callers send).
+        wingId: Array.isArray(d.wings) ? await wingIdByName(db, (d.wings as string[])[0] ?? '') : await wingIdByName(db, d.wing),
         background: nul(str(d, 'background')), photoUrl: nul(str(d, 'photoUrl')), linkedinUrl: nul(str(d, 'linkedinUrl')), sortOrder: d.order, ...pub,
       };
     case 'testimonials':
@@ -452,6 +463,17 @@ type Delegate = {
 const delegate = (db: Tx, type: CommunityContentType) => (db as unknown as Record<string, Delegate>)[MODEL[type]]!;
 const strip = (o: AnyItem) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 
+/** Replaces a team member's wings (by name, in order); also accepts the single `wing` older callers send. */
+async function writeTeamWings(db: Tx, teamMemberId: string, d: AnyItem) {
+  const names = Array.isArray(d.wings) ? (d.wings as string[]) : has(d, 'wing') ? [d.wing].filter(Boolean).map(String) : null;
+  if (!names) return;
+  await db.teamMemberWing.deleteMany({ where: { teamMemberId } });
+  const wings = await db.wing.findMany({ where: { name: { in: names } }, select: { id: true, name: true } });
+  const byName = new Map(wings.map((w) => [w.name, w.id]));
+  const rows = [...new Set(names)].flatMap((name, position) => (byName.has(name) ? [{ teamMemberId, wingId: byName.get(name)!, position }] : []));
+  if (rows.length) await db.teamMemberWing.createMany({ data: rows, skipDuplicates: true });
+}
+
 async function writeEventChildren(db: Tx, eventId: string, d: AnyItem) {
   if (Array.isArray(d.speakerSlugs)) {
     await db.eventSpeaker.deleteMany({ where: { eventId } });
@@ -474,6 +496,7 @@ export async function createContent<K extends CommunityContentType>(type: K, dat
   return prisma.$transaction(async (tx) => {
     const row = await delegate(tx, type).create({ data: strip({ ...(await contentData(type, data, tx)), id: data.id || undefined, isPublished: data.isPublished !== false }) });
     if (type === 'events') await writeEventChildren(tx, row.id, data);
+    if (type === 'team') await writeTeamWings(tx, row.id, data);
     return (await getContent(type, row.id, tx))!;
   });
 }
@@ -494,6 +517,7 @@ export async function updateContent<K extends CommunityContentType>(type: K, id:
       throw err;
     }
     if (type === 'events') await writeEventChildren(tx, id, data);
+    if (type === 'team') await writeTeamWings(tx, id, data);
     return (await getContent(type, id, tx)) ?? null;
   });
 }

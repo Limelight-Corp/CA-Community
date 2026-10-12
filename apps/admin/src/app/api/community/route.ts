@@ -105,7 +105,7 @@ async function wingUsage(wingId: string): Promise<string[]> {
   const [events, resources, team, jobs] = await Promise.all([
     store.prisma.event.count({ where }),
     store.prisma.resource.count({ where }),
-    store.prisma.teamMember.count({ where }),
+    store.prisma.teamMember.count({ where: { OR: [{ wingId }, { wings: { some: { wingId } } }] } }),
     store.prisma.job.count({ where }),
   ]);
   const parts: [number, string][] = [

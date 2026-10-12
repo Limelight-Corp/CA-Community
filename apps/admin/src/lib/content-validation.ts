@@ -59,6 +59,15 @@ function fieldSchema(field: FieldDef, dynamicOptions?: readonly string[], keep?:
       // Optional selects may be left empty.
       return z.string().refine((v) => opts.includes(v) || (!field.required && v === ''), `Choose a valid ${field.label.toLowerCase()}`);
     }
+    case 'multiselect': {
+      // Values the item already has stay valid (e.g. a wing that was unpublished since).
+      const opts = [...(dynamicOptions ?? field.options ?? []), ...(Array.isArray(keep) ? (keep as string[]) : [])];
+      const base = z.array(z.string().trim()).max(20, 'Choose at most 20');
+      return (field.required ? base.min(1, `Choose at least one ${field.label.toLowerCase()}`) : base).refine(
+        (vs) => vs.every((v) => opts.includes(v)),
+        `Choose valid ${field.label.toLowerCase()}`
+      );
+    }
     case 'toggle':
       return z.boolean();
     case 'image':

@@ -146,7 +146,9 @@ export interface CommunityTeamMember {
   name: string;
   designation: string;
   group: 'Leadership' | 'Core Team' | 'Advisory Board' | 'Wing Conveners';
-  /** Wing name (ORG_WINGS) for conveners and wing committee members. */
+  /** Wings this person belongs to (names); they appear on each wing's page. */
+  wings?: string[];
+  /** First of `wings` (kept for older data and code). */
   wing?: string;
   background?: string;
   photoUrl?: string;

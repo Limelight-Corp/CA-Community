@@ -24,6 +24,8 @@ function initialValues(type: ManagedContentType, item?: Values): Values {
     if (f.kind === 'number') out[f.name] = String(v);
     else out[f.name] = v;
   }
+  // Team profiles saved before multiple wings: start from their single wing.
+  if (type === 'team' && !(Array.isArray(item.wings) && item.wings.length) && typeof item.wing === 'string' && item.wing) out.wings = [item.wing];
   return out;
 }
 
@@ -218,6 +220,46 @@ export function ContentForm({
         const current = String(v ?? '');
         if (current && !opts.some((o) => o.value === current)) opts.push({ value: current, label: `${current} (current)` });
         return <SelectField key={f.name} {...common} value={current} onChange={(x) => set(f.name, x)} options={opts} placeholder={f.required ? 'Select…' : '—'} />;
+      }
+      case 'multiselect': {
+        const selected = Array.isArray(v) ? (v as string[]) : [];
+        const known = options[f.name] ?? f.options ?? [];
+        const opts = [...known];
+        for (const s of selected) if (!opts.includes(s)) opts.push(s);
+        const toggle = (o: string) => set(f.name, selected.includes(o) ? selected.filter((x) => x !== o) : [...selected, o]);
+        return (
+          <fieldset key={f.name} className={cn('flex flex-col gap-2', f.full && 'md:col-span-2')} aria-describedby={f.hint ? `${f.name}-hint` : undefined}>
+            <legend className="mb-1 text-[13px] font-medium text-[var(--fg)]">
+              {f.label}
+              {f.required && <span className="ml-1 text-gold" aria-hidden>*</span>}
+              {selected.length > 0 && <span className="ml-2 text-[12px] font-normal text-[var(--muted)]">{selected.length} selected</span>}
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {opts.map((o) => {
+                const on = selected.includes(o);
+                const idx = selected.indexOf(o);
+                return (
+                  <label
+                    key={o}
+                    className={cn(
+                      'inline-flex cursor-pointer select-none items-center gap-2 rounded-full border px-3.5 py-2 text-[13px] transition focus-within:ring-2 focus-within:ring-brand-300/60',
+                      on ? 'border-brand-300/60 bg-brand-300/15 text-[var(--fg)]' : 'border-mist/[0.14] text-[var(--muted)] hover:border-mist/30 hover:text-[var(--fg)]'
+                    )}
+                  >
+                    <input type="checkbox" className="sr-only" checked={on} onChange={() => toggle(o)} />
+                    <span aria-hidden className={cn('grid h-4 w-4 place-items-center rounded border text-[10px] font-bold', on ? 'border-brand-300 bg-brand-500 text-white' : 'border-mist/30')}>
+                      {on ? (idx === 0 ? '1' : '✓') : ''}
+                    </span>
+                    {o}
+                    {!known.includes(o) && <span className="text-[11px]">(current)</span>}
+                  </label>
+                );
+              })}
+            </div>
+            {f.hint && <p id={`${f.name}-hint`} className="text-[12px] text-[var(--muted)]">{f.hint}</p>}
+            {errors[f.name] && <p className="text-[12px] text-bad" role="alert">{errors[f.name]}</p>}
+          </fieldset>
+        );
       }
       case 'toggle':
         return <Switch key={f.name} className={cn('md:col-span-2')} checked={Boolean(v)} onChange={(x) => set(f.name, x)} label={f.label} description={f.hint} />;

@@ -22,6 +22,8 @@ export type FieldKind =
   | 'number'
   | 'date'
   | 'select'
+  /** Several values from the options (string[]), shown as checkboxes. */
+  | 'multiselect'
   | 'toggle'
   | 'image'
   /** Uploaded document (PDF/Office) or a pasted link. */
@@ -186,7 +188,7 @@ export const CONTENT_TYPES: Record<ManagedContentType, ContentTypeConfig> = {
       { name: 'name', label: 'Full name', kind: 'text', required: true, max: 120 },
       { name: 'designation', label: 'Designation', kind: 'text', required: true, max: 160 },
       { name: 'group', label: 'Group', kind: 'select', options: TEAM_GROUPS, required: true, defaultValue: 'Core Team' },
-      { name: 'wing', label: 'Wing', kind: 'select', options: ORG_WINGS.map((w) => w.name), optionsFrom: 'wings', hint: 'For wing conveners and committee members — shows them on the wing’s page' },
+      { name: 'wings', label: 'Wings', kind: 'multiselect', options: ORG_WINGS.map((w) => w.name), optionsFrom: 'wings', full: true, hint: 'Tick every wing this person belongs to — they appear on each wing’s page. The first one ticked is their main wing.' },
       { name: 'order', label: 'Display order', kind: 'number', min: 0, max: 999, defaultValue: 10, hint: 'Lower numbers appear first' },
       { name: 'photoUrl', label: 'Photo', kind: 'image', aspect: 'square', full: true },
       { name: 'linkedinUrl', label: 'LinkedIn profile', kind: 'url', full: true },
@@ -307,7 +309,7 @@ export function defaultValues(config: ContentTypeConfig): Record<string, unknown
   for (const f of config.fields) {
     if (f.defaultValue !== undefined) values[f.name] = f.defaultValue;
     else if (f.kind === 'toggle') values[f.name] = false;
-    else if (f.kind === 'tags' || f.kind === 'lines' || f.kind === 'points' || f.kind === 'stats') values[f.name] = [];
+    else if (f.kind === 'tags' || f.kind === 'lines' || f.kind === 'points' || f.kind === 'stats' || f.kind === 'multiselect') values[f.name] = [];
     else if (f.kind === 'number') values[f.name] = f.min ?? 0;
     else values[f.name] = '';
   }

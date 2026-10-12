@@ -4,9 +4,11 @@
  */
 import { fileURLToPath } from 'node:url';
 import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin';
+// next dev evaluates modules with eval() (React Refresh); production never needs it.
+const devEval = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${devEval}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",

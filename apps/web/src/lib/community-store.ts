@@ -12,6 +12,7 @@ import crypto from 'crypto';
 import os from 'os';
 import type { CommunityContentType, CommunityStoreData, SiteSettings } from '@ascend/shared';
 import { cache } from 'react';
+import { revalidateTag, unstable_cache } from 'next/cache';
 import { store } from '@ascend/db';
 
 export type ContentType = CommunityContentType;
@@ -41,20 +42,40 @@ export function dataDir(): string {
 // Content
 // ---------------------------------------------------------------------------------------------
 
-/** Every content collection plus settings (admin lists, sitemap, search). */
-export function readStore(): Promise<CommunityStoreData> {
-  return store.readContentStore();
+// Public content is cached across requests for CONTENT_TTL seconds (Next data cache), so most page
+// views never wait on the database. Admin edits show up on the site within that time; bookings and
+// seat checks read the database directly (store.getEvent inside a row lock), never this cache.
+const CONTENT_TTL = 60;
+const CONTENT_TAG = 'community-content';
+const shared = { revalidate: CONTENT_TTL, tags: [CONTENT_TAG] };
+
+/** Drops the cached content after the website itself changes it. */
+function contentChanged(): void {
+  try {
+    revalidateTag(CONTENT_TAG);
+  } catch {
+    // Outside a request (scripts): nothing cached to drop.
+  }
 }
 
-/** Site settings (cached per request: layout, metadata and page all ask for them). */
-export const getSettings = cache((): Promise<SiteSettings> => store.getSettings());
+/** Every content collection plus settings (sitemap, search). */
+export const readStore = cache(
+  unstable_cache((): Promise<CommunityStoreData> => store.readContentStore(), ['content-store'], shared)
+);
 
-export function updateSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {
-  return store.updateSettings(updates);
+/** Site settings (layout, metadata and pages all ask for them). */
+export const getSettings = cache(unstable_cache((): Promise<SiteSettings> => store.getSettings(), ['settings'], shared));
+
+export async function updateSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {
+  const settings = await store.updateSettings(updates);
+  contentChanged();
+  return settings;
 }
 
-// Cached per request (React cache): pages, metadata and helpers often ask for the same list.
-const listCached = cache((type: ContentType, publishedOnly: boolean) => store.listContent(type, publishedOnly));
+// Also cached per request (React cache): pages, metadata and helpers often ask for the same list.
+const listCached = cache(
+  unstable_cache((type: ContentType, publishedOnly: boolean) => store.listContent(type, publishedOnly), ['content-list'], shared)
+);
 
 /** A content collection, newest first. Treat the result as read-only (it is shared per request). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,16 +85,22 @@ export async function getItems<T = any>(type: ContentType, publishedOnly = false
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function addItem(type: ContentType, itemData: any): Promise<any> {
-  return store.createContent(type, itemData);
+  const item = await store.createContent(type, itemData);
+  contentChanged();
+  return item;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updateItem(type: ContentType, id: string, updates: any): Promise<any | null> {
-  return store.updateContent(type, id, updates);
+  const item = await store.updateContent(type, id, updates);
+  contentChanged();
+  return item;
 }
 
-export function deleteItem(type: ContentType, id: string): Promise<boolean> {
-  return store.deleteContent(type, id);
+export async function deleteItem(type: ContentType, id: string): Promise<boolean> {
+  const deleted = await store.deleteContent(type, id);
+  contentChanged();
+  return deleted;
 }
 
 // Private records (bookings, memberships, mentorship) are read with targeted queries through

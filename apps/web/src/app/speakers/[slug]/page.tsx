@@ -2,10 +2,10 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowUpRight, CalendarDays, Check, Linkedin, Mail, Mic2, Quote, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, CalendarDays, Check, Linkedin, Mail, Mic2, Quote } from 'lucide-react';
 import type { CommunityEvent, CommunitySpeaker, CommunityWing } from '@ascend/shared';
 import { AccentText, Avatar, Container, Kicker } from '@ascend/ui';
-import { CountUp, Marquee, Reveal } from '../../../components/ui-client';
+import { CountUp, Reveal } from '../../../components/ui-client';
 import { FxCard } from '../../../components/home/Interactive';
 import { getItems, getSettings } from '../../../lib/community-store';
 import { eventSpeakers, eventWing, formatEventDate, isUpcoming, sortByDate } from '../../../lib/events';
@@ -214,18 +214,22 @@ export default async function SpeakerPage({ params }: { params: Params }) {
         </Container>
       </section>
 
-      {/* ------------------------------------------------------------------ Expertise marquee */}
-      {speaker.expertise.length + talks.length > 0 && (
-        <div className="border-b border-[var(--line)] py-4">
-          <Marquee ariaLabel={`${speaker.name} — topics`} duration={36}>
-            {[...speaker.expertise, ...talks].map((t, i) => (
-              <span key={`${t}-${i}`} className="inline-flex items-center gap-3 font-display text-[22px] font-medium tracking-[-0.02em] text-[var(--muted)]">
-                <Sparkles className={`h-4 w-4 ${i % 2 ? 'text-gold' : 'text-brand-300'}`} aria-hidden />
-                {t}
-              </span>
-            ))}
-          </Marquee>
-        </div>
+      {/* ------------------------------------------------------------------ Talks (expertise is shown above and below) */}
+      {talks.length > 0 && (
+        <section className="border-b border-[var(--line)] py-8" aria-labelledby="talks-heading">
+          <Container size="wide" className="flex flex-col gap-4 md:flex-row md:items-baseline md:gap-10">
+            <h2 id="talks-heading" className="shrink-0 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
+              Talks
+            </h2>
+            <ul className="flex flex-wrap gap-2">
+              {talks.map((t, i) => (
+                <li key={`${t}-${i}`} className="rounded-full border border-mist/[0.14] px-4 py-2 text-[14px] text-[var(--fg-soft)]">
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </section>
       )}
 
       {/* ------------------------------------------------------------------ About + highlights */}

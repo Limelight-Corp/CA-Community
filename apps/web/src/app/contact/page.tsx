@@ -12,13 +12,12 @@ import {
   Mic2,
   Phone,
   Plus,
-  Sparkles,
   UserPlus,
 } from 'lucide-react';
 import type { CommunityEvent, CommunityWing } from '@ascend/shared';
 import { ORG_COMMUNITIES } from '@ascend/shared';
 import { AccentText, Container, Kicker, cn } from '@ascend/ui';
-import { Marquee, Reveal } from '../../components/ui-client';
+import { Reveal } from '../../components/ui-client';
 import { getItems, getSettings } from '../../lib/community-store';
 import { googleMapsEmbedUrl, safeUrl } from '../../lib/content';
 import { PageHero } from '../../components/content/ui';
@@ -335,18 +334,6 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             </div>
           </div>
         </Container>
-      </section>
-
-      {/* ------------------------------------------------------------ GIANT MARQUEE */}
-      <section aria-hidden className="relative -rotate-[1.5deg] border-y border-gold/25 bg-gradient-to-r from-brand-900 via-brand-950 to-brand-900 py-6">
-        <Marquee duration={26} gap="2.5rem">
-          {["Let's talk", 'Say hello', 'Partner with us', 'Speak at a wing', 'Host a city chapter', 'Join the community'].map((t, i) => (
-            <span key={t} className="flex shrink-0 items-center gap-10 font-display text-[clamp(34px,5vw,72px)] font-medium tracking-[-0.045em]">
-              <span className={i % 2 ? 'text-outline' : 'text-[var(--fg)]'}>{t}</span>
-              <Sparkles className="h-7 w-7 text-gold" />
-            </span>
-          ))}
-        </Marquee>
       </section>
 
       {/* ------------------------------------------------------------ FAQ */}

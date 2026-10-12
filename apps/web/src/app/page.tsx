@@ -29,8 +29,8 @@ import {
   ORG_VISION,
   WHY_JOIN,
 } from '@ascend/shared';
-import { Avatar, Container, Kicker, SectionHeading, AccentText } from '@ascend/ui';
-import { CountUp, Countdown, Marquee, Reveal } from '../components/ui-client';
+import { Avatar, Container, Kicker, SectionHeading, AccentText, cn } from '@ascend/ui';
+import { CountUp, Countdown, Reveal } from '../components/ui-client';
 import { getItems, getSettings } from '../lib/community-store';
 import { safeUrl } from '../lib/content';
 import { canRegister, eventSpeakers, eventWing, isUpcoming, sortByDate } from '../lib/events';
@@ -629,7 +629,7 @@ export default async function HomePage() {
 
       {/* ------------------------------------------------------------------ TESTIMONIALS (shown once added in the admin) */}
       {testimonials.length > 0 && (
-        <section className="relative overflow-hidden border-t border-[var(--line)] py-24 md:py-32">
+        <section className="relative border-t border-[var(--line)] py-24 md:py-32">
           <Container size="wide">
             <Reveal>
               <SectionHeading
@@ -640,18 +640,16 @@ export default async function HomePage() {
                 size="lg"
               />
             </Reveal>
-          </Container>
-          <div className="mt-14">
-            <Marquee
-              duration={Math.max(30, testimonials.length * 12)}
-              gap="1.25rem"
-              ariaLabel="Member testimonials"
+            <ul
+              aria-label="Member testimonials"
+              className={cn(
+                'mt-14 grid gap-5',
+                testimonials.length === 1 ? 'max-w-[640px]' : testimonials.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'
+              )}
             >
               {testimonials.map((t) => (
-                <figure
-                  key={t.id}
-                  className="glass-panel flex w-[min(420px,80vw)] shrink-0 flex-col gap-6 rounded-[28px] p-7"
-                >
+                <li key={t.id} className="flex">
+                <figure className="glass-panel flex w-full flex-col gap-6 rounded-[28px] p-7">
                   <Quote className="h-8 w-8 text-gold" aria-hidden />
                   <blockquote className="text-[17px] leading-relaxed text-[var(--fg)]">
                     “{t.quote}”
@@ -668,9 +666,10 @@ export default async function HomePage() {
                     </span>
                   </figcaption>
                 </figure>
+                </li>
               ))}
-            </Marquee>
-          </div>
+            </ul>
+          </Container>
         </section>
       )}
 

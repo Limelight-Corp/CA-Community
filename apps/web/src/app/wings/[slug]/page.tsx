@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import type { CommunityResource, CommunitySpeaker, CommunityTeamMember, CommunityWing } from '@ascend/shared';
 import { AccentText, Avatar, Container, Kicker } from '@ascend/ui';
-import { Countdown, Marquee, Reveal } from '../../../components/ui-client';
+import { Countdown, Reveal } from '../../../components/ui-client';
 import { FxCard } from '../../../components/home/Interactive';
 import { EventTile } from '../../../components/events/EventTile';
 import { eventInstants, toIstIso } from '../../../components/events/event-time';
@@ -234,18 +234,6 @@ export default async function WingHubPage({ params }: { params: Params }) {
           </div>
         </Container>
       </section>
-
-      {/* ------------------------------------------------------------------ Focus marquee */}
-      <div className="border-b border-[var(--line)] py-4">
-        <Marquee ariaLabel={`${wing.name} focus areas and formats`} duration={40}>
-          {[...wing.focus, ...wing.activities].map((t, i) => (
-            <span key={`${t}-${i}`} className="inline-flex items-center gap-3 font-display text-[22px] font-medium tracking-[-0.02em] text-[var(--muted)]">
-              <Sparkles className="h-4 w-4" style={{ color: i % 2 ? 'rgb(var(--gold-rgb))' : wing.color }} aria-hidden />
-              {t}
-            </span>
-          ))}
-        </Marquee>
-      </div>
 
       {/* ------------------------------------------------------------------ Leadership */}
       <Section className="py-14 md:py-20" labelledBy="people-heading">

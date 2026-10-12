@@ -36,7 +36,7 @@ import {
   type CommunityWing,
 } from '@ascend/shared';
 import { AccentText, Avatar, Container, Kicker, SectionHeading, cn } from '@ascend/ui';
-import { CountUp, Marquee, Reveal } from '../../components/ui-client';
+import { CountUp, Reveal } from '../../components/ui-client';
 import { FxCard } from '../../components/home/Interactive';
 import { FlipCard, InView, ScrollHighlight } from '../../components/about/AboutFx';
 import { getItems, getSettings } from '../../lib/community-store';
@@ -210,21 +210,6 @@ export default async function AboutPage() {
           </ul>
         </Container>
       </section>
-
-      {/* ---------------------------------------------------------------- Pillars marquee */}
-      <div className="border-y border-[var(--line)] py-6">
-        <Marquee duration={36} gap="2.5rem" ariaLabel="Our six pillars">
-          {ORG_CORE_PURPOSES.map((p, i) => (
-            <span
-              key={p.key}
-              className="flex items-center gap-10 font-display text-[clamp(40px,6vw,88px)] font-medium leading-none tracking-[-0.05em]"
-            >
-              <span className={i % 2 ? 'text-outline' : 'text-[var(--fg)]'}>{p.title}.</span>
-              <Sparkles className="h-8 w-8 shrink-0 text-gold" aria-hidden />
-            </span>
-          ))}
-        </Marquee>
-      </div>
 
       {/* ---------------------------------------------------------------- Vision & mission */}
       <Section>
@@ -488,48 +473,26 @@ export default async function AboutPage() {
       </Section>
 
       {/* ---------------------------------------------------------------- Guiding principles */}
-      <section
-        className="overflow-hidden border-y border-[var(--line)] py-16 md:py-20"
-        aria-labelledby="principles-heading"
-      >
-        <Container size="wide" className="mb-8">
-          <Kicker tone="gold">Guiding principles</Kicker>
-          <h2 id="principles-heading" className="sr-only">
-            Guiding principles
-          </h2>
-        </Container>
-        <div className="flex flex-col gap-4">
-          <Marquee duration={30} gap="1rem">
+      <section className="border-y border-[var(--line)] py-16 md:py-24" aria-labelledby="principles-heading">
+        <Container size="wide" className="flex flex-col gap-10">
+          <div className="flex flex-col gap-4">
+            <Kicker tone="gold">Guiding principles</Kicker>
+            <h2
+              id="principles-heading"
+              className="font-display text-[clamp(30px,4vw,52px)] font-medium leading-[1.02] tracking-[-0.04em] text-[var(--fg)]"
+            >
+              What we <AccentText tone="gold">stand for.</AccentText>
+            </h2>
+          </div>
+          <ol className="grid border-t border-[var(--line)] sm:grid-cols-2 lg:grid-cols-3">
             {ORG_GUIDING_PRINCIPLES.map((p, i) => (
-              <span
-                key={p}
-                className={cn(
-                  'whitespace-nowrap rounded-full border px-7 py-4 font-display text-[clamp(24px,3.6vw,48px)] font-medium tracking-[-0.04em] transition-colors',
-                  i % 2
-                    ? 'border-gold/30 bg-gold/[0.06] text-[var(--fg)]'
-                    : 'border-mist/[0.12] text-outline hover:text-[var(--fg)]'
-                )}
-              >
-                {p}
-              </span>
+              <li key={p} className="flex items-baseline gap-4 border-b border-[var(--line)] py-6 sm:pr-8">
+                <span className="font-mono text-[12px] text-gold">{String(i + 1).padStart(2, '0')}</span>
+                <span className="font-display text-[clamp(20px,1.8vw,24px)] font-medium tracking-[-0.02em] text-[var(--fg)]">{p}</span>
+              </li>
             ))}
-          </Marquee>
-          <Marquee duration={34} gap="1rem" reverse>
-            {[...ORG_GUIDING_PRINCIPLES].reverse().map((p, i) => (
-              <span
-                key={p}
-                className={cn(
-                  'whitespace-nowrap rounded-full border px-7 py-4 font-display text-[clamp(24px,3.6vw,48px)] font-medium tracking-[-0.04em]',
-                  i % 2
-                    ? 'border-mist/[0.12] bg-brand-500/10 text-[var(--fg)]'
-                    : 'border-mist/[0.12] text-[var(--muted)]'
-                )}
-              >
-                {p}
-              </span>
-            ))}
-          </Marquee>
-        </div>
+          </ol>
+        </Container>
       </section>
 
       {/* ---------------------------------------------------------------- Leadership */}

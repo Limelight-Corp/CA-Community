@@ -13,7 +13,7 @@ import {
   type MembershipPlan,
 } from '@ascend/shared';
 import { AccentText, Container, Kicker, cn } from '@ascend/ui';
-import { Marquee, Reveal } from '../../components/ui-client';
+import { Reveal } from '../../components/ui-client';
 import { getItems, getSettings } from '../../lib/community-store';
 import { PageHero, PillLink, Section } from '../../components/content/ui';
 import { JoinForm } from '../../components/content/JoinForm';
@@ -266,29 +266,33 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
       </Section>
 
       {/* ---------------------------------------------------------------- Identities */}
-      <section aria-labelledby="identities-heading" className="overflow-hidden py-[clamp(64px,8vw,112px)]">
-        <Container size="wide" className="mb-10 flex flex-col gap-4">
-          <Kicker tone="gold">Who it’s for</Kicker>
-          <h2 id="identities-heading" className="font-display text-[clamp(32px,4.4vw,56px)] font-medium leading-[1.02] tracking-[-0.04em] text-[var(--fg)]">
-            Every kind of CA. <AccentText tone="gold">And beyond.</AccentText>
-          </h2>
+      <section aria-labelledby="identities-heading" className="py-[clamp(64px,8vw,112px)]">
+        <Container size="wide" className="flex flex-col gap-10">
+          <div className="flex flex-col gap-4">
+            <Kicker tone="gold">Who it’s for</Kicker>
+            <h2 id="identities-heading" className="font-display text-[clamp(32px,4.4vw,56px)] font-medium leading-[1.02] tracking-[-0.04em] text-[var(--fg)]">
+              Every kind of CA. <AccentText tone="gold">And beyond.</AccentText>
+            </h2>
+          </div>
+          <div className="grid gap-8 border-t border-[var(--line)] pt-8 md:grid-cols-[180px_1fr] md:gap-y-10">
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">Chartered Accountants</h3>
+            <ul className="flex flex-wrap gap-2" aria-label="CA member identities">
+              {MEMBER_IDENTITIES.ca.map((x) => (
+                <li key={x} className="rounded-full border border-gold/30 bg-gold/[0.06] px-4 py-2 text-[14.5px] text-[var(--fg)]">
+                  {x}
+                </li>
+              ))}
+            </ul>
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Allied professionals</h3>
+            <ul className="flex flex-wrap gap-2" aria-label="Allied professional identities">
+              {MEMBER_IDENTITIES.allied.map((x) => (
+                <li key={x} className="rounded-full border border-mist/[0.14] px-4 py-2 text-[14.5px] text-[var(--fg-soft)]">
+                  {x}
+                </li>
+              ))}
+            </ul>
+          </div>
         </Container>
-        <div className="flex flex-col gap-4">
-          <Marquee duration={42} gap="1rem" ariaLabel="CA member identities">
-            {MEMBER_IDENTITIES.ca.map((x) => (
-              <span key={x} className="whitespace-nowrap rounded-full border border-gold/30 bg-gold/[0.07] px-6 py-3 font-display text-[clamp(20px,2.4vw,32px)] font-medium tracking-[-0.03em] text-[var(--fg)]">
-                {x}
-              </span>
-            ))}
-          </Marquee>
-          <Marquee duration={48} gap="1rem" reverse ariaLabel="Allied professional identities">
-            {MEMBER_IDENTITIES.allied.map((x) => (
-              <span key={x} className="whitespace-nowrap rounded-full border border-mist/[0.14] px-6 py-3 font-display text-[clamp(20px,2.4vw,32px)] font-medium tracking-[-0.03em] text-[var(--muted)]">
-                {x}
-              </span>
-            ))}
-          </Marquee>
-        </div>
       </section>
 
       {/* ---------------------------------------------------------------- Journey */}

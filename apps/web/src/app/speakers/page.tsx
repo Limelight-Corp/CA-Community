@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowUpRight, Linkedin, Mic2 } from 'lucide-react';
 import type { CommunityEvent, CommunitySpeaker } from '@ascend/shared';
 import { Avatar, Container, EmptyState, cn } from '@ascend/ui';
-import { Marquee, Reveal } from '../../components/ui-client';
+import { Reveal } from '../../components/ui-client';
 import { FxCard } from '../../components/home/Interactive';
 import { getItems, getSettings } from '../../lib/community-store';
 import { isUpcoming } from '../../lib/events';
@@ -25,7 +25,6 @@ export default async function SpeakersPage() {
   const speakers = await getItems<CommunitySpeaker>('speakers', true);
   const events = (await getItems<CommunityEvent>('events', true)).filter((e) => isUpcoming(e));
   const upcomingCount = (slug: string) => events.filter((e) => e.speakerSlugs?.includes(slug)).length;
-  const topics = Array.from(new Set(speakers.flatMap((s) => s.expertise)));
 
   return (
     <>
@@ -37,19 +36,6 @@ export default async function SpeakersPage() {
         lead="Practitioners, CFOs, partners and specialists who share what actually works — on stage, in clinics and in the room after."
         ghost="MIC"
       />
-
-      {topics.length > 0 && (
-        <div className="border-b border-[var(--line)] py-4">
-          <Marquee ariaLabel="Speaker expertise" duration={45}>
-            {topics.map((t, i) => (
-              <span key={t} className="inline-flex items-center gap-3 font-display text-[22px] font-medium tracking-[-0.02em] text-[var(--muted)]">
-                <span className={cn('h-2 w-2 rounded-full', i % 2 ? 'bg-gold' : 'bg-brand-300')} aria-hidden />
-                {t}
-              </span>
-            ))}
-          </Marquee>
-        </div>
-      )}
 
       <Section className="pt-12 md:pt-16">
         <Container size="wide">

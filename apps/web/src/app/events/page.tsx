@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import type { CommunityEvent, CommunitySpeaker, CommunityWing } from '@ascend/shared';
 import { AccentText, Container, Kicker } from '@ascend/ui';
-import { Countdown, Marquee } from '../../components/ui-client';
+import { Countdown } from '../../components/ui-client';
 import { getItems, getSettings } from '../../lib/community-store';
 import { canRegister, formatEventDate, isUpcoming, locationLabel, sortByDate } from '../../lib/events';
 import { EventsExplorer } from '../../components/events/EventsExplorer';
@@ -102,19 +102,6 @@ export default async function EventsPage({
           )}
         </Container>
       </section>
-
-      {wings.length > 0 && (
-        <div className="border-b border-mist/[0.08] py-4">
-          <Marquee ariaLabel="Our wings" duration={50}>
-            {wings.map((w) => (
-              <span key={w.id} className="inline-flex items-center gap-3 font-display text-[22px] font-medium tracking-[-0.02em] text-[var(--muted)]">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: w.color }} aria-hidden />
-                {w.name}
-              </span>
-            ))}
-          </Marquee>
-        </div>
-      )}
 
       <section className="py-14 md:py-20">
         <Container size="wide">

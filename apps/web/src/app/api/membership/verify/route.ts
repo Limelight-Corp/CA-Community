@@ -20,7 +20,7 @@ const Input = z.object({
 /** Verifies Razorpay's signature and activates / renews the membership. */
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  const account = memberFromRequest(req);
+  const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
   const parsed = Input.safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Invalid request.' }, 400);
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     return json({ ok: false, error: 'We could not verify this payment. If money was debited, contact us with your payment ID.' }, 400);
   }
   // The order must belong to this member's own application.
-  const app = membershipFor(account);
+  const app = await membershipFor(account);
   if (!app || (app.gatewayOrderId !== orderId && !app.payments?.some((x) => x.gatewayOrderId === orderId))) {
     return json({ ok: false, error: 'This payment does not belong to your membership.' }, 403);
   }

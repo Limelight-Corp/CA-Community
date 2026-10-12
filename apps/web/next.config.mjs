@@ -39,6 +39,8 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // Prisma (via @ascend/db) loads its query engine at runtime, so it must not be bundled.
+  serverExternalPackages: ['@ascend/db'],
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

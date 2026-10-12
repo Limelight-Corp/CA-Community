@@ -10,9 +10,9 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/membership/receipt/<MEM-…> → PDF receipt, for the member who owns it. */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const account = memberFromRequest(req);
+  const account = await memberFromRequest(req);
   const { id } = await params;
-  const app = account ? membershipFor(account) : undefined;
+  const app = account ? await membershipFor(account) : undefined;
   const payment = app?.payments?.find((p) => p.id === decodeURIComponent(id));
   if (!app || !payment) return NextResponse.json({ error: 'Receipt not found.' }, { status: 404 });
   const pdf = await buildMembershipReceiptPdf(app, payment, planName(app.plan), getSettings());

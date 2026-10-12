@@ -17,6 +17,8 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
+  // Own output folder so this client never overwrites apps/api's generated @prisma/client.
+  output          = "../generated/client"
 }
 
 datasource db {

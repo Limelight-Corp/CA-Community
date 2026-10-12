@@ -9,7 +9,7 @@
  * HMAC key, in order: ADMIN_SESSION_SECRET, the store's sessionSecret (written by the seed),
  * or a key derived from the environment credentials.
  */
-import { findAdmin, hasAdminAccounts, readAdminStore, type AdminRole } from './admin-users';
+import { findAdmin, hasAdminAccounts, type AdminRole } from './admin-users';
 
 export const SESSION_COOKIE = 'ascend_admin_session';
 export const SESSION_TTL_SECONDS = 12 * 60 * 60;
@@ -44,8 +44,8 @@ export function gateConfig(): GateConfig | null {
 }
 
 /** True when at least one way to sign in exists (a stored admin or environment credentials). */
-export function signInConfigured(): boolean {
-  return hasAdminAccounts() || gateConfig() !== null;
+export async function signInConfigured(): Promise<boolean> {
+  return gateConfig() !== null || (await hasAdminAccounts());
 }
 
 /** Local development only: ADMIN_GATE_DISABLED=true. Ignored when NODE_ENV=production. */
@@ -76,9 +76,8 @@ function fromBase64Url(s: string): string {
 }
 
 function signingSecret(): string | null {
+  // The secret lives in the environment only (never in the database).
   if (process.env.ADMIN_SESSION_SECRET) return process.env.ADMIN_SESSION_SECRET;
-  const stored = readAdminStore().sessionSecret;
-  if (stored) return stored;
   const cfg = gateConfig();
   return cfg ? `ascend-admin-session\u0000${cfg.user}\u0000${cfg.password}` : null;
 }
@@ -132,7 +131,7 @@ export async function verifySessionToken(token: string | undefined): Promise<Adm
   if (session.exp <= Math.floor(Date.now() / 1000)) return null;
 
   if (session.src === 'db') {
-    const user = findAdmin(session.u);
+    const user = await findAdmin(session.u);
     if (!user || !user.active || session.iat < (user.passwordChangedAt ?? 0)) return null;
     return { username: user.username, name: user.name, role: user.role, source: 'db' };
   }

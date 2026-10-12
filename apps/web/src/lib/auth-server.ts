@@ -42,14 +42,14 @@ export function fieldErrorsOf(error: z.ZodError): Record<string, string> {
   return out;
 }
 
-export function sendVerificationEmail(account: Pick<MemberAccount, 'id' | 'name' | 'email'>): void {
-  const token = issueToken(account.id, 'verify');
+export async function sendVerificationEmail(account: Pick<MemberAccount, 'id' | 'name' | 'email'>): Promise<void> {
+  const token = await issueToken(account.id, 'verify');
   if (!token) return;
   queueMail(account.email, verifyEmailEmail(emailBrand(), { name: account.name, url: `${siteUrl()}/verify-email?token=${token}` }));
 }
 
-export function sendPasswordResetEmail(account: Pick<MemberAccount, 'id' | 'name' | 'email'>): void {
-  const token = issueToken(account.id, 'reset');
+export async function sendPasswordResetEmail(account: Pick<MemberAccount, 'id' | 'name' | 'email'>): Promise<void> {
+  const token = await issueToken(account.id, 'reset');
   if (!token) return;
   queueMail(account.email, passwordResetEmail(emailBrand(), { name: account.name, url: `${siteUrl()}/reset-password?token=${token}` }));
 }

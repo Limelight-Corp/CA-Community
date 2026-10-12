@@ -1,17 +1,13 @@
 /**
- * Admin accounts (server-only): data/admin-users.json — gitignored, never served.
+ * Admin accounts (server-only), stored in PostgreSQL (table admin_users — see packages/db).
  *
- * {
- *   "sessionSecret": "<random, signs admin session cookies>",
- *   "users": [{ id, username, name, role, passwordHash, active, passwordChangedAt, createdAt, lastLoginAt }]
- * }
- *
- * Passwords are stored as `scrypt$N$r$p$<salt>$<hash>` (base64url). Accounts are created with
- * `npm run admin:seed` (apps/admin/scripts/seed-admin.mjs uses the same format).
+ * Passwords are stored as `scrypt$N$r$p$<salt>$<hash>` (base64url) and checked with async scrypt
+ * so a login never blocks the server. Accounts are created with `npm run admin:seed`. The session
+ * signing secret is ADMIN_SESSION_SECRET (env), never stored in the database.
  */
-import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
+import { promisify } from 'util';
+import { prisma, type AdminUser as DbAdminUser } from '@ascend/db';
 
 export type AdminRole = 'super_admin' | 'admin';
 
@@ -28,68 +24,42 @@ export interface AdminUser {
   lastLoginAt?: string;
 }
 
-export interface AdminStore {
-  sessionSecret?: string;
-  users: AdminUser[];
+function toAdmin(u: DbAdminUser): AdminUser {
+  return {
+    id: u.id,
+    username: u.username,
+    name: u.name,
+    role: u.role === 'SUPER_ADMIN' ? 'super_admin' : 'admin',
+    passwordHash: u.passwordHash,
+    active: u.active,
+    passwordChangedAt: Math.floor(u.passwordChangedAt.getTime() / 1000),
+    createdAt: u.createdAt.toISOString(),
+    lastLoginAt: u.lastLoginAt?.toISOString(),
+  };
 }
 
-function adminFile(): string {
-  const candidates = [
-    path.resolve(process.cwd(), '../../data'),
-    path.resolve(process.cwd(), '../data'),
-    path.resolve(process.cwd(), 'data'),
-  ];
-  const dir =
-    candidates.find((d) => fs.existsSync(path.join(d, 'community-store.json'))) ?? candidates[0]!;
-  return path.join(dir, 'admin-users.json');
+/** Case-insensitive (username is citext). */
+export async function findAdmin(username: string): Promise<AdminUser | undefined> {
+  const key = username.trim();
+  if (!key || key.length > 80) return undefined;
+  const u = await prisma.adminUser.findUnique({ where: { username: key } });
+  return u ? toAdmin(u) : undefined;
 }
 
-let cache: { mtimeMs: number; data: AdminStore } | null = null;
-
-export function readAdminStore(): AdminStore {
-  const file = adminFile();
-  try {
-    const { mtimeMs } = fs.statSync(file);
-    if (cache && cache.mtimeMs === mtimeMs) return cache.data;
-    const raw = JSON.parse(fs.readFileSync(file, 'utf-8')) as Partial<AdminStore>;
-    const data: AdminStore = {
-      sessionSecret: raw.sessionSecret,
-      users: Array.isArray(raw.users) ? raw.users : [],
-    };
-    cache = { mtimeMs, data };
-    return data;
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT')
-      console.error('Failed to read admin-users.json:', err);
-    return { users: [] };
-  }
+export async function hasAdminAccounts(): Promise<boolean> {
+  return (await prisma.adminUser.count({ where: { active: true } })) > 0;
 }
 
-function writeAdminStore(data: AdminStore): void {
-  const file = adminFile();
-  const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), { encoding: 'utf-8', mode: 0o600 });
-  fs.renameSync(tmp, file);
-  cache = null;
-}
-
-export function findAdmin(username: string): AdminUser | undefined {
-  const key = username.trim().toLowerCase();
-  return readAdminStore().users.find((u) => u.username.toLowerCase() === key);
-}
-
-export function hasAdminAccounts(): boolean {
-  return readAdminStore().users.some((u) => u.active);
-}
+const scrypt = promisify(crypto.scrypt) as (pw: crypto.BinaryLike, salt: crypto.BinaryLike, len: number, opts: crypto.ScryptOptions) => Promise<Buffer>;
 
 /** Verifies a password against a stored scrypt hash in constant time. */
-export function verifyPassword(password: string, stored: string): boolean {
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const parts = stored.split('$');
   if (parts.length !== 6 || parts[0] !== 'scrypt') return false;
   const [, n, r, p, salt, hash] = parts as [string, string, string, string, string, string];
   try {
     const expected = Buffer.from(hash, 'base64url');
-    const actual = crypto.scryptSync(password, Buffer.from(salt, 'base64url'), expected.length, {
+    const actual = await scrypt(password, Buffer.from(salt, 'base64url'), expected.length, {
       N: Number(n),
       r: Number(r),
       p: Number(p),
@@ -104,20 +74,16 @@ export function verifyPassword(password: string, stored: string): boolean {
 /** A hash to compare against when the username is unknown, so timing does not reveal it. */
 const DUMMY_HASH = `scrypt$16384$8$1$${Buffer.alloc(16).toString('base64url')}$${Buffer.alloc(64).toString('base64url')}`;
 
-export function authenticateAdmin(username: string, password: string): AdminUser | null {
-  const user = findAdmin(username);
-  const ok = verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
+export async function authenticateAdmin(username: string, password: string): Promise<AdminUser | null> {
+  const user = await findAdmin(username);
+  const ok = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
   return ok && user && user.active ? user : null;
 }
 
-export function recordAdminLogin(id: string): void {
+export async function recordAdminLogin(id: string): Promise<void> {
   try {
-    const data = readAdminStore();
-    const user = data.users.find((u) => u.id === id);
-    if (!user) return;
-    user.lastLoginAt = new Date().toISOString();
-    writeAdminStore({ ...data, users: data.users.map((u) => (u.id === id ? user : u)) });
+    await prisma.adminUser.update({ where: { id }, data: { lastLoginAt: new Date() } });
   } catch (err) {
-    console.error('Failed to record admin login:', err);
+    console.error('Failed to record admin login:', (err as Error).message);
   }
 }

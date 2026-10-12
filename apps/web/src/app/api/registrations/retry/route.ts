@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   if (!rateLimit(`retry:${clientIp(req)}`, 15, 10 * 60_000)) {
     return json({ error: 'Too many attempts. Please wait a few minutes.' }, 429);
   }
-  if (!memberFromRequest(req)) {
+  if (!(await memberFromRequest(req))) {
     return json({ error: 'Please log in to pay for this registration.', loginRequired: true }, 401);
   }
   const parsed = RetryInput.safeParse(await req.json().catch(() => null));

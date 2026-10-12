@@ -6,7 +6,7 @@
 import { MEMBERSHIP_PLANS, membershipState, wingSlug, type OrgWing } from '@ascend/shared';
 import { siteWings } from './taxonomy';
 import { readPrivate } from './community-store';
-import { readAccounts } from './member-accounts';
+import { directoryAccounts } from './member-accounts';
 
 export interface DirectoryEntry {
   id: string;
@@ -23,14 +23,14 @@ export interface DirectoryEntry {
   wings: { number: number; name: string; slug: string }[];
 }
 
-export function directoryEntries(): DirectoryEntry[] {
+export async function directoryEntries(): Promise<DirectoryEntry[]> {
   const wings = siteWings();
   const approved = new Map(
     readPrivate()
       .members.filter((m) => membershipState(m) === 'active')
       .map((m) => [m.email.toLowerCase(), m])
   );
-  return readAccounts()
+  return (await directoryAccounts())
     .filter((a) => a.emailVerifiedAt && a.profile.directoryOptIn && approved.has(a.email))
     .map((a) => {
       const app = approved.get(a.email)!;

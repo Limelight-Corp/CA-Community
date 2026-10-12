@@ -2,24 +2,17 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { AuthPanel, authButtonClass } from '../../components/auth/AuthPanel';
-import { accountForToken, mutateAccounts } from '../../lib/member-accounts';
+import { accountForToken, consumeToken, markEmailVerified } from '../../lib/member-accounts';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Confirm your email', robots: { index: false } };
 
 export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const { token = '' } = await searchParams;
-  const account = accountForToken(token, 'verify');
-  if (account) {
-    mutateAccounts((data) => {
-      const a = data.accounts.find((x) => x.id === account.id);
-      if (!a) return;
-      a.emailVerifiedAt = a.emailVerifiedAt ?? new Date().toISOString();
-      a.verifyTokenHash = undefined;
-      a.verifyTokenExp = undefined;
-      a.updatedAt = new Date().toISOString();
-    });
-  }
+  const found = await accountForToken(token, 'verify');
+  // Single use: only the request that consumes the token confirms the email.
+  const account = found && (await consumeToken(token, 'verify')) ? found : undefined;
+  if (account) await markEmailVerified(account.id);
 
   return account ? (
     <AuthPanel kicker="Email confirmed" title="You’re all set.">

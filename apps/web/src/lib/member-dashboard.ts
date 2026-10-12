@@ -141,7 +141,7 @@ function mentorshipData(account: MemberAccount): MentorshipData {
   };
 }
 
-export function dashboardData(account: MemberAccount): DashboardData {
+export async function dashboardData(account: MemberAccount): Promise<DashboardData> {
   const verified = !!account.emailVerifiedAt;
   const events = getItems<CommunityEvent>('events');
   const today = new Date();
@@ -181,8 +181,8 @@ export function dashboardData(account: MemberAccount): DashboardData {
         .map(({ sortKey: _sortKey, ...b }) => b)
     : [];
 
-  const app = membershipFor(account);
-  const isMember = isApprovedMember(account);
+  const app = await membershipFor(account);
+  const isMember = await isApprovedMember(account);
   const membersOnly = getItems<CommunityResource>('resources', true).filter((r) => r.isMembersOnly);
 
   return {

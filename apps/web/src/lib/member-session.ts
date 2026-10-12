@@ -2,7 +2,7 @@
  * Member sessions (server only, except the small path helpers at the bottom).
  *
  * A session is an httpOnly cookie holding `base64url(payload).hmac`, where the payload is
- * { uid, v, iat, exp } and the HMAC-SHA256 key is the secret in data/member-accounts.json.
+ * { uid, v, iat, exp } and the HMAC-SHA256 key is MEMBER_SESSION_SECRET (env, never in the database).
  * `v` must match the account's `sessionVersion`, so changing or resetting the password signs
  * out every other session. The browser never sees or stores a token itself.
  */
@@ -31,7 +31,7 @@ export function createSessionToken(account: Pick<MemberAccount, 'id' | 'sessionV
 }
 
 /** Returns the signed-in account, or null for a missing, forged, expired or revoked session. */
-export function accountFromSessionToken(token: string | undefined | null): MemberAccount | null {
+export async function accountFromSessionToken(token: string | undefined | null): Promise<MemberAccount | null> {
   if (!token || token.length > 1000) return null;
   const [body, mac] = token.split('.');
   if (!body || !mac) return null;
@@ -45,7 +45,7 @@ export function accountFromSessionToken(token: string | undefined | null): Membe
     return null;
   }
   if (!payload.uid || typeof payload.exp !== 'number' || payload.exp * 1000 < Date.now()) return null;
-  const account = findAccountById(payload.uid);
+  const account = await findAccountById(payload.uid);
   if (!account || account.sessionVersion !== payload.v) return null;
   return account;
 }
@@ -56,7 +56,7 @@ export async function currentMember(): Promise<MemberAccount | null> {
 }
 
 /** Signed-in account for a route handler. */
-export function memberFromRequest(req: Request): MemberAccount | null {
+export async function memberFromRequest(req: Request): Promise<MemberAccount | null> {
   const header = req.headers.get('cookie');
   if (!header) return null;
   for (const part of header.split(';')) {

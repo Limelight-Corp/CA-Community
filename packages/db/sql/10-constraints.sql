@@ -116,7 +116,8 @@ CALL ascend_check('member_profiles', 'member_profiles_links_ck', 'ascend_is_http
 CALL ascend_check('auth_tokens', 'auth_tokens_hash_ck', 'ascend_is_sha256(token_hash)');
 CALL ascend_check('auth_tokens', 'auth_tokens_expiry_ck', 'expires_at > created_at AND expires_at <= created_at + interval ''7 days''');
 CALL ascend_check('admin_users', 'admin_users_hash_ck', 'password_hash ~ ''^scrypt\$''');
-CALL ascend_check('admin_users', 'admin_users_username_ck', 'username ~ ''^[A-Za-z0-9._-]{3,40}$''');
+-- Same rule as apps/admin/scripts/seed-admin.mjs.
+CALL ascend_check('admin_users', 'admin_users_username_ck', 'username ~ ''^[A-Za-z0-9._@-]{3,64}$''');
 CALL ascend_check('rate_limit_buckets', 'rate_limit_ck', 'count >= 0 AND expires_at > window_start');
 
 -- ---------------------------------------------------------------------------------------------

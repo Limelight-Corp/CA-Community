@@ -32,8 +32,8 @@ export function feeFor(app: CommunityMemberApplication): number {
 }
 
 /** The approved application this account may pay for (null when it can't pay yet). */
-export function payableApplication(account: MemberAccount): CommunityMemberApplication | null {
-  const app = membershipFor(account);
+export async function payableApplication(account: MemberAccount): Promise<CommunityMemberApplication | null> {
+  const app = await membershipFor(account);
   if (!app) return null;
   const state = membershipState(app);
   return state === 'awaiting_payment' || state === 'active' || state === 'expired' ? app : null;
@@ -44,7 +44,7 @@ export type OrderResult =
   | { ok: false; status: number; error: string };
 
 export async function createMembershipOrder(account: MemberAccount): Promise<OrderResult> {
-  const app = payableApplication(account);
+  const app = await payableApplication(account);
   if (!app) return { ok: false, status: 409, error: 'There is no approved membership to pay for on this account.' };
   const cfg = razorpayConfig();
   if (!cfg) return { ok: false, status: 503, error: 'Online payments are not set up yet. Please contact us to pay offline.' };

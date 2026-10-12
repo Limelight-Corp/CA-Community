@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   if (!(await verifyTurnstile(tokenFrom(body), clientIp(req)))) return json({ error: CAPTCHA_ERROR }, 400);
   const parsed = Input.safeParse(body);
   if (!parsed.success) return json({ error: 'Enter a valid email address.' }, 422);
-  const account = findAccountByEmail(parsed.data.email);
-  if (account && rateLimit(`forgot-mail:${account.id}`, 3, 60 * 60_000)) sendPasswordResetEmail(account);
+  const account = await findAccountByEmail(parsed.data.email);
+  if (account && rateLimit(`forgot-mail:${account.id}`, 3, 60 * 60_000)) await sendPasswordResetEmail(account);
   return json({ ok: true });
 }

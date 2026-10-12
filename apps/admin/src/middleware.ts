@@ -47,7 +47,7 @@ function parseBasicAuth(header: string | null): { user: string; password: string
 const basicByIp = new FailureThrottle(20, 15 * 60 * 1000);
 const basicByUser = new FailureThrottle(5, 15 * 60 * 1000);
 
-function basicAuthOk(request: NextRequest): boolean {
+async function basicAuthOk(request: NextRequest): Promise<boolean> {
   const credentials = parseBasicAuth(request.headers.get('authorization'));
   if (!credentials) return false;
   const ip = clientIpFromHeaders(request.headers);
@@ -60,7 +60,7 @@ function basicAuthOk(request: NextRequest): boolean {
     const passwordOk = constantTimeEqual(credentials.password, cfg.password);
     ok = userOk && passwordOk;
   }
-  if (!ok) ok = authenticateAdmin(credentials.user, credentials.password) !== null;
+  if (!ok) ok = (await authenticateAdmin(credentials.user, credentials.password)) !== null;
   if (ok) basicByUser.clear(user);
   else {
     basicByIp.fail(ip);
@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
   // /login, which explains that sign-in is not set up yet.
   const authed =
     (await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) !== null ||
-    basicAuthOk(request);
+    (await basicAuthOk(request));
 
   if (PUBLIC_PATHS.has(pathname)) {
     if (authed && pathname === '/login') {

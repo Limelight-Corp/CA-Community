@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Choose a new password', robots: { in
 
 export default async function ResetPasswordPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const { token = '' } = await searchParams;
-  const account = accountForToken(token, 'reset');
+  const account = await accountForToken(token, 'reset');
   if (!account) {
     return (
       <AuthPanel kicker="Link expired" title="This reset link doesn’t work any more.">

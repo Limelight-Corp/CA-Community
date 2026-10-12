@@ -39,10 +39,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   if (resource.isMembersOnly) {
-    const account = memberFromRequest(request);
+    const account = await memberFromRequest(request);
     if (!account) return NextResponse.redirect(new URL(loginUrl('/resources'), request.url));
     // Signed in but not (yet) an approved member → the dashboard explains the membership status.
-    if (!isApprovedMember(account)) return NextResponse.redirect(new URL('/dashboard?tab=membership', request.url));
+    if (!(await isApprovedMember(account))) return NextResponse.redirect(new URL('/dashboard?tab=membership', request.url));
   }
 
   const uploaded = UPLOADED.exec(resource.fileUrl);

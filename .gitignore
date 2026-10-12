@@ -59,3 +59,6 @@ data/member-photos/
 
 # Data backups (personal data, password hashes)
 backups/
+
+# Generated Prisma client for packages/db
+packages/db/generated/

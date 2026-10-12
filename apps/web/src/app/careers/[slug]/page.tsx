@@ -37,7 +37,7 @@ export default async function JobPage({ params }: { params: Params }) {
 
   const open = isJobOpen(job);
   const account = await currentMember();
-  const canSeeApply = !job.isMembersOnly || isApprovedMember(account);
+  const canSeeApply = !job.isMembersOnly || (await isApprovedMember(account));
   const apply = applyTarget(job);
   const logo = safeUrl(job.logoUrl);
   const url = `${siteUrl()}/careers/${job.slug}`;

@@ -4,16 +4,21 @@
   "private": true,
   "description": "PostgreSQL schema for the ASCEND web and admin apps (replaces the JSON stores in data/).",
   "scripts": {
+    "build": "prisma generate --schema prisma/schema.prisma && tsc -p tsconfig.json",
     "validate": "prisma validate --schema prisma/schema.prisma",
     "generate": "prisma generate --schema prisma/schema.prisma",
     "migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
     "migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
-    "harden": "psql \"$DATABASE_MIGRATION_URL\" -v ON_ERROR_STOP=1 -f sql/10-constraints.sql -f sql/20-security.sql"
+    "harden": "psql \"$DATABASE_MIGRATION_URL\" -v ON_ERROR_STOP=1 -f sql/10-constraints.sql -f sql/20-security.sql",
+    "setup": "node scripts/setup-local.mjs",
+    "import": "node scripts/import-json.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.21.1"
   },
   "devDependencies": {
     "prisma": "^5.21.1"
-  }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
 }

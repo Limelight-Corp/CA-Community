@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { readJsonBody } from '../../../../lib/form-guard';
 import { fieldErrorsOf, json, mobileField, nameField, sameOrigin } from '../../../../lib/auth-server';
-import { mutateAccounts, publicAccount, type MemberAccount } from '../../../../lib/member-accounts';
+import { publicAccount, updateAccount } from '../../../../lib/member-accounts';
 import { memberFromRequest } from '../../../../lib/member-session';
 
 export const runtime = 'nodejs';
@@ -36,21 +36,14 @@ const Input = z.object({
 /** Updates the signed-in member's profile. Email changes are not supported here. */
 export async function PATCH(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  const account = memberFromRequest(req);
+  const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
   const parsed = Input.safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsOf(parsed.error) }, 422);
   const { name, mobile, ...profile } = parsed.data;
 
-  const updated = mutateAccounts<MemberAccount | null>((data) => {
-    const a = data.accounts.find((x) => x.id === account.id);
-    if (!a) return null;
-    a.name = name;
-    a.mobile = mobile;
-    a.profile = { ...a.profile, ...profile };
-    a.updatedAt = new Date().toISOString();
-    return { ...a };
-  });
+  // Same merge as before: fields sent replace the stored ones, the rest are kept.
+  const updated = await updateAccount(account.id, { name, mobile: mobile ?? null, profile: { ...account.profile, ...profile } });
   if (!updated) return json({ error: 'Account not found.' }, 404);
-  return json({ user: publicAccount(updated), profile: updated.profile });
+  return json({ user: await publicAccount(updated), profile: updated.profile });
 }

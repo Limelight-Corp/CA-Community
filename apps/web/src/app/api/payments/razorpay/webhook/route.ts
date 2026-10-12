@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import type { CommunityRegistration } from '@ascend/shared';
-import { mutatePrivate } from '../../../../../lib/community-store';
+import { store } from '../../../../../lib/community-store';
 import { notifyPaymentConfirmed, notifyPaymentFailed } from '../../../../../lib/notifications';
 import { completeMembershipPayment } from '../../../../../lib/membership';
 import { safeEqual, takeSeat } from '../../../registrations/_lib/server';
@@ -62,17 +62,21 @@ export async function POST(req: Request) {
     | { kind: 'paid'; reg: CommunityRegistration }
     | { kind: 'failed'; reg: CommunityRegistration };
 
-  const outcome = mutatePrivate<Outcome>((data) => {
-    const reg = data.registrations.find((r) => !!r.gatewayOrderId && r.gatewayOrderId === payment.order_id);
+  // Booking row locked for the whole decision, so the browser's verify call and this webhook can
+  // never both confirm the payment (or take two seats).
+  const orderId = payment.order_id;
+  const outcome = await store.prisma.$transaction(async (tx): Promise<Outcome> => {
+    const locked = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM event_registrations WHERE gateway_order_id = ${orderId} FOR UPDATE`;
+    if (!locked.length) return { kind: 'unknown' };
+    const reg = await store.getRegistration({ gatewayOrderId: orderId }, tx);
     if (!reg) return { kind: 'unknown' };
     const stamp = new Date().toISOString();
 
     if (event === 'payment.failed') {
       // Only an open attempt can fail; never downgrade a paid or cancelled booking.
       if (reg.status !== 'pending_payment' || reg.paymentStatus !== 'pending') return { kind: 'noop' };
-      reg.paymentStatus = 'failed';
-      reg.updatedAt = stamp;
-      return { kind: 'failed', reg: { ...reg } };
+      const failed = (await store.updateRegistration({ id: reg.id }, { paymentStatus: 'failed' }, tx)) ?? reg;
+      return { kind: 'failed', reg: failed };
     }
 
     if (reg.paymentStatus === 'paid' || reg.paymentStatus === 'refunded') return { kind: 'noop' };
@@ -81,19 +85,22 @@ export async function POST(req: Request) {
       return { kind: 'mismatch' };
     }
     const wasConfirmed = reg.status === 'confirmed';
-    reg.status = 'confirmed';
-    reg.paymentStatus = 'paid';
-    reg.gatewayPaymentId = payment.id || reg.gatewayPaymentId;
-    reg.paidAt = stamp;
-    reg.updatedAt = stamp;
-    return wasConfirmed ? { kind: 'noop' } : { kind: 'paid', reg: { ...reg } };
+    const paid = (await store.updateRegistration(
+      { id: reg.id },
+      { status: 'confirmed', paymentStatus: 'paid', gatewayPaymentId: payment.id || reg.gatewayPaymentId, paidAt: stamp },
+      tx
+    ))!;
+    if (wasConfirmed) return { kind: 'noop' };
+    // Seat taken in the same transaction as the payment is recorded.
+    await takeSeat(reg.eventId, tx);
+    return { kind: 'paid', reg: paid };
   });
 
   switch (outcome.kind) {
     case 'unknown': {
       // Not an event booking — it may be a membership payment.
       if (event !== 'payment.failed' && payment.id) {
-        const m = completeMembershipPayment(payment.order_id, payment.id, payment.amount);
+        const m = await completeMembershipPayment(payment.order_id, payment.id, payment.amount);
         if (m === 'mismatch') {
           console.error(`[razorpay webhook] ${event}: membership amount mismatch for order ${payment.order_id} (${payment.amount})`);
           return ok({ ignored: true });
@@ -107,11 +114,10 @@ export async function POST(req: Request) {
       console.error(`[razorpay webhook] ${event}: amount mismatch for order ${payment.order_id} (${payment.amount})`);
       return ok({ ignored: true });
     case 'paid':
-      takeSeat(outcome.reg.eventId);
-      notifyPaymentConfirmed(outcome.reg);
+      await notifyPaymentConfirmed(outcome.reg);
       return ok({ confirmed: outcome.reg.bookingId });
     case 'failed':
-      notifyPaymentFailed(outcome.reg);
+      await notifyPaymentFailed(outcome.reg);
       return ok({ failed: outcome.reg.bookingId });
     default:
       return ok({ duplicate: true });

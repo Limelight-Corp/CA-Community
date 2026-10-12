@@ -9,33 +9,32 @@ import {
   type MentorshipRequest,
   type MentorshipStage,
 } from '@ascend/shared';
-import { mutatePrivate, newId, readPrivate } from './community-store';
+import { store } from './community-store';
 import { adminRecipients, adminUrl, emailBrand, queueMail } from './mailer';
 import type { MemberAccount } from './member-accounts';
 import { siteUrl } from './seo';
 
 /** Mentees a mentor is currently guiding. */
-export function activeMenteeCount(mentorId: string, requests = readPrivate().mentorshipRequests): number {
-  return requests.filter((r) => r.mentorId === mentorId && r.status === 'matched').length;
+export async function activeMenteeCount(mentorId: string): Promise<number> {
+  return store.prisma.mentorshipRequest.count({ where: { mentorId, status: 'MATCHED' } });
 }
 
-export function myMentorProfile(account: MemberAccount): MentorProfile | undefined {
-  return readPrivate().mentors.find((m) => m.accountId === account.id);
+export async function myMentorProfile(account: MemberAccount): Promise<MentorProfile | undefined> {
+  return (await store.listMentors({ accountId: account.id }))[0];
 }
 
-export function myRequests(account: MemberAccount): MentorshipRequest[] {
-  return readPrivate()
-    .mentorshipRequests.filter((r) => r.accountId === account.id)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+export async function myRequests(account: MemberAccount): Promise<MentorshipRequest[]> {
+  return (await store.listMentorshipRequests({ accountId: account.id })).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 /** Approved mentors with their current load (members-only view). */
-export function approvedMentors(): (MentorProfile & { activeMentees: number })[] {
-  const data = readPrivate();
-  return data.mentors
-    .filter((m) => m.status === 'approved')
-    .map((m) => ({ ...m, activeMentees: activeMenteeCount(m.id, data.mentorshipRequests) }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+export async function approvedMentors(): Promise<(MentorProfile & { activeMentees: number })[]> {
+  const [mentors, load] = await Promise.all([
+    store.listMentors({ status: 'APPROVED' }),
+    store.prisma.mentorshipRequest.groupBy({ by: ['mentorId'], where: { status: 'MATCHED', mentorId: { not: null } }, _count: true }),
+  ]);
+  const count = new Map(load.map((l) => [l.mentorId, l._count]));
+  return mentors.map((m) => ({ ...m, activeMentees: count.get(m.id) ?? 0 })).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export { wingName } from './taxonomy';
@@ -52,39 +51,16 @@ export interface MentorInput {
 }
 
 /** Creates or updates the account's mentor profile. New / previously rejected profiles go to review. */
-export function saveMentorProfile(account: MemberAccount, input: MentorInput): { profile: MentorProfile; created: boolean } {
-  const result = mutatePrivate((d) => {
-    const stamp = new Date().toISOString();
-    const existing = d.mentors.find((m) => m.accountId === account.id);
-    if (existing) {
-      Object.assign(existing, input, {
-        name: account.name,
-        email: account.email,
-        mobile: account.mobile,
-        status: existing.status === 'rejected' ? 'pending' : existing.status,
-        updatedAt: stamp,
-      });
-      return { profile: { ...existing }, created: false };
-    }
-    const profile: MentorProfile = {
-      id: newId('mentor'),
-      accountId: account.id,
-      name: account.name,
-      email: account.email,
-      mobile: account.mobile,
-      ...input,
-      status: 'pending',
-      createdAt: stamp,
-      updatedAt: stamp,
-    };
-    d.mentors.push(profile);
-    return { profile, created: true };
-  });
+export async function saveMentorProfile(account: MemberAccount, input: MentorInput): Promise<{ profile: MentorProfile; created: boolean }> {
+  // Name, email and mobile come from the account itself (joined in), so they never go stale.
+  const existed = !!(await myMentorProfile(account));
+  const profile = await store.saveMentor(account.id, input);
+  const result = { profile, created: !existed };
   if (result.created) {
     queueMail(
-      adminRecipients(),
+      await adminRecipients(),
       adminMentorshipEmail(
-        emailBrand(),
+        await emailBrand(),
         { kind: 'mentor', name: account.name, email: account.email, summary: `${account.name} applied to mentor: ${input.headline}. Expertise: ${input.expertise.join(', ')}.` },
         adminUrl('/mentorship')
       ),
@@ -95,14 +71,10 @@ export function saveMentorProfile(account: MemberAccount, input: MentorInput): {
 }
 
 /** A mentor pauses / resumes taking new mentees (only once approved). */
-export function setMentorAvailability(account: MemberAccount, available: boolean): MentorProfile | null {
-  return mutatePrivate((d) => {
-    const m = d.mentors.find((x) => x.accountId === account.id);
-    if (!m || (m.status !== 'approved' && m.status !== 'paused')) return null;
-    m.status = available ? 'approved' : 'paused';
-    m.updatedAt = new Date().toISOString();
-    return { ...m };
-  });
+export async function setMentorAvailability(account: MemberAccount, available: boolean): Promise<MentorProfile | null> {
+  const m = await myMentorProfile(account);
+  if (!m || (m.status !== 'approved' && m.status !== 'paused')) return null;
+  return store.setMentorStatus(m.id, available ? 'approved' : 'paused');
 }
 
 export interface RequestInput {
@@ -115,40 +87,31 @@ export interface RequestInput {
 export type CreateRequestResult = { ok: true; request: MentorshipRequest } | { ok: false; error: string };
 
 /** One open request at a time; the preferred mentor (if any) must be an approved mentor other than yourself. */
-export function createRequest(account: MemberAccount, input: RequestInput): CreateRequestResult {
-  const result = mutatePrivate<CreateRequestResult>((d) => {
-    if (d.mentorshipRequests.some((r) => r.accountId === account.id && r.status === 'open')) {
-      return { ok: false, error: 'You already have an open request. We will match you soon — or withdraw it to send a new one.' };
-    }
-    let preferred: string | undefined;
-    if (input.preferredMentorId) {
-      const m = d.mentors.find((x) => x.id === input.preferredMentorId && x.status === 'approved');
-      if (!m || m.accountId === account.id) return { ok: false, error: 'Choose a mentor from the list.' };
-      preferred = m.id;
-    }
-    const stamp = new Date().toISOString();
-    const request: MentorshipRequest = {
-      id: newId('mreq'),
-      accountId: account.id,
-      name: account.name,
-      email: account.email,
-      mobile: account.mobile,
-      stage: input.stage,
-      goals: input.goals,
-      wings: input.wings,
-      preferredMentorId: preferred,
-      status: 'open',
-      createdAt: stamp,
-      updatedAt: stamp,
-    };
-    d.mentorshipRequests.push(request);
-    return { ok: true, request };
-  });
+export async function createRequest(account: MemberAccount, input: RequestInput): Promise<CreateRequestResult> {
+  const OPEN_ALREADY = 'You already have an open request. We will match you soon — or withdraw it to send a new one.';
+  let result: CreateRequestResult;
+  try {
+    result = await store.prisma.$transaction(async (tx): Promise<CreateRequestResult> => {
+      if (await tx.mentorshipRequest.count({ where: { accountId: account.id, status: 'OPEN' } })) return { ok: false, error: OPEN_ALREADY };
+      let preferred: string | undefined;
+      if (input.preferredMentorId) {
+        const m = (await store.listMentors({ id: input.preferredMentorId, status: 'APPROVED' }, tx))[0];
+        if (!m || m.accountId === account.id) return { ok: false, error: 'Choose a mentor from the list.' };
+        preferred = m.id;
+      }
+      const request = await store.createMentorshipRequest(account.id, { stage: input.stage, goals: input.goals, wings: input.wings, preferredMentorId: preferred }, tx);
+      return { ok: true, request };
+    });
+  } catch (err) {
+    // The database allows one open request per member (two submits at once).
+    if ((err as { code?: string }).code === 'P2002') result = { ok: false, error: OPEN_ALREADY };
+    else throw err;
+  }
   if (result.ok) {
-    const brand = emailBrand();
+    const brand = await emailBrand();
     queueMail(account.email, mentorshipRequestReceivedEmail(brand, { name: account.name, dashboardUrl: `${siteUrl()}/dashboard?tab=mentorship` }));
     queueMail(
-      adminRecipients(),
+      await adminRecipients(),
       adminMentorshipEmail(
         brand,
         { kind: 'request', name: account.name, email: account.email, summary: `${account.name} (${input.stage}) is looking for a mentor. Goals: ${input.goals}` },
@@ -161,13 +124,10 @@ export function createRequest(account: MemberAccount, input: RequestInput): Crea
 }
 
 /** The mentee withdraws their own open request. */
-export function withdrawRequest(account: MemberAccount, id: string): boolean {
-  return mutatePrivate((d) => {
-    const r = d.mentorshipRequests.find((x) => x.id === id && x.accountId === account.id && x.status === 'open');
-    if (!r) return false;
-    r.status = 'closed';
-    r.adminNote = 'Withdrawn by the member';
-    r.updatedAt = new Date().toISOString();
-    return true;
+export async function withdrawRequest(account: MemberAccount, id: string): Promise<boolean> {
+  const { count } = await store.prisma.mentorshipRequest.updateMany({
+    where: { id, accountId: account.id, status: 'OPEN' },
+    data: { status: 'CLOSED', adminNote: 'Withdrawn by the member' },
   });
+  return count === 1;
 }

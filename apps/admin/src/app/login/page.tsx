@@ -14,7 +14,7 @@ export default async function AdminLoginPage({
   return (
     <AdminLoginForm
       next={safeNextPath(Array.isArray(next) ? next[0] : next)}
-      configured={signInConfigured()}
+      configured={await signInConfigured()}
     />
   );
 }

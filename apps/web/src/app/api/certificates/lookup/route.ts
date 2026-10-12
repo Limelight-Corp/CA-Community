@@ -26,10 +26,10 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
 
-  const events = getItems<CommunityEvent>('events');
+  const events = await getItems<CommunityEvent>('events');
   const out = [];
   for (const { bookingId, accessToken } of parsed.data.items) {
-    const reg = findRegistrationWithToken(bookingId, accessToken);
+    const reg = await findRegistrationWithToken(bookingId, accessToken);
     if (!reg) continue;
     const event = events.find((e) => e.id === reg.eventId);
     const status: CertificateStatus = isCertificateValid(reg)

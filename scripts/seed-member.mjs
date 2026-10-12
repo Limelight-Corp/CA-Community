@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Creates or updates a member account in data/member-accounts.json (gitignored).
+ * Creates or updates a member account in PostgreSQL (tables member_accounts / member_profiles;
+ * connection from DATABASE_URL in apps/web/.env.local).
  *
  *   npm run member:seed -- --email you@example.com [--password '<password>'] [--name 'CA Full Name'] [--mobile 9876543210] [--unverified]
  *
@@ -9,13 +10,11 @@
  * password. Changing a password signs that member out everywhere.
  * The hash format must match apps/web/src/lib/member-accounts.ts.
  */
-import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const file = path.join(root, 'data', 'member-accounts.json');
 
 function parseArgs(argv) {
   const out = {};
@@ -47,43 +46,39 @@ if (args.password && (String(args.password).length < 8 || !/[A-Za-z]/.test(args.
   fail('the password needs at least 8 characters with letters and a number');
 }
 
-const store = fs.existsSync(file)
-  ? JSON.parse(fs.readFileSync(file, 'utf-8'))
-  : { sessionSecret: crypto.randomBytes(32).toString('hex'), accounts: [] };
-const now = new Date().toISOString();
-let account = store.accounts.find((a) => a.email === email);
-let generated = null;
+const { readEnvFile } = await import('../packages/db/scripts/env.mjs');
+const dbUrl = process.env.DATABASE_URL || readEnvFile(path.join(root, 'apps/web/.env.local')).DATABASE_URL;
+if (!dbUrl) fail('DATABASE_URL is not set (run `npm run setup --workspace=@ascend/db` first)');
+const { PrismaClient } = await import('../packages/db/generated/client/index.js');
+const db = new PrismaClient({ datasourceUrl: dbUrl, log: ['error'] });
 
+const now = new Date();
+let generated = null;
+let account = await db.memberAccount.findUnique({ where: { email } });
 if (!account) {
   const password = args.password || (generated = `${crypto.randomBytes(9).toString('base64url')}7a`);
-  account = {
-    id: `acct-${Date.now()}-${crypto.randomBytes(2).toString('hex')}`,
-    name: args.name || 'CA Test Member',
-    email,
-    mobile: args.mobile || undefined,
-    passwordHash: hashPassword(password),
-    emailVerifiedAt: args.unverified ? undefined : now,
-    sessionVersion: 1,
-    profile: {},
-    createdAt: now,
-    updatedAt: now,
-  };
-  store.accounts.push(account);
+  account = await db.memberAccount.create({
+    data: {
+      name: args.name || 'CA Test Member',
+      email,
+      mobile: args.mobile || null,
+      passwordHash: hashPassword(password),
+      emailVerifiedAt: args.unverified ? null : now,
+      profile: { create: {} },
+    },
+  });
 } else {
-  if (args.name) account.name = args.name;
-  if (args.mobile) account.mobile = args.mobile;
-  if (args.password) {
-    account.passwordHash = hashPassword(args.password);
-    account.sessionVersion = (account.sessionVersion || 1) + 1;
-  }
-  account.emailVerifiedAt = args.unverified ? undefined : account.emailVerifiedAt || now;
-  account.updatedAt = now;
+  account = await db.memberAccount.update({
+    where: { id: account.id },
+    data: {
+      name: args.name || undefined,
+      mobile: args.mobile || undefined,
+      ...(args.password ? { passwordHash: hashPassword(args.password), sessionVersion: { increment: 1 } } : {}),
+      emailVerifiedAt: args.unverified ? null : account.emailVerifiedAt || now,
+    },
+  });
 }
-
-fs.mkdirSync(path.dirname(file), { recursive: true });
-const tmp = `${file}.${process.pid}.tmp`;
-fs.writeFileSync(tmp, JSON.stringify(store, null, 2), { encoding: 'utf-8', mode: 0o600 });
-fs.renameSync(tmp, file);
+await db.$disconnect();
 
 console.log(`member:seed: ${account.email} (${account.name}) — email ${account.emailVerifiedAt ? 'confirmed' : 'not confirmed'}`);
 if (generated) console.log(`member:seed: generated password (shown once): ${generated}`);

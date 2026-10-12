@@ -5,19 +5,20 @@
  */
 import QRCode from 'qrcode';
 import type { CommunityRegistration } from '@ascend/shared';
-import { mutatePrivate, newSecret } from './community-store';
+import { newSecret, store } from './community-store';
 
 export const CHECKIN_PREFIX = 'ASCEND-CHECKIN';
 
 /** Returns the booking's check-in code, creating it for bookings made before codes existed. */
-export function ensureCheckinCode(reg: CommunityRegistration): string {
+export async function ensureCheckinCode(reg: CommunityRegistration): Promise<string> {
   if (reg.checkinCode) return reg.checkinCode;
-  return mutatePrivate((data) => {
-    const r = data.registrations.find((x) => x.id === reg.id);
-    if (!r) return '';
-    if (!r.checkinCode) r.checkinCode = newSecret();
-    return r.checkinCode;
+  const code = newSecret();
+  // Only fills an empty code, so two page loads at once still end up with one code.
+  await store.prisma.eventRegistration.updateMany({
+    where: { id: reg.id, checkinCodeHash: null },
+    data: { checkinCodeHash: store.sha256(code), checkinCodeEnc: store.sealToken(code) },
   });
+  return (await store.getRegistration({ id: reg.id }))?.checkinCode ?? '';
 }
 
 export function checkinPayload(reg: CommunityRegistration, code: string): string {

@@ -36,17 +36,17 @@ function toHub(org: OrgWing, store: CommunityWing[]): WingHub {
   };
 }
 
-export function allWingHubs(): WingHub[] {
-  const store = getItems<CommunityWing>('wings');
+export async function allWingHubs(): Promise<WingHub[]> {
+  const store = await getItems<CommunityWing>('wings');
   return wingsFromStore(store, true).map((w) => toHub(w, store));
 }
 
-export function findWingHub(slug: string): WingHub | undefined {
-  return allWingHubs().find((w) => w.slug === slug);
+export async function findWingHub(slug: string): Promise<WingHub | undefined> {
+  return (await allWingHubs()).find((w) => w.slug === slug);
 }
 
-export function wingPeople(hub: WingHub): { conveners: CommunityTeamMember[]; committee: CommunityTeamMember[] } {
-  const team = getItems<CommunityTeamMember>('team', true)
+export async function wingPeople(hub: WingHub): Promise<{ conveners: CommunityTeamMember[]; committee: CommunityTeamMember[] }> {
+  const team = (await getItems<CommunityTeamMember>('team', true))
     .filter((m) => sameWing(m.wing, hub.name))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   return {
@@ -55,14 +55,14 @@ export function wingPeople(hub: WingHub): { conveners: CommunityTeamMember[]; co
   };
 }
 
-export function wingEvents(hub: WingHub): { upcoming: CommunityEvent[]; past: CommunityEvent[] } {
-  const events = getItems<CommunityEvent>('events', true).filter((e) => e.wingNumber === hub.number);
+export async function wingEvents(hub: WingHub): Promise<{ upcoming: CommunityEvent[]; past: CommunityEvent[] }> {
+  const events = (await getItems<CommunityEvent>('events', true)).filter((e) => e.wingNumber === hub.number);
   return {
     upcoming: sortByDate(events.filter((e) => isUpcoming(e))),
     past: sortByDate(events.filter((e) => !isUpcoming(e))).reverse(),
   };
 }
 
-export function wingResources(hub: WingHub): CommunityResource[] {
-  return getItems<CommunityResource>('resources', true).filter((r) => sameWing(r.wing, hub.name));
+export async function wingResources(hub: WingHub): Promise<CommunityResource[]> {
+  return (await getItems<CommunityResource>('resources', true)).filter((r) => sameWing(r.wing, hub.name));
 }

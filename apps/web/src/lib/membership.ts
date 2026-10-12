@@ -14,7 +14,7 @@ import {
   type CommunityMemberApplication,
   type MembershipPayment,
 } from '@ascend/shared';
-import { getSettings, mutatePrivate } from './community-store';
+import { getSettings, store } from './community-store';
 import { membershipFor, type MemberAccount } from './member-accounts';
 import { adminRecipients, adminUrl, emailBrand, queueMail } from './mailer';
 import { siteUrl } from './seo';
@@ -26,14 +26,14 @@ export const planName = (plan: CommunityMemberApplication['plan']) => MEMBERSHIP
  * Fee for the next payment: the first payment uses the fee fixed at approval; renewals use the
  * plan's current price (Site Settings).
  */
-export function feeFor(app: CommunityMemberApplication): number {
-  const current = membershipFeeFor(app.plan, getSettings());
+export async function feeFor(app: CommunityMemberApplication): Promise<number> {
+  const current = membershipFeeFor(app.plan, await getSettings());
   return membershipState(app) === 'awaiting_payment' ? (app.membershipFee ?? current) : current;
 }
 
 /** The approved application this account may pay for (null when it can't pay yet). */
-export function payableApplication(account: MemberAccount): CommunityMemberApplication | null {
-  const app = membershipFor(account);
+export async function payableApplication(account: MemberAccount): Promise<CommunityMemberApplication | null> {
+  const app = await membershipFor(account);
   if (!app) return null;
   const state = membershipState(app);
   return state === 'awaiting_payment' || state === 'active' || state === 'expired' ? app : null;
@@ -44,11 +44,11 @@ export type OrderResult =
   | { ok: false; status: number; error: string };
 
 export async function createMembershipOrder(account: MemberAccount): Promise<OrderResult> {
-  const app = payableApplication(account);
+  const app = await payableApplication(account);
   if (!app) return { ok: false, status: 409, error: 'There is no approved membership to pay for on this account.' };
   const cfg = razorpayConfig();
   if (!cfg) return { ok: false, status: 503, error: 'Online payments are not set up yet. Please contact us to pay offline.' };
-  const fee = feeFor(app);
+  const fee = await feeFor(app);
   if (fee <= 0) return { ok: false, status: 409, error: 'This membership has no fee to pay.' };
 
   try {
@@ -72,14 +72,9 @@ export async function createMembershipOrder(account: MemberAccount): Promise<Ord
       return { ok: false, status: 502, error: 'We could not start the payment right now. Please try again in a moment.' };
     }
     const orderId = data.id;
-    mutatePrivate((d) => {
-      const m = d.members.find((x) => x.id === app.id);
-      if (m) {
-        m.gatewayOrderId = orderId;
-        // Amount of the open order — the payment is checked against it.
-        m.membershipFee = fee;
-      }
-    });
+    // Amount of the open order — the payment is checked against it. (The approved fee itself is
+    // admin-only and stays untouched.)
+    await store.setMemberOrder(app.id, orderId, fee);
     const renewing = membershipState(app) !== 'awaiting_payment';
     return {
       ok: true,
@@ -99,31 +94,38 @@ export async function createMembershipOrder(account: MemberAccount): Promise<Ord
  * Records a verified Razorpay payment for the application holding `orderId` (idempotent) and
  * sends the receipt + admin alert the first time. Returns null when no application matches.
  */
-export function completeMembershipPayment(
+export async function completeMembershipPayment(
   orderId: string,
   paymentId: string,
   amountPaise?: number
-): { app: CommunityMemberApplication; payment: MembershipPayment; duplicate: boolean } | 'mismatch' | null {
-  const result = mutatePrivate((d) => {
-    const app = d.members.find((m) => m.gatewayOrderId === orderId || m.payments?.some((p) => p.gatewayOrderId === orderId));
-    if (!app) return null;
-    const fee = app.membershipFee ?? feeFor(app); // amount of the order that was opened
-    if (amountPaise !== undefined && amountPaise !== Math.round(fee * 100)) return 'mismatch' as const;
-    const taken = new Set(d.members.flatMap((m) => (m.payments ?? []).map((p) => p.id)));
+): Promise<{ app: CommunityMemberApplication; payment: MembershipPayment; duplicate: boolean } | 'mismatch' | null> {
+  // Membership row locked for the whole step: the browser's verify call and the webhook can never
+  // both record the same payment.
+  const result = await store.prisma.$transaction(async (tx) => {
+    const id = await store.memberIdForOrder(orderId, tx);
+    if (!id) return null;
+    await tx.$queryRaw`SELECT id FROM memberships WHERE id = ${id} FOR UPDATE`;
+    const app = (await store.getMember({ id }, tx))!;
+    const fee = app.orderAmount ?? app.membershipFee ?? (await feeFor(app)); // amount of the order that was opened
     const renewal = (app.payments?.length ?? 0) > 0;
-    const { payment, duplicate } = recordMembershipPayment(app, {
-      id: newMembershipReceiptId(taken),
+    const next = structuredClone(app);
+    const { payment, duplicate } = recordMembershipPayment(next, {
+      // Receipt ids are random (32^6); the database guarantees uniqueness.
+      id: newMembershipReceiptId(new Set()),
       amount: fee,
       method: 'razorpay',
       gatewayOrderId: orderId,
       gatewayPaymentId: paymentId,
     });
-    return { app: { ...app }, payment, duplicate, renewal };
+    if (duplicate) return { app, payment, duplicate, renewal };
+    if (amountPaise !== undefined && amountPaise !== Math.round(fee * 100)) return 'mismatch' as const;
+    const saved = (await store.addMemberPayment(id, payment, { validUntil: next.validUntil!, clearOrder: true }, tx)) ?? next;
+    return { app: saved, payment, duplicate, renewal };
   });
   if (!result || result === 'mismatch') return result;
 
   if (!result.duplicate) {
-    const brand = emailBrand();
+    const brand = await emailBrand();
     const plan = planName(result.app.plan);
     queueMail(
       result.app.email,
@@ -139,7 +141,7 @@ export function completeMembershipPayment(
       })
     );
     queueMail(
-      adminRecipients(),
+      await adminRecipients(),
       adminMembershipPaidEmail(
         brand,
         { name: result.app.name, email: result.app.email, plan, amount: result.payment.amount, receiptId: result.payment.id, method: 'Online (Razorpay)', validUntil: result.payment.validUntil },

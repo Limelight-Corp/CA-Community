@@ -12,13 +12,13 @@ import { ShareButtons } from '../../../components/content/ShareButtons';
 
 type Params = Promise<{ slug: string }>;
 
-function findArticle(slug: string) {
-  return getItems<CommunityNews>('news', true).find((n) => n.slug === slug);
+async function findArticle(slug: string) {
+  return (await getItems<CommunityNews>('news', true)).find((n) => n.slug === slug);
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const article = findArticle(slug);
+  const article = await findArticle(slug);
   if (!article) return { title: 'Article not found' };
   const description = truncate(article.summary || article.content, 160);
   const image = safeUrl(article.coverImageUrl);
@@ -39,14 +39,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function ArticlePage({ params }: { params: Params }) {
   const { slug } = await params;
-  const article = findArticle(slug);
+  const article = await findArticle(slug);
   if (!article) notFound();
 
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   const url = `${siteUrl()}/news/${article.slug}`;
   const image = safeUrl(article.coverImageUrl);
   const absImage = image ? (image.startsWith('/') ? `${siteUrl()}${image}` : image) : undefined;
-  const related = sortByDateDesc(getItems<CommunityNews>('news', true).filter((n) => n.slug !== article.slug)).slice(0, 3);
+  const related = sortByDateDesc((await getItems<CommunityNews>('news', true)).filter((n) => n.slug !== article.slug)).slice(0, 3);
 
   const articleLd = {
     '@context': 'https://schema.org',

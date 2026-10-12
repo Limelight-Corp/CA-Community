@@ -7,9 +7,13 @@
  * Images may come from any https URL because CMS editors can paste external image links.
  * Add a domain here before embedding anything new.
  */
+import { fileURLToPath } from 'node:url';
+import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin';
+// next dev evaluates modules with eval() (React Refresh); production never needs it.
+const devEval = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://*.razorpay.com https://www.googletagmanager.com https://connect.facebook.net https://challenges.cloudflare.com",
+  `script-src 'self' 'unsafe-inline'${devEval} https://*.razorpay.com https://www.googletagmanager.com https://connect.facebook.net https://challenges.cloudflare.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
@@ -39,6 +43,19 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // Prisma (via @ascend/db) loads its query engine at runtime, so it must not be bundled.
+  serverExternalPackages: ['@ascend/db'],
+  // Monorepo: trace files from the repo root, and ship Prisma's generated client (query engine
+  // binary + schema) with every server function — Vercel would otherwise leave it out.
+  outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
+  // copy-engine.mjs (prebuild) puts the engine in ./.prisma/client, a folder Prisma always searches.
+  outputFileTracingIncludes: { '/**/*': ['./.prisma/client/**/*', '../../packages/db/generated/client/**/*'] },
+  // Next bundles @ascend/db, so Prisma looks for its engine next to the server bundle (.next/server).
+  // Prisma's monorepo plugin copies the engine + schema there at build time.
+  webpack(config, { isServer }) {
+    if (isServer) config.plugins.push(new PrismaPlugin());
+    return config;
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

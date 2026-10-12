@@ -12,7 +12,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ bookingI
   }
   const { bookingId } = await params;
   const token = new URL(req.url).searchParams.get('t') || '';
-  const reg = findRegistrationWithToken(bookingId.replace(/%2D/gi, '-'), token);
+  const reg = await findRegistrationWithToken(bookingId.replace(/%2D/gi, '-'), token);
   if (!reg) return notFound;
   return NextResponse.json(
     { registration: publicRegistration(reg) },

@@ -17,5 +17,5 @@ export async function GET(req: Request) {
   if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, ...sendDueReminders(), renewals: sendMembershipRenewalReminders().sent }, { headers: { 'Cache-Control': 'no-store' } });
+  return NextResponse.json({ ok: true, ...await sendDueReminders(), renewals: (await sendMembershipRenewalReminders()).sent }, { headers: { 'Cache-Control': 'no-store' } });
 }

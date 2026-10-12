@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import type { CommunityResource } from '@ascend/shared';
-import { dataDir, getItems, updateItem } from '../../../../../lib/community-store';
+import { dataDir, getItems, store } from '../../../../../lib/community-store';
 import { safeUrl } from '../../../../../lib/content';
 import { isApprovedMember } from '../../../../../lib/member-accounts';
 import { loginUrl, memberFromRequest } from '../../../../../lib/member-session';
@@ -33,16 +33,16 @@ function fileName(title: string, ext: string): string {
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const resource = getItems<CommunityResource>('resources', true).find((r) => r.id === id);
+  const resource = (await getItems<CommunityResource>('resources', true)).find((r) => r.id === id);
   if (!resource || !resource.fileUrl) {
     return NextResponse.json({ success: false, error: 'Resource not found' }, { status: 404 });
   }
 
   if (resource.isMembersOnly) {
-    const account = memberFromRequest(request);
+    const account = await memberFromRequest(request);
     if (!account) return NextResponse.redirect(new URL(loginUrl('/resources'), request.url));
     // Signed in but not (yet) an approved member → the dashboard explains the membership status.
-    if (!isApprovedMember(account)) return NextResponse.redirect(new URL('/dashboard?tab=membership', request.url));
+    if (!(await isApprovedMember(account))) return NextResponse.redirect(new URL('/dashboard?tab=membership', request.url));
   }
 
   const uploaded = UPLOADED.exec(resource.fileUrl);
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   try {
-    updateItem('resources', resource.id, { downloads: (resource.downloads ?? 0) + 1 });
+    await store.addDownload(resource.id);
   } catch (err) {
     console.error('Failed to count resource download:', err);
   }

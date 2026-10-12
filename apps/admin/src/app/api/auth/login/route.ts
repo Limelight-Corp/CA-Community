@@ -35,7 +35,7 @@ function tooMany(minutes: number) {
 export async function POST(request: NextRequest) {
   if (!sameOrigin(request)) return bad('Cross-site sign-in is not allowed.', 403);
 
-  if (!signInConfigured()) return bad('Admin sign-in is not configured on this server.', 503);
+  if (!(await signInConfigured())) return bad('Admin sign-in is not configured on this server.', 503);
 
   const ipKey = clientIpFromHeaders(request.headers);
   const ipMinutes = byIp.lockedFor(ipKey);
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   if (userMinutes > 0) return tooMany(userMinutes);
 
   // Accounts in the admin store first, then the environment credentials as a fallback.
-  const dbUser = authenticateAdmin(username, password);
+  const dbUser = await authenticateAdmin(username, password);
   const cfg = gateConfig();
   const envOk =
     !dbUser &&
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
   }
 
   byUser.clear(userKey);
-  if (dbUser) recordAdminLogin(dbUser.id);
+  if (dbUser) await recordAdminLogin(dbUser.id);
   const token = dbUser
     ? await createSessionToken(dbUser.username, 'db')
     : await createSessionToken(cfg!.user, 'env');

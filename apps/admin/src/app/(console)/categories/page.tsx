@@ -15,8 +15,8 @@ const USED_IN: Record<string, string> = {
   jobs: 'Jobs & articleship',
 };
 
-export default function CategoriesPage() {
-  const store = readStore();
+export default async function CategoriesPage() {
+  const store = await readStore();
   const lists: TaxonomyList[] = TAXONOMY_KEYS.map((key) => {
     const { label, collection, field } = TAXONOMY_META[key];
     const usage: Record<string, number> = {};

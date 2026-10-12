@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { TAXONOMY_META, isTaxonomyKey, taxonomy } from '@ascend/shared';
-import { readStore, writeStore } from '../../../lib/community-store';
+import { isTaxonomyKey, taxonomy } from '@ascend/shared';
+import { getSettings, store } from '../../../lib/community-store';
 import { bad, handleError, isPlainObject } from '../../../lib/api-helpers';
 
 /**
  * Admin-managed category lists (event / news / Knowledge Hub / gallery categories, job types).
- * Saved in Site Settings. Renames are applied to existing content; removed values stay on the
+ * Stored in taxonomy_terms. Renames are applied to existing content; removed values stay on the
  * items that use them until they are edited. Admin gate protected.
  */
 export const dynamic = 'force-dynamic';
@@ -35,24 +35,11 @@ export async function PUT(request: NextRequest) {
       seen.add(k);
     }
 
-    const store = readStore();
-    const before = taxonomy(store.settings, key);
-    store.settings = { ...store.settings, taxonomies: { ...store.settings.taxonomies, [key]: values } };
-
-    // Follow renames in the content that uses this list.
-    const { collection, field } = TAXONOMY_META[key];
-    let moved = 0;
-    const map = new Map(Object.entries(renames).filter(([from, to]) => from !== to && before.includes(from) && values.includes(to)));
-    if (map.size) {
-      for (const item of store[collection] as unknown as Record<string, unknown>[]) {
-        const current = item[field];
-        if (typeof current === 'string' && map.has(current)) {
-          item[field] = map.get(current);
-          moved++;
-        }
-      }
-    }
-    writeStore(store);
+    const before = taxonomy(await getSettings(), key);
+    // Only renames of entries that existed and still exist under the new name.
+    const valid = Object.fromEntries(Object.entries(renames).filter(([from, to]) => from !== to && before.includes(from) && values.includes(to)));
+    // The new list and the renamed content are saved in one transaction.
+    const moved = await store.setTaxonomy(key, values, valid);
     return NextResponse.json({ success: true, values, moved });
   } catch (error) {
     return handleError(error, 'Taxonomies PUT');
@@ -64,12 +51,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const key = new URL(request.url).searchParams.get('key');
     if (!isTaxonomyKey(key)) return bad('Unknown list', 400);
-    const store = readStore();
-    const next = { ...store.settings.taxonomies };
-    delete next[key];
-    store.settings = { ...store.settings, taxonomies: next };
-    writeStore(store);
-    return NextResponse.json({ success: true, values: taxonomy(store.settings, key) });
+    await store.resetTaxonomy(key);
+    return NextResponse.json({ success: true, values: taxonomy(await getSettings(), key) });
   } catch (error) {
     return handleError(error, 'Taxonomies DELETE');
   }

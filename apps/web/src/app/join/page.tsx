@@ -21,7 +21,7 @@ import { FxCard } from '../../components/home/Interactive';
 import { siteWings, wingCountWords } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'Join Us — Membership',
     description: `Become a member of ${siteName}: membership plans for CAs, allied professionals and CA students, benefits, the member journey and online registration.`,
@@ -48,12 +48,12 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const requested = typeof sp.plan === 'string' ? sp.plan : undefined;
   const initialPlan = MEMBERSHIP_PLANS.some((p) => p.key === requested) ? (requested as PlanKey) : undefined;
-  const orgWings = siteWings();
+  const orgWings = await siteWings();
   const requestedWing = typeof sp.wing === 'string' ? orgWings.find((w) => wingSlug(w.name) === sp.wing) : undefined;
 
-  const storeWings = getItems<CommunityWing>('wings', true);
+  const storeWings = await getItems<CommunityWing>('wings', true);
   // Annual fees come from Site Settings (defaults: the Blueprint prices).
-  const settingsForFees = getSettings();
+  const settingsForFees = await getSettings();
   const plans = MEMBERSHIP_PLANS.map((p) => ({ ...p, price: membershipFeeFor(p.key, settingsForFees) }));
   const wings = orgWings.map((w) => ({
     number: w.number,

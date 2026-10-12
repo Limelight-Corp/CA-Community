@@ -12,7 +12,7 @@ import { eventInstants, toIstIso } from '../../components/events/event-time';
 import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   const description = `Summits, masterclasses, clinics and meetups from ${siteName} — find an event by date, city, type or price and register in a couple of minutes.`;
   return {
     title: 'Events',
@@ -28,9 +28,9 @@ export default async function EventsPage({
   searchParams: Promise<{ category?: string | string[]; q?: string | string[] }>;
 }) {
   const sp = await searchParams;
-  const events = getItems<CommunityEvent>('events', true);
-  const wings = getItems<CommunityWing>('wings', true).sort((a, b) => a.number - b.number);
-  const speakers = getItems<CommunitySpeaker>('speakers', true);
+  const events = await getItems<CommunityEvent>('events', true);
+  const wings = [...(await getItems<CommunityWing>('wings', true))].sort((a, b) => a.number - b.number);
+  const speakers = await getItems<CommunitySpeaker>('speakers', true);
 
   const upcoming = sortByDate(events.filter((e) => isUpcoming(e)));
   const next = upcoming.find((e) => canRegister(e)) ?? upcoming[0];
@@ -122,7 +122,7 @@ export default async function EventsPage({
             events={events}
             wings={wings}
             speakers={speakers}
-            categories={siteTaxonomy('eventCategories', events.map((e) => e.category))}
+            categories={await siteTaxonomy('eventCategories', events.map((e) => e.category))}
             initialCategory={pick(sp.category)}
             initialQuery={pick(sp.q)}
           />

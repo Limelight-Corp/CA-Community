@@ -27,7 +27,7 @@ import { CopyButton } from '../../components/content/CopyButton';
 import { SOCIAL_LABELS, SocialIcon, type SocialKey } from '../../components/site/SocialIcon';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'Contact Us',
     description: `Get in touch with ${siteName} — questions about membership, events, partnerships or speaking. Send us a message and our team will respond.`,
@@ -91,7 +91,7 @@ function radarPoint(name: string, i: number) {
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
   const { topic } = await searchParams;
   const activeTopic = TOPICS.find((t) => t.key === topic);
-  const settings = getSettings();
+  const settings = await getSettings();
   const { contact } = settings;
   const mapLink = safeUrl(contact.mapUrl);
   const mapEmbed = googleMapsEmbedUrl(contact.mapUrl, contact.address);
@@ -100,9 +100,9 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
     .filter((entry): entry is readonly [SocialKey, string] => !!entry[1]);
 
   // Cities that actually host published offline events — the "Pan-India" radar is data-driven.
-  const events = getItems<CommunityEvent>('events', true);
+  const events = await getItems<CommunityEvent>('events', true);
   const cities = [...new Set(events.filter((e) => e.mode === 'Offline' && e.city).map((e) => e.city.trim()))].slice(0, 8);
-  const wingCount = getItems<CommunityWing>('wings', true).length;
+  const wingCount = (await getItems<CommunityWing>('wings', true)).length;
   const partners = ORG_COMMUNITIES.find((c) => c.name.startsWith('Partners'));
 
   return (

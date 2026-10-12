@@ -18,10 +18,10 @@ export const metadata: Metadata = {
 
 export default async function DirectoryPage() {
   const account = await currentMember();
-  const member = isApprovedMember(account);
-  const application = account ? membershipFor(account) : undefined;
-  const entries = member ? directoryEntries() : [];
-  const listedCount = member ? entries.length : directoryEntries().length;
+  const member = await isApprovedMember(account);
+  const application = account ? await membershipFor(account) : undefined;
+  const entries = member ? await directoryEntries() : [];
+  const listedCount = member ? entries.length : (await directoryEntries()).length;
 
   return (
     <>
@@ -38,7 +38,7 @@ export default async function DirectoryPage() {
           {member ? (
             <DirectoryBrowser
               entries={entries}
-              wings={siteWings().map((w) => ({ number: w.number, name: w.name }))}
+              wings={(await siteWings()).map((w) => ({ number: w.number, name: w.name }))}
               selfListed={!!account?.profile.directoryOptIn}
             />
           ) : (

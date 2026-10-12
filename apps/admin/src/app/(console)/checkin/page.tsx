@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Check-in' };
 export default async function CheckinPage({ searchParams }: { searchParams: Promise<{ event?: string }> }) {
   const sp = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
-  const events = [...readStore().events].sort((a, b) => a.date.localeCompare(b.date));
+  const events = [...(await readStore()).events].sort((a, b) => a.date.localeCompare(b.date));
   // Default to today's event, else the next upcoming one, else the most recent.
   const preferred =
     events.find((e) => e.id === sp.event) ??

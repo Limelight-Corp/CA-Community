@@ -2,9 +2,8 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { clientIp, rateLimit, readJsonBody } from '../../../../lib/form-guard';
 import { emailField, fieldErrorsOf, json, mobileField, nameField, sameOrigin, sendVerificationEmail } from '../../../../lib/auth-server';
-import { hashPassword, mutateAccounts, normaliseEmail, passwordProblem, publicAccount, type MemberAccount } from '../../../../lib/member-accounts';
+import { createAccount, hashPassword, passwordProblem, publicAccount } from '../../../../lib/member-accounts';
 import { setSessionCookie } from '../../../../lib/member-session';
-import { newId } from '../../../../lib/community-store';
 import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../../lib/turnstile';
 
 export const runtime = 'nodejs';
@@ -34,26 +33,7 @@ export async function POST(req: NextRequest) {
   const problem = passwordProblem(input.password, input.email);
   if (problem) return json({ error: problem, fieldErrors: { password: problem } }, 422);
 
-  const email = normaliseEmail(input.email);
-  const passwordHash = hashPassword(input.password);
-  const created = mutateAccounts<MemberAccount | null>((data) => {
-    if (data.accounts.some((a) => a.email === email)) return null;
-    const stamp = new Date().toISOString();
-    const account: MemberAccount = {
-      id: newId('acct'),
-      name: input.name,
-      email,
-      mobile: input.mobile,
-      passwordHash,
-      sessionVersion: 1,
-      profile: {},
-      createdAt: stamp,
-      updatedAt: stamp,
-      lastLoginAt: stamp,
-    };
-    data.accounts.push(account);
-    return account;
-  });
+  const created = await createAccount({ name: input.name, email: input.email, mobile: input.mobile, passwordHash: await hashPassword(input.password) });
   if (!created) {
     return json(
       {
@@ -64,8 +44,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  sendVerificationEmail(created);
-  const res = json({ user: publicAccount(created) }, 201);
+  await sendVerificationEmail(created);
+  const res = json({ user: await publicAccount(created) }, 201);
   setSessionCookie(res, created, req);
   return res;
 }

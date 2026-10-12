@@ -19,13 +19,13 @@ import { RegistrationForm } from '../../../../components/events/RegistrationForm
 
 type Params = Promise<{ slug: string }>;
 
-function findEvent(slug: string): CommunityEvent | undefined {
-  return getItems<CommunityEvent>('events', true).find((e) => e.slug === slug);
+async function findEvent(slug: string): Promise<CommunityEvent | undefined> {
+  return (await getItems<CommunityEvent>('events', true)).find((e) => e.slug === slug);
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const event = findEvent(slug);
+  const event = await findEvent(slug);
   return {
     title: event ? `Register · ${event.title}` : 'Register',
     robots: { index: false, follow: true },
@@ -40,10 +40,10 @@ const CLOSED_COPY = {
 
 export default async function RegisterPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const event = findEvent(slug);
+  const event = await findEvent(slug);
   if (!event) notFound();
 
-  const settings = getSettings();
+  const settings = await getSettings();
   const status = eventStatus(event);
   const open = canRegister(event);
   const dateLabel = formatEventDate(event, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });

@@ -11,5 +11,5 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const account = await currentMember();
   if (!account) redirect(loginUrl('/dashboard'));
   const { tab } = await searchParams;
-  return <MemberDashboard data={dashboardData(account)} initialTab={tab === 'membership' ? 'overview' : tab} />;
+  return <MemberDashboard data={await dashboardData(account)} initialTab={tab === 'membership' ? 'overview' : tab} />;
 }

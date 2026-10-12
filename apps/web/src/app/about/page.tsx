@@ -47,7 +47,7 @@ import { WingsExplorer, type WingView } from '../../components/content/WingsExpl
 import { siteWings, wingCountWords } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'About Us',
     description: `${siteName} is ${ORG_POSITIONING.title.toLowerCase()} ${ORG_POSITIONING.titleAccent.toLowerCase()} — vision, mission, leadership, organisation structure and the 10 professional wings.`,
@@ -86,12 +86,12 @@ const COMMUNITY_ICONS: LucideIcon[] = [
   Handshake,
 ];
 
-export default function AboutPage() {
-  const settings = getSettings();
-  const team = getItems<CommunityTeamMember>('team', true).sort((a, b) => a.order - b.order);
-  const storeWings = getItems<CommunityWing>('wings', true);
+export default async function AboutPage() {
+  const settings = await getSettings();
+  const team = [...(await getItems<CommunityTeamMember>('team', true))].sort((a, b) => a.order - b.order);
+  const storeWings = await getItems<CommunityWing>('wings', true);
 
-  const orgWings = siteWings();
+  const orgWings = await siteWings();
   const wings: WingView[] = orgWings.map((w) => ({
     number: w.number,
     name: w.name,

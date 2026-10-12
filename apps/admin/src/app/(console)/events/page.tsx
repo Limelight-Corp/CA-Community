@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function EventsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { events } = readStore();
-  const regs = readPrivate().registrations;
+  const { events } = await readStore();
+  const regs = (await readPrivate()).registrations;
   const rows: EventRow[] = [...events]
     .sort((a: CommunityEvent, b: CommunityEvent) => (b.date ?? '').localeCompare(a.date ?? ''))
     .map((e) => {

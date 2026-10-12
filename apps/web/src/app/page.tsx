@@ -48,7 +48,7 @@ import { JourneyScroller } from '../components/home/JourneyScroller';
 import { wingCountWords } from '../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const s = getSettings();
+  const s = await getSettings();
   return {
     title: { absolute: `${s.siteName} — ${s.heroHeadline} ${s.heroHeadlineAccent}` },
     description: s.tagline,
@@ -65,15 +65,15 @@ const WHY_ICONS = {
   growth: TrendingUp,
 } as const;
 
-export default function HomePage() {
-  const settings = getSettings();
+export default async function HomePage() {
+  const settings = await getSettings();
   const heroImage = safeUrl(settings.heroImageUrl);
-  const events = sortByDate(getItems<CommunityEvent>('events', true));
-  const wings = getItems<CommunityWing>('wings', true).sort((a, b) => a.number - b.number);
-  const speakers = getItems<CommunitySpeaker>('speakers', true);
-  const news = getItems<CommunityNews>('news', true).slice(0, 3);
-  const initiatives = getItems<CommunityInitiative>('initiatives', true);
-  const testimonials = getItems<CommunityTestimonial>('testimonials', true);
+  const events = sortByDate(await getItems<CommunityEvent>('events', true));
+  const wings = [...(await getItems<CommunityWing>('wings', true))].sort((a, b) => a.number - b.number);
+  const speakers = await getItems<CommunitySpeaker>('speakers', true);
+  const news = (await getItems<CommunityNews>('news', true)).slice(0, 3);
+  const initiatives = await getItems<CommunityInitiative>('initiatives', true);
+  const testimonials = await getItems<CommunityTestimonial>('testimonials', true);
 
   const upcoming = events.filter((e) => isUpcoming(e));
   const featured = [

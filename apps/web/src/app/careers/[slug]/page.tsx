@@ -20,7 +20,7 @@ const longDate = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString('en
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const job = findJob(slug);
+  const job = await findJob(slug);
   if (!job) return { title: 'Opening not found' };
   return {
     title: `${job.title} — ${job.organisation}`,
@@ -32,16 +32,16 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function JobPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const job = findJob(slug);
+  const job = await findJob(slug);
   if (!job) notFound();
 
   const open = isJobOpen(job);
   const account = await currentMember();
-  const canSeeApply = !job.isMembersOnly || isApprovedMember(account);
+  const canSeeApply = !job.isMembersOnly || (await isApprovedMember(account));
   const apply = applyTarget(job);
   const logo = safeUrl(job.logoUrl);
   const url = `${siteUrl()}/careers/${job.slug}`;
-  const wing = job.wing ? siteWings().find((w) => w.name.toLowerCase() === job.wing!.trim().toLowerCase()) : undefined;
+  const wing = job.wing ? (await siteWings()).find((w) => w.name.toLowerCase() === job.wing!.trim().toLowerCase()) : undefined;
   const paragraphs = job.description.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 
   const remote = job.workMode === 'Remote';
@@ -187,7 +187,7 @@ export default async function JobPage({ params }: { params: Params }) {
               </div>
             </div>
             <p className="px-2 text-[12px] leading-relaxed text-[var(--muted)]">
-              Openings are shared by firms and members. Apply directly with the organisation; {getSettings().siteName} is not part of the hiring process.
+              Openings are shared by firms and members. Apply directly with the organisation; {(await getSettings()).siteName} is not part of the hiring process.
             </p>
           </aside>
         </div>

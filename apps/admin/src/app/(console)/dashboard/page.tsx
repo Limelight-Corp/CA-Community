@@ -29,9 +29,9 @@ const QUICK_ACTIONS = [
   { href: '/settings', label: 'Update banners', icon: Settings },
 ];
 
-export default function DashboardPage() {
-  const { kpis, recentRegistrations, upcomingEvents } = getDashboardData();
-  const trend = getAnalytics('30');
+export default async function DashboardPage() {
+  const { kpis, recentRegistrations, upcomingEvents } = await getDashboardData();
+  const trend = await getAnalytics('30');
   const hasTrend = trend.timeline.some((p) => p.registrations > 0 || p.paid > 0);
 
   return (

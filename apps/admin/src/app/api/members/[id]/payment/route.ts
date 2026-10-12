@@ -17,12 +17,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params;
     const parsed = Body.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) return bad('Enter a valid amount', 422);
-    const app = readPrivate().members.find((m) => m.id === id);
+    const app = (await readPrivate()).members.find((m) => m.id === id);
     if (!app) return bad('Application not found', 404);
     const admin = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
-    const amount = parsed.data.amount ?? membershipFeeFor(app.plan, getSettings());
-    const result = recordOfflineMembershipPayment(id, amount, admin?.username ?? 'admin');
-    notifyMembershipPaidOffline(result.app, result.payment, result.renewal);
+    const amount = parsed.data.amount ?? membershipFeeFor(app.plan, await getSettings());
+    const result = await recordOfflineMembershipPayment(id, amount, admin?.username ?? 'admin');
+    await notifyMembershipPaidOffline(result.app, result.payment, result.renewal);
     return NextResponse.json({ success: true, item: result.app, payment: result.payment });
   } catch (error) {
     return handleError(error, 'Membership payment');

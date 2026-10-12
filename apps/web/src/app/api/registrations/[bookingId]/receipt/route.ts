@@ -13,11 +13,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ bookingI
   }
   const { bookingId } = await params;
   const token = new URL(req.url).searchParams.get('t') || '';
-  const reg = findRegistrationWithToken(decodeURIComponent(bookingId), token);
+  const reg = await findRegistrationWithToken(decodeURIComponent(bookingId), token);
   // Same answer for a wrong link and for an unpaid booking.
   if (!reg || !receiptKind(reg)) return NextResponse.json({ error: 'Receipt not available.' }, { status: 404 });
 
-  const pdf = await buildReceiptPdf(reg, findEventById(reg.eventId), getSettings());
+  const pdf = await buildReceiptPdf(reg, await findEventById(reg.eventId), await getSettings());
   return new NextResponse(Buffer.from(pdf), {
     headers: {
       'Content-Type': 'application/pdf',

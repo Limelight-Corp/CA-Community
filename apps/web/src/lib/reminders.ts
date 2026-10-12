@@ -22,7 +22,7 @@ import {
   type CommunityMemberApplication,
   type CommunityRegistration,
 } from '@ascend/shared';
-import { getItems, getSettings, mutatePrivate } from './community-store';
+import { getItems, getSettings, store } from './community-store';
 import { emailBrand, queueMail } from './mailer';
 import { queueWhatsApp } from './whatsapp';
 import { siteUrl } from './seo';
@@ -55,10 +55,10 @@ export interface ReminderRun {
   bookings: string[];
 }
 
-export function sendDueReminders(now = new Date()): ReminderRun {
+export async function sendDueReminders(now = new Date()): Promise<ReminderRun> {
   const today = istDate(now);
   const tomorrow = istDate(new Date(now.getTime() + 24 * 3600_000));
-  const events = getItems<CommunityEvent>('events', true).filter((e) => {
+  const events = (await getItems<CommunityEvent>('events', true)).filter((e) => {
     if (e.cancelledAt || (e.date !== today && e.date !== tomorrow)) return false;
     const start = eventStartUtc(e);
     return start === null || start > now.getTime(); // never remind about an event that has started
@@ -67,17 +67,15 @@ export function sendDueReminders(now = new Date()): ReminderRun {
 
   const ids = new Set(events.map((e) => e.id));
   const stamp = now.toISOString();
-  const due = mutatePrivate<CommunityRegistration[]>((data) => {
-    const picked: CommunityRegistration[] = [];
-    for (const r of data.registrations) {
-      if (!ids.has(r.eventId) || r.status !== 'confirmed' || r.reminderSentAt) continue;
-      r.reminderSentAt = stamp;
-      picked.push({ ...r });
-    }
-    return picked;
-  });
+  // Atomic claim: only the run that stamps reminder_sent_at sends the email, so several servers
+  // (or overlapping runs) never send the same reminder twice.
+  const claimed = await store.prisma.$queryRaw<{ id: string }[]>`
+    UPDATE event_registrations SET reminder_sent_at = ${new Date(stamp)}
+    WHERE event_id = ANY(${[...ids]}) AND status = 'CONFIRMED' AND reminder_sent_at IS NULL
+    RETURNING id`;
+  const due: CommunityRegistration[] = claimed.length ? await store.listRegistrations({ id: { in: claimed.map((c) => c.id) } }) : [];
 
-  const brand = emailBrand();
+  const brand = await emailBrand();
   for (const r of due) {
     const event = events.find((e) => e.id === r.eventId)!;
     const mapUrl =
@@ -95,20 +93,22 @@ export function sendDueReminders(now = new Date()): ReminderRun {
  * Membership renewal reminders: one email per membership period, sent when an active membership
  * is within RENEWAL_REMINDER_DAYS of expiry. Stamped (renewalReminderFor = validUntil) first.
  */
-export function sendMembershipRenewalReminders(now = new Date()): { sent: number } {
+export async function sendMembershipRenewalReminders(now = new Date()): Promise<{ sent: number }> {
   const horizon = now.getTime() + RENEWAL_REMINDER_DAYS * 24 * 3600_000;
-  const due = mutatePrivate<CommunityMemberApplication[]>((data) => {
-    const picked: CommunityMemberApplication[] = [];
-    for (const m of data.members) {
-      if (membershipState(m, now) !== 'active' || !m.validUntil) continue;
-      if (Date.parse(m.validUntil) > horizon || m.renewalReminderFor === m.validUntil) continue;
-      m.renewalReminderFor = m.validUntil;
-      picked.push({ ...m });
-    }
-    return picked;
-  });
-  const brand = emailBrand();
-  const settings = getSettings();
+  const candidates = (await store.listMembers({ status: 'APPROVED', validUntil: { not: null, lte: new Date(horizon) } })).filter(
+    (m) => membershipState(m, now) === 'active' && m.validUntil && m.renewalReminderFor !== m.validUntil
+  );
+  // Atomic claim per membership period (one reminder per validUntil, even with several servers).
+  const claimed = candidates.length
+    ? await store.prisma.$queryRaw<{ id: string }[]>`
+        UPDATE memberships SET renewal_reminder_for = valid_until
+        WHERE id = ANY(${candidates.map((m) => m.id)}) AND renewal_reminder_for IS DISTINCT FROM valid_until
+        RETURNING id`
+    : [];
+  const claimedIds = new Set(claimed.map((c) => c.id));
+  const due: CommunityMemberApplication[] = candidates.filter((m) => claimedIds.has(m.id));
+  const brand = await emailBrand();
+  const settings = await getSettings();
   for (const m of due) {
     queueMail(
       m.email,

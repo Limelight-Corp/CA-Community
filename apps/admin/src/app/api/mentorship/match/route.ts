@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = z.object({ requestId: z.string().min(1), mentorId: z.string().min(1) }).safeParse(await request.json().catch(() => null));
     if (!parsed.success) return bad('Invalid request', 422);
-    return NextResponse.json({ success: true, item: matchRequest(parsed.data.requestId, parsed.data.mentorId) });
+    return NextResponse.json({ success: true, item: await matchRequest(parsed.data.requestId, parsed.data.mentorId) });
   } catch (error) {
     return handleError(error, 'Mentorship match');
   }

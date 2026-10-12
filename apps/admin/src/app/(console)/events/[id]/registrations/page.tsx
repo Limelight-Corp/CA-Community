@@ -12,9 +12,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function EventRegistrationsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const event = readStore().events.find((e) => e.id === id);
+  const event = (await readStore()).events.find((e) => e.id === id);
   if (!event) notFound();
-  const all = readPrivate().registrations;
+  const all = (await readPrivate()).registrations;
   const stats = eventStats(event, all);
   const rows = all.filter((r) => r.eventId === event.id).sort(byNewest).map(publicRegistration);
 

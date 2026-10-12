@@ -12,13 +12,13 @@ export default async function NewContentPage({ params }: { params: Promise<{ typ
   if (!isManagedContentType(type)) notFound();
   const config = CONTENT_TYPES[type];
   if (!config.allowCreate) notFound();
-  const takenSlugs = getItems<{ slug?: string }>(type)
+  const takenSlugs = (await getItems<{ slug?: string }>(type))
     .map((x) => x.slug)
     .filter((s): s is string => Boolean(s));
   return (
     <>
       <PageHeader eyebrow={config.label} title={`New ${config.singular.toLowerCase()}`} backHref={`/content/${type}`} backLabel={config.label} />
-      <ContentForm type={type} takenSlugs={takenSlugs} options={fieldOptions(type)} />
+      <ContentForm type={type} takenSlugs={takenSlugs} options={await fieldOptions(type)} />
     </>
   );
 }

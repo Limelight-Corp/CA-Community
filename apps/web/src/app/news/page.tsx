@@ -9,7 +9,7 @@ import { NewsBrowser, type NewsCardData } from '../../components/content/NewsBro
 import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'News & Updates',
     description: `Community announcements, event announcements, professional updates, member achievements and partnerships from ${siteName}.`,
@@ -17,8 +17,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NewsPage() {
-  const news = sortByDateDesc(getItems<CommunityNews>('news', true));
+export default async function NewsPage() {
+  const news = sortByDateDesc(await getItems<CommunityNews>('news', true));
   const items: NewsCardData[] = news.map((n) => ({
     slug: n.slug,
     title: n.title,
@@ -43,7 +43,7 @@ export default function NewsPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <NewsBrowser items={items} categories={siteTaxonomy('newsCategories', news.map((n) => n.category))} />
+          <NewsBrowser items={items} categories={await siteTaxonomy('newsCategories', news.map((n) => n.category))} />
         </Container>
       </Section>
     </>

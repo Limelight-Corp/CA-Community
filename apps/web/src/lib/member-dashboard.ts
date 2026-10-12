@@ -15,10 +15,10 @@ import {
   type MentorshipRequest,
 } from '@ascend/shared';
 import { feeFor } from './membership';
-import { activeMenteeCount, approvedMentors } from './mentorship';
-import { siteWings, wingByNumber, wingName } from './taxonomy';
+import { approvedMentors } from './mentorship';
+import { siteWings } from './taxonomy';
 import { razorpayConfig } from '../app/api/registrations/_lib/server';
-import { getItems, getSettings, readPrivate } from './community-store';
+import { getItems, getSettings, store } from './community-store';
 import { certificatePdfPath, isCertificateValid, verifyUrl } from './certificates';
 import { eventDate, formatEventDate, locationLabel } from './events';
 import { isApprovedMember, membershipFor, type MemberAccount } from './member-accounts';
@@ -94,19 +94,25 @@ export interface MentorshipData {
   wingOptions: { number: number; name: string }[];
 }
 
-function mentorshipData(account: MemberAccount): MentorshipData {
-  const data = readPrivate();
-  const mine = data.mentors.find((m) => m.accountId === account.id);
-  const byId = new Map(data.mentors.map((m) => [m.id, m]));
+async function mentorshipData(account: MemberAccount): Promise<MentorshipData> {
+  const [mine, myReqs, approved, wings] = await Promise.all([
+    store.listMentors({ accountId: account.id }).then((l) => l[0]),
+    store.listMentorshipRequests({ accountId: account.id }),
+    approvedMentors(),
+    siteWings(),
+  ]);
+  const nameOf = (n: number) => wings.find((w) => w.number === n)?.name ?? `Wing ${n}`;
+  const matchedIds = myReqs.filter((r) => r.status === 'matched' && r.mentorId).map((r) => r.mentorId!);
+  const byId = new Map((matchedIds.length ? await store.listMentors({ id: { in: matchedIds } }) : []).map((m) => [m.id, m]));
+  const menteeReqs = mine ? await store.listMentorshipRequests({ mentorId: mine.id, status: { in: ['MATCHED', 'CLOSED'] } }) : [];
   let profile: MentorshipData['profile'] = null;
   if (mine) {
     const { accountId: _accountId, ...rest } = mine;
-    profile = { ...rest, activeMentees: activeMenteeCount(mine.id, data.mentorshipRequests) };
+    profile = { ...rest, activeMentees: menteeReqs.filter((r) => r.status === 'matched').length };
   }
   return {
     profile,
-    requests: data.mentorshipRequests
-      .filter((r) => r.accountId === account.id)
+    requests: myReqs
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .map((r) => {
         const m = r.status === 'matched' && r.mentorId ? byId.get(r.mentorId) : undefined;
@@ -114,7 +120,7 @@ function mentorshipData(account: MemberAccount): MentorshipData {
           id: r.id,
           stage: r.stage,
           goals: r.goals,
-          wings: r.wings.map(wingName),
+          wings: r.wings.map(nameOf),
           status: r.status,
           createdAt: r.createdAt,
           adminNote: r.adminNote,
@@ -122,34 +128,33 @@ function mentorshipData(account: MemberAccount): MentorshipData {
         };
       }),
     mentees: mine
-      ? data.mentorshipRequests
-          .filter((r) => r.mentorId === mine.id && (r.status === 'matched' || r.status === 'closed'))
+      ? menteeReqs
           .map((r) => ({ id: r.id, name: r.name, email: r.email, mobile: r.mobile, stage: r.stage, goals: r.goals, matchedAt: r.matchedAt, status: r.status }))
       : [],
-    mentors: approvedMentors().map((m) => ({
+    mentors: approved.map((m) => ({
       id: m.id,
       name: m.name,
       headline: m.headline,
       expertise: m.expertise,
-      wings: m.wings.map(wingName),
+      wings: m.wings.map(nameOf),
       modes: m.modes,
       city: m.city,
       spotsLeft: Math.max(0, m.capacity - m.activeMentees),
       self: m.accountId === account.id,
     })),
-    wingOptions: siteWings().map((w) => ({ number: w.number, name: w.name })),
+    wingOptions: wings.map((w) => ({ number: w.number, name: w.name })),
   };
 }
 
-export function dashboardData(account: MemberAccount): DashboardData {
+export async function dashboardData(account: MemberAccount): Promise<DashboardData> {
   const verified = !!account.emailVerifiedAt;
-  const events = getItems<CommunityEvent>('events');
+  const events = await getItems<CommunityEvent>('events');
+  const siteWingList = await siteWings();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const bookings: DashboardBooking[] = verified
-    ? readPrivate()
-        .registrations.filter((r) => r.email.toLowerCase() === account.email)
+    ? (await store.listRegistrations({ email: account.email }))
         .map((r) => {
           const event = events.find((e) => e.id === r.eventId);
           const q = `?t=${encodeURIComponent(r.accessToken)}`;
@@ -181,9 +186,9 @@ export function dashboardData(account: MemberAccount): DashboardData {
         .map(({ sortKey: _sortKey, ...b }) => b)
     : [];
 
-  const app = membershipFor(account);
-  const isMember = isApprovedMember(account);
-  const membersOnly = getItems<CommunityResource>('resources', true).filter((r) => r.isMembersOnly);
+  const app = await membershipFor(account);
+  const isMember = await isApprovedMember(account);
+  const membersOnly = (await getItems<CommunityResource>('resources', true)).filter((r) => r.isMembersOnly);
 
   return {
     account: {
@@ -201,7 +206,7 @@ export function dashboardData(account: MemberAccount): DashboardData {
           state: membershipState(app),
           appliedAt: app.createdAt,
           validUntil: app.validUntil,
-          fee: feeFor(app),
+          fee: await feeFor(app),
           canPayOnline: !!razorpayConfig(),
           payments: (app.payments ?? [])
             .map((p) => ({
@@ -214,7 +219,7 @@ export function dashboardData(account: MemberAccount): DashboardData {
             }))
             .reverse(),
           wings: (app.interests ?? [])
-            .map((n) => wingByNumber(n))
+            .map((n) => siteWingList.find((w) => w.number === n))
             .filter((w): w is OrgWing => !!w)
             .map((w) => ({ name: w.name, slug: wingSlug(w.name) })),
         }
@@ -231,8 +236,8 @@ export function dashboardData(account: MemberAccount): DashboardData {
         }))
       : [],
     membersOnlyCount: membersOnly.length,
-    siteName: getSettings().siteName,
-    mentorship: isMember ? mentorshipData(account) : null,
+    siteName: (await getSettings()).siteName,
+    mentorship: isMember ? await mentorshipData(account) : null,
     mailEnabled: mailConfigured(),
   };
 }

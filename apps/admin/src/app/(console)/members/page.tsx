@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function MembersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const rows = [...readPrivate().members].sort(byNewest);
+  const rows = [...(await readPrivate()).members].sort(byNewest);
   const count = (s: string) => rows.filter((m) => m.status === s).length;
   return (
     <>
@@ -26,8 +26,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
         <StatCard label="Rejected" value={count('rejected')} tone="bad" icon={<CircleX />} />
       </section>
       <Panel>
-        <MembersManager rows={rows} initial={{ q: sp.q, plan: sp.plan, status: sp.status, city: sp.city }} fees={getSettings().membershipFees}
-          wingNames={Object.fromEntries(adminWings().map((w) => [w.number, w.name]))}
+        <MembersManager rows={rows} initial={{ q: sp.q, plan: sp.plan, status: sp.status, city: sp.city }} fees={(await getSettings()).membershipFees}
+          wingNames={Object.fromEntries((await adminWings()).map((w) => [w.number, w.name]))}
         />
       </Panel>
     </>

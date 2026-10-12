@@ -11,7 +11,7 @@ import { CtaBand, PageHero, Section } from '../../components/content/ui';
 import { wingCountWords } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'Professional Wings',
     description: `The professional wings of ${siteName} — each with its own convener, events, resources and community.`,
@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function WingsIndexPage() {
-  const wings = allWingHubs().map((w) => ({ ...w, upcoming: wingEvents(w).upcoming.length }));
+export default async function WingsIndexPage() {
+  const wings = await Promise.all((await allWingHubs()).map(async (w) => ({ ...w, upcoming: (await wingEvents(w)).upcoming.length })));
 
   return (
     <>

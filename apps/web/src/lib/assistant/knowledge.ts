@@ -102,8 +102,8 @@ export interface EventQuery {
   limit?: number;
 }
 
-export function searchEvents(q: EventQuery): EventCard[] {
-  let events = getItems<CommunityEvent>('events', true);
+export async function searchEvents(q: EventQuery): Promise<EventCard[]> {
+  let events = await getItems<CommunityEvent>('events', true);
   if (q.pastOnly) events = events.filter((e) => !isUpcoming(e));
   else if (!q.includePast) events = events.filter((e) => isUpcoming(e));
   if (q.paid) events = events.filter((e) => (Number(e.fee) || 0) > 0);
@@ -114,7 +114,7 @@ export function searchEvents(q: EventQuery): EventCard[] {
   if (q.month) events = events.filter((e) => e.date.startsWith(q.month!));
   const sorted = sortByDate(events);
   if (q.query?.trim()) {
-    const speakers = getItems<CommunitySpeaker>('speakers', true);
+    const speakers = await getItems<CommunitySpeaker>('speakers', true);
     const ranked = sorted
       .map((e) => {
         const names = speakers.filter((s) => e.speakerSlugs?.includes(s.slug)).map((s) => s.name).join(' ');
@@ -128,20 +128,20 @@ export function searchEvents(q: EventQuery): EventCard[] {
 }
 
 /** Pages, resources, news, speakers and wings matching the query, each with a direct link. */
-export function searchSite(query: string): LinkCard[] {
+export async function searchSite(query: string): Promise<LinkCard[]> {
   const q = query.toLowerCase();
   // Boost the section the visitor names ("speakers on audit" → speaker profiles first).
   const boost = (kind: 'speaker' | 'news' | 'resource' | 'wing') =>
     ({ speaker: /speaker|faculty|expert/, news: /news|update|announce/, resource: /resource|guide|pdf|download|webinar|video/, wing: /wing/ })[kind].test(q) ? 4 : 0;
   const out: (LinkCard & { s: number; kind?: string })[] = [];
   for (const p of SITE_PAGES) out.push({ title: p.title, href: p.href, description: p.description, s: score(`${p.title} ${p.keywords}`, query) + 1 });
-  for (const r of getItems<CommunityResource>('resources', true))
+  for (const r of await getItems<CommunityResource>('resources', true))
     out.push({ title: r.title, href: '/resources', description: `${r.category} · ${r.format}${r.isMembersOnly ? ' · members only' : ''}`, s: withBoost(score(`${r.title} ${r.category} ${r.format}`, query), boost('resource')) });
-  for (const n of getItems<CommunityNews>('news', true))
+  for (const n of await getItems<CommunityNews>('news', true))
     out.push({ title: n.title, href: `/news/${n.slug}`, description: n.summary, s: withBoost(score(`${n.title} ${n.category} ${n.summary}`, query), boost('news')) });
-  for (const s of getItems<CommunitySpeaker>('speakers', true))
+  for (const s of await getItems<CommunitySpeaker>('speakers', true))
     out.push({ title: s.name, href: `/speakers/${s.slug}`, description: s.title, s: withBoost(score(`${s.name} ${s.title} ${s.expertise.join(' ')} ${s.organisation ?? ''}`, query), boost('speaker')) });
-  for (const w of getItems<CommunityWing>('wings', true))
+  for (const w of await getItems<CommunityWing>('wings', true))
     out.push({ title: w.name, href: '/wings', description: w.tags, kind: 'wing', s: withBoost(score(`${w.name} ${w.tags} ${w.activities.join(' ')}`, query), boost('wing')) });
   let wings = 0;
   return out
@@ -153,8 +153,8 @@ export function searchSite(query: string): LinkCard[] {
 }
 
 /** Stable facts for the system prompt (contact details and plans come from the site settings / constants). */
-export function siteFacts(): string {
-  const st = getSettings();
+export async function siteFacts(): Promise<string> {
+  const st = await getSettings();
   const plans = MEMBERSHIP_PLANS.map(
     (p) => `- ${p.name} (${p.audience}): ₹${membershipFeeFor(p.key, st).toLocaleString('en-IN')} / ${p.period}`
   ).join('\n');

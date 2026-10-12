@@ -28,10 +28,10 @@ const CATEGORY_WORDS: [RegExp, string][] = [
 
 const reply = (r: Omit<AssistantReply, 'mode'>): AssistantReply => ({ ...r, mode: 'basic' });
 
-export function basicReply(history: ChatTurn[]): AssistantReply {
+export async function basicReply(history: ChatTurn[]): Promise<AssistantReply> {
   const raw = (history.at(-1)?.content ?? '').trim();
   const q = raw.toLowerCase().replace(/\s+/g, ' ');
-  const settings = getSettings();
+  const settings = await getSettings();
 
   // ---- Small talk
   if (/^(hi+|hii+|hello+|hey+|helo|namaste|namaskar|hola|good (morning|afternoon|evening)|yo|sup)\b[\s!.?]*$/.test(q) || /^(hi|hello|hey|namaste)\b/.test(q) && q.split(' ').length <= 3) {
@@ -72,7 +72,7 @@ export function basicReply(history: ChatTurn[]): AssistantReply {
 
   // ---- Membership
   if (/member|membership|join|plan|subscription|sadasya/.test(q) && !/event/.test(q)) {
-    const st = getSettings();
+    const st = await getSettings();
     const plans = MEMBERSHIP_PLANS.map((p) => `• **${p.name}** (${p.audience}) — ₹${membershipFeeFor(p.key, st).toLocaleString('en-IN')} / ${p.period}`).join('\n');
     return reply({
       reply: `Membership plans (annual fee, paid after your application is approved; valid 12 months):\n${plans}\nCompare benefits and apply on the Join Us page.`,
@@ -111,14 +111,14 @@ export function basicReply(history: ChatTurn[]): AssistantReply {
 
   // ---- Speakers
   if (/speaker|faculty|expert/.test(q)) {
-    const speakers = getItems<CommunitySpeaker>('speakers', true);
-    const topic = searchSite(raw).filter((l) => l.href.startsWith('/speakers/'));
+    const speakers = await getItems<CommunitySpeaker>('speakers', true);
+    const topic = (await searchSite(raw)).filter((l) => l.href.startsWith('/speakers/'));
     const list = (topic.length ? topic : speakers.map((s) => ({ title: s.name, href: `/speakers/${s.slug}`, description: s.title }))).slice(0, 6);
     return reply({ reply: topic.length ? 'These speakers match:' : 'Here are our speakers:', events: [], links: list, suggestions: ['Show upcoming events', 'Talk to the team'] });
   }
 
   // ---- Events
-  const events = getItems<CommunityEvent>('events', true);
+  const events = await getItems<CommunityEvent>('events', true);
   const cities = Array.from(new Set(events.map((e) => e.city?.trim()).filter((c): c is string => !!c && c.toLowerCase() !== 'online')));
   const eventWords = /event|workshop|seminar|summit|conference|webinar|masterclass|networking|training|clinic|meet ?up|session|register|ticket|\bfree\b|\bpaid\b|upcoming|happening|karyakram|career/;
   const cityHit =
@@ -144,7 +144,7 @@ export function basicReply(history: ChatTurn[]): AssistantReply {
 
   if (eventWords.test(q) || cityHit || monthIdx >= 0 || /this month|next month|is mahine|agle mahine/.test(q) || titleHit) {
     if (titleHit && !/\b(free|paid|online|offline)\b/.test(q)) {
-      const one = searchEvents({ query: titleHit.title, includePast: true, limit: 1 });
+      const one = await searchEvents({ query: titleHit.title, includePast: true, limit: 1 });
       return reply({ reply: isUpcoming(titleHit) ? 'Here are the details:' : 'This event has already taken place:', events: one, links: [], suggestions: ['How do I pay?', 'Show upcoming events', 'Talk to the team'] });
     }
 
@@ -189,7 +189,7 @@ export function basicReply(history: ChatTurn[]): AssistantReply {
     if (filter.month) where.push(`in ${new Date(`${filter.month}-01T00:00:00`).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}`);
     if (/\bpast\b|previous|completed|pichl/.test(q)) filter.pastOnly = true;
 
-    const found: EventCard[] = searchEvents(filter);
+    const found: EventCard[] = await searchEvents(filter);
     const when = filter.pastOnly ? 'past' : 'upcoming';
     const phrase = (n: number) => [when, ...adj, n === 1 ? noun : `${noun}s`, ...where].join(' ');
     if (!found.length) {
@@ -214,7 +214,7 @@ export function basicReply(history: ChatTurn[]): AssistantReply {
   }
 
   // ---- Anything else: site search
-  const links = searchSite(raw);
+  const links = await searchSite(raw);
   if (links.length) return reply({ reply: 'These look relevant:', events: [], links, suggestions: ['Show upcoming events', 'Talk to the team'] });
   return reply({
     reply: 'Sorry, I didn’t quite get that. I can help with events, registration and payment, membership plans, resources or contacting the team — try one of these:',

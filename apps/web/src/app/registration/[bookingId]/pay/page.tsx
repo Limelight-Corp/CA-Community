@@ -43,7 +43,7 @@ export default async function PaymentPage({
   if (!token) notFound();
 
   const bookingId = safeDecode(rawId);
-  const reg = findRegistrationWithToken(bookingId, token);
+  const reg = await findRegistrationWithToken(bookingId, token);
   if (!reg) notFound();
 
   const self = `/registration/${encodeURIComponent(reg.bookingId)}/pay?t=${encodeURIComponent(token)}`;
@@ -55,8 +55,8 @@ export default async function PaymentPage({
   // Login is asked for here — only when the visitor is about to pay.
   if (!(await currentMember())) redirect(loginUrl(self));
 
-  const settings = getSettings();
-  const event = findEventById(reg.eventId);
+  const settings = await getSettings();
+  const event = await findEventById(reg.eventId);
   const gatewayOn = !!razorpayConfig();
   const feeLabel = priceLabel(reg.fee);
   const dateLabel = event

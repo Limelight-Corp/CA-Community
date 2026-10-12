@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Creates or updates an admin account in data/admin-users.json (gitignored).
+ * Creates or updates an admin account in PostgreSQL (table admin_users; connection from
+ * DATABASE_URL in apps/admin/.env.local, written by `npm run setup --workspace=@ascend/db`).
  *
  *   npm run admin:seed -- --username admin --password '<password>' [--name 'Full Name'] [--role super_admin|admin]
  *
@@ -8,7 +9,6 @@
  * Without a password, a new account gets a random one that is printed once; an existing
  * account keeps its password. Changing a password signs that admin out everywhere.
  */
-import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -52,59 +52,48 @@ if (!/^[A-Za-z0-9._@-]{3,64}$/.test(username))
 if (role && role !== 'super_admin' && role !== 'admin') fail('role must be super_admin or admin');
 if (password !== undefined && password.length < 10) fail('password must be at least 10 characters');
 
-const dataDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../data');
-if (!fs.existsSync(dataDir)) fail(`data directory not found: ${dataDir}`);
-const file = path.join(dataDir, 'admin-users.json');
-
-let store = { users: [] };
-if (fs.existsSync(file)) {
-  try {
-    store = JSON.parse(fs.readFileSync(file, 'utf-8'));
-    if (!Array.isArray(store.users)) store.users = [];
-  } catch (err) {
-    fail(`could not read ${file}: ${err.message}`);
-  }
-}
-if (!store.sessionSecret) store.sessionSecret = crypto.randomBytes(32).toString('base64url');
+const here = path.dirname(fileURLToPath(import.meta.url));
+const { readEnvFile } = await import('../../../packages/db/scripts/env.mjs');
+const dbUrl = process.env.DATABASE_URL || readEnvFile(path.join(here, '../.env.local')).DATABASE_URL;
+if (!dbUrl) fail('DATABASE_URL is not set (run `npm run setup --workspace=@ascend/db` first)');
+const { PrismaClient } = await import('../../../packages/db/generated/client/index.js');
+const db = new PrismaClient({ datasourceUrl: dbUrl, log: ['error'] });
 
 const now = new Date();
-const existing = store.users.find((u) => u.username.toLowerCase() === username.toLowerCase());
 let generated = false;
-
+// username is citext in the database, so this lookup ignores letter case.
+const existing = await db.adminUser.findUnique({ where: { username } });
+let user;
 if (existing) {
-  if (name) existing.name = name;
-  if (role) existing.role = role;
-  existing.active = true;
-  if (password) {
-    existing.passwordHash = hashPassword(password);
-    existing.passwordChangedAt = Math.floor(now.getTime() / 1000);
-  }
+  user = await db.adminUser.update({
+    where: { id: existing.id },
+    data: {
+      name: name || undefined,
+      role: role ? role.toUpperCase() : undefined,
+      active: true,
+      ...(password ? { passwordHash: hashPassword(password), passwordChangedAt: now } : {}),
+    },
+  });
 } else {
   if (!password) {
     password = crypto.randomBytes(15).toString('base64url');
     generated = true;
   }
-  store.users.push({
-    id: `adm-${now.getTime().toString(36)}-${crypto.randomBytes(3).toString('hex')}`,
-    username,
-    name: name || 'ASCEND Admin',
-    role: role || (store.users.length === 0 ? 'super_admin' : 'admin'),
-    passwordHash: hashPassword(password),
-    active: true,
-    passwordChangedAt: Math.floor(now.getTime() / 1000),
-    createdAt: now.toISOString(),
+  const first = (await db.adminUser.count()) === 0;
+  user = await db.adminUser.create({
+    data: {
+      username,
+      name: name || 'ASCEND Admin',
+      role: (role || (first ? 'super_admin' : 'admin')).toUpperCase(),
+      passwordHash: hashPassword(password),
+      active: true,
+      passwordChangedAt: now,
+    },
   });
 }
+await db.$disconnect();
 
-const tmp = `${file}.${process.pid}.tmp`;
-fs.writeFileSync(tmp, JSON.stringify(store, null, 2), { encoding: 'utf-8', mode: 0o600 });
-fs.renameSync(tmp, file);
-
-const user = store.users.find((u) => u.username.toLowerCase() === username.toLowerCase());
-console.log(
-  `${existing ? 'Updated' : 'Created'} admin "${user.username}" (${user.role}) in ${path.relative(process.cwd(), file) || file}`
-);
+console.log(`${existing ? 'Updated' : 'Created'} admin "${user.username}" (${user.role.toLowerCase()}) in PostgreSQL`);
 if (existing && !password) console.log('Password unchanged.');
-if (existing && password)
-  console.log('Password changed — existing sessions for this admin are signed out.');
+if (existing && password) console.log('Password changed — existing sessions for this admin are signed out.');
 if (generated) console.log(`Generated password (shown once, store it safely): ${password}`);

@@ -32,24 +32,24 @@ const MentorInput = z.object({
 /** PUT — create / update the signed-in member's mentor profile (active members only). */
 export async function PUT(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  const account = memberFromRequest(req);
+  const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
-  if (!isApprovedMember(account)) return json({ error: 'Mentoring is open to active members.' }, 403);
+  if (!(await isApprovedMember(account))) return json({ error: 'Mentoring is open to active members.' }, 403);
   const parsed = MentorInput.safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsOf(parsed.error) }, 422);
-  const input = { ...parsed.data, expertise: [...new Set(parsed.data.expertise)], wings: knownWingNumbers(parsed.data.wings) };
-  const { profile, created } = saveMentorProfile(account, input);
+  const input = { ...parsed.data, expertise: [...new Set(parsed.data.expertise)], wings: await knownWingNumbers(parsed.data.wings) };
+  const { profile, created } = await saveMentorProfile(account, input);
   return json({ profile, created }, created ? 201 : 200);
 }
 
 /** PATCH { available } — pause / resume taking new mentees. */
 export async function PATCH(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  const account = memberFromRequest(req);
+  const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
   const parsed = z.object({ available: z.boolean() }).safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Invalid request.' }, 400);
-  const profile = setMentorAvailability(account, parsed.data.available);
+  const profile = await setMentorAvailability(account, parsed.data.available);
   if (!profile) return json({ error: 'Your mentor profile is not approved yet.' }, 409);
   return json({ profile });
 }

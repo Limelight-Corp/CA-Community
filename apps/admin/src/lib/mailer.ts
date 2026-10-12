@@ -38,33 +38,33 @@ function smtp(): Transporter {
   return transporter;
 }
 
-export function emailBrand(): EmailBrand {
-  const s = getSettings();
+export async function emailBrand(): Promise<EmailBrand> {
+  const s = await getSettings();
   return { siteName: s.siteName, siteUrl: siteUrl(), contactEmail: s.contact?.email || undefined };
 }
 
 /** Admin notification recipients: ADMIN_NOTIFY_EMAIL (comma-separated), else the site contact email. */
-export function adminRecipients(): string[] {
-  const list = (process.env.ADMIN_NOTIFY_EMAIL || getSettings().contact?.email || '')
+export async function adminRecipients(): Promise<string[]> {
+  const list = (process.env.ADMIN_NOTIFY_EMAIL || (await getSettings()).contact?.email || '')
     .split(',')
     .map((x) => x.trim())
     .filter((x) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
   return [...new Set(list)];
 }
 
-function fromAddress(): string {
+async function fromAddress(): Promise<string> {
   if (process.env.SMTP_FROM) return process.env.SMTP_FROM;
-  const name = getSettings().siteName.replace(/["<>]/g, '');
+  const name = (await getSettings()).siteName.replace(/["<>]/g, '');
   return `"${name}" <${process.env.SMTP_USER || 'no-reply@localhost'}>`;
 }
 
-function writeOutbox(to: string[], msg: EmailMessage, replyTo?: string): void {
+async function writeOutbox(to: string[], msg: EmailMessage, replyTo?: string): Promise<void> {
   if (process.env.MAIL_OUTBOX === 'off') return;
   const dir = path.join(dataDir(), 'outbox');
   fs.mkdirSync(dir, { recursive: true });
   const slug = msg.subject.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50).replace(/-+$/, '');
   const base = `${new Date().toISOString().replace(/[:.]/g, '-')}-${crypto.randomBytes(3).toString('hex')}-${slug}`;
-  const record = { to, from: fromAddress(), replyTo, subject: msg.subject, text: msg.text, createdAt: new Date().toISOString() };
+  const record = { to, from: await fromAddress(), replyTo, subject: msg.subject, text: msg.text, createdAt: new Date().toISOString() };
   fs.writeFileSync(path.join(dir, `${base}.json`), JSON.stringify(record, null, 2), 'utf-8');
   fs.writeFileSync(path.join(dir, `${base}.html`), msg.html, 'utf-8');
 }
@@ -78,7 +78,7 @@ export async function sendMail(to: string | string[], msg: EmailMessage, opts: {
   }
   try {
     await smtp().sendMail({
-      from: fromAddress(),
+      from: await fromAddress(),
       to: recipients.join(', '),
       replyTo: opts.replyTo,
       subject: msg.subject,

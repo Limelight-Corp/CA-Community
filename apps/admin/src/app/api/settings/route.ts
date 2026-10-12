@@ -56,7 +56,7 @@ const settingsSchema = z
 
 export async function GET() {
   try {
-    return NextResponse.json({ success: true, data: getSettings() });
+    return NextResponse.json({ success: true, data: await getSettings() });
   } catch (error) {
     return handleError(error, 'Settings GET');
   }
@@ -71,7 +71,7 @@ export async function PUT(request: NextRequest) {
       const fieldErrors = issuesToFieldErrors(parsed.error);
       return bad(Object.values(fieldErrors)[0] ?? 'Invalid settings', 422, fieldErrors);
     }
-    const data = updateSettings(parsed.data);
+    const data = await updateSettings(parsed.data);
     return NextResponse.json({ success: true, data });
   } catch (error) {
     return handleError(error, 'Settings PUT');

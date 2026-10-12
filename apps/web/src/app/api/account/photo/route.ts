@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
 import { rateLimit } from '../../../../lib/form-guard';
 import { json, sameOrigin } from '../../../../lib/auth-server';
 import { dataDir } from '../../../../lib/community-store';
-import { mutateAccounts, publicAccount, type MemberAccount } from '../../../../lib/member-accounts';
+import { publicAccount, updateAccount } from '../../../../lib/member-accounts';
 import { memberFromRequest } from '../../../../lib/member-session';
 
 export const runtime = 'nodejs';
@@ -26,7 +26,7 @@ const photoDir = () => path.join(dataDir(), 'member-photos');
 /** Uploads / replaces the signed-in member's profile photo. */
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  const account = memberFromRequest(req);
+  const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
   if (!rateLimit(`photo:${account.id}`, 20, 60 * 60_000)) return json({ error: 'Too many uploads. Please try again later.' }, 429);
   if (Number(req.headers.get('content-length') || 0) > MAX + 64 * 1024) return json({ error: 'The photo must be under 2 MB.' }, 413);
@@ -43,18 +43,11 @@ export async function POST(req: NextRequest) {
   fs.mkdirSync(photoDir(), { recursive: true });
   fs.writeFileSync(path.join(photoDir(), name), buf, { flag: 'wx' });
 
-  let previous: string | undefined;
-  const updated = mutateAccounts<MemberAccount | null>((data) => {
-    const a = data.accounts.find((x) => x.id === account.id);
-    if (!a) return null;
-    previous = a.profile.photoUrl;
-    a.profile = { ...a.profile, photoUrl: `/api/account/photo/${name}` };
-    a.updatedAt = new Date().toISOString();
-    return { ...a };
-  });
+  const previous = account.profile.photoUrl;
+  const updated = await updateAccount(account.id, { profile: { ...account.profile, photoUrl: `/api/account/photo/${name}` } });
   if (!updated) return json({ error: 'Account not found.' }, 404);
   // Remove the photo this one replaced.
   const old = previous?.match(/^\/api\/account\/photo\/([\w-]+\.(?:png|jpg|webp))$/)?.[1];
   if (old) fs.rm(path.join(photoDir(), old), { force: true }, () => {});
-  return json({ user: publicAccount(updated) });
+  return json({ user: await publicAccount(updated) });
 }

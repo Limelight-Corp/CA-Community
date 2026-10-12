@@ -15,7 +15,7 @@ import { authenticateAdmin } from './lib/admin-users';
  *
  * The admin console does not yet use the API's real admin authentication (password + TOTP).
  * Every request — pages and `/api/*` routes alike — needs a signed session cookie issued by
- * the sign-in page at /login, which checks admin accounts in data/admin-users.json (created
+ * the sign-in page at /login, which checks admin accounts in the admin_users table (created
  * with `npm run admin:seed`) and, as a fallback, credentials from the environment:
  *
  *   ADMIN_GATE_USER, ADMIN_GATE_PASSWORD  (optional: ADMIN_SESSION_SECRET)
@@ -47,7 +47,7 @@ function parseBasicAuth(header: string | null): { user: string; password: string
 const basicByIp = new FailureThrottle(20, 15 * 60 * 1000);
 const basicByUser = new FailureThrottle(5, 15 * 60 * 1000);
 
-function basicAuthOk(request: NextRequest): boolean {
+async function basicAuthOk(request: NextRequest): Promise<boolean> {
   const credentials = parseBasicAuth(request.headers.get('authorization'));
   if (!credentials) return false;
   const ip = clientIpFromHeaders(request.headers);
@@ -60,7 +60,7 @@ function basicAuthOk(request: NextRequest): boolean {
     const passwordOk = constantTimeEqual(credentials.password, cfg.password);
     ok = userOk && passwordOk;
   }
-  if (!ok) ok = authenticateAdmin(credentials.user, credentials.password) !== null;
+  if (!ok) ok = (await authenticateAdmin(credentials.user, credentials.password)) !== null;
   if (ok) basicByUser.clear(user);
   else {
     basicByIp.fail(ip);
@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
   // /login, which explains that sign-in is not set up yet.
   const authed =
     (await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) !== null ||
-    basicAuthOk(request);
+    (await basicAuthOk(request));
 
   if (PUBLIC_PATHS.has(pathname)) {
     if (authed && pathname === '/login') {

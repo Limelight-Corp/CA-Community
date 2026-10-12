@@ -9,7 +9,7 @@ import { ResourceLibrary, type ResourceCardData } from '../../components/content
 import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'Resources',
     description: `Knowledge library from ${siteName}: articles, guides, career resources, tax updates, finance and practice resources, webinars, videos and downloadable PDFs.`,
@@ -17,8 +17,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function ResourcesPage() {
-  const resources = getItems<CommunityResource>('resources', true);
+export default async function ResourcesPage() {
+  const resources = await getItems<CommunityResource>('resources', true);
   const items: ResourceCardData[] = resources.map((r) => {
     // Links always go through the download route, which checks members-only access;
     // the stored file path or external link is never sent to the browser.
@@ -47,7 +47,7 @@ export default function ResourcesPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <ResourceLibrary items={items} categories={siteTaxonomy('resourceCategories', resources.map((r) => r.category))} />
+          <ResourceLibrary items={items} categories={await siteTaxonomy('resourceCategories', resources.map((r) => r.category))} />
         </Container>
       </Section>
       <CtaBand

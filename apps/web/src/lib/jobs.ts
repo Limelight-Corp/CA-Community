@@ -13,16 +13,16 @@ export function isJobOpen(j: Pick<CommunityJob, 'deadline'>, today = todayIST())
 }
 
 /** Published openings that haven't passed their last date: featured first, then newest. */
-export function openJobs(): CommunityJob[] {
+export async function openJobs(): Promise<CommunityJob[]> {
   const today = todayIST();
-  return getItems<CommunityJob>('jobs', true)
+  return (await getItems<CommunityJob>('jobs', true))
     .filter((j) => isJobOpen(j, today))
     .sort((a, b) => Number(!!b.featured) - Number(!!a.featured) || (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 }
 
 /** A published opening by slug (also after its deadline, so shared links still explain it closed). */
-export function findJob(slug: string): CommunityJob | undefined {
-  return getItems<CommunityJob>('jobs', true).find((j) => j.slug === slug);
+export async function findJob(slug: string): Promise<CommunityJob | undefined> {
+  return (await getItems<CommunityJob>('jobs', true)).find((j) => j.slug === slug);
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

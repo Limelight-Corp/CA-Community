@@ -15,15 +15,15 @@ import {
   type CommunityRegistration,
   type MembershipPayment,
 } from '@ascend/shared';
-import { getItems, mutatePrivate, readPrivate } from './community-store';
+import { getItems, readPrivate, store } from './community-store';
 import { emailBrand, queueMail, siteUrl } from './mailer';
 import { queueWhatsApp } from './whatsapp';
 
 /** Attendee emails triggered by admin actions on a registration (checklist §17). */
-export function notifyRegistrationAction(reg: CommunityRegistration, action: string): void {
-  const event = getItems<CommunityEvent>('events').find((e) => e.id === reg.eventId);
+export async function notifyRegistrationAction(reg: CommunityRegistration, action: string): Promise<void> {
+  const event = (await getItems<CommunityEvent>('events')).find((e) => e.id === reg.eventId);
   const booking = emailBookingFrom(reg, event, siteUrl());
-  const brand = emailBrand();
+  const brand = await emailBrand();
   switch (action) {
     case 'mark_paid':
       // Payment recorded by the team (e.g. bank transfer) — the attendee gets the receipt.
@@ -40,14 +40,14 @@ export function notifyRegistrationAction(reg: CommunityRegistration, action: str
 }
 
 /** Bookings that should hear about changes to an event (confirmed or awaiting payment). */
-function activeRegistrations(eventId: string): CommunityRegistration[] {
-  return readPrivate().registrations.filter((r) => r.eventId === eventId && (r.status === 'confirmed' || r.status === 'pending_payment'));
+async function activeRegistrations(eventId: string): Promise<CommunityRegistration[]> {
+  return (await readPrivate()).registrations.filter((r) => r.eventId === eventId && (r.status === 'confirmed' || r.status === 'pending_payment'));
 }
 
 /** Emails everyone registered that the event is cancelled. Returns how many were emailed. */
-export function notifyEventCancelled(event: CommunityEvent, note?: string): number {
-  const brand = emailBrand();
-  const regs = activeRegistrations(event.id);
+export async function notifyEventCancelled(event: CommunityEvent, note?: string): Promise<number> {
+  const brand = await emailBrand();
+  const regs = await activeRegistrations(event.id);
   for (const r of regs) {
     const booking = emailBookingFrom(r, event, siteUrl());
     queueMail(r.email, eventCancelledEmail(brand, booking, { note, paid: r.paymentStatus === 'paid' }));
@@ -79,15 +79,14 @@ export function eventChanges(before: CommunityEvent, after: CommunityEvent): Eve
  * Emails everyone registered about changed date/time/venue and clears their reminder stamp,
  * so they are reminded again before the new date. Returns how many were emailed.
  */
-export function notifyEventUpdated(event: CommunityEvent, changes: EventChange[]): number {
+export async function notifyEventUpdated(event: CommunityEvent, changes: EventChange[]): Promise<number> {
   if (!changes.length) return 0;
-  const regs = activeRegistrations(event.id);
+  const regs = await activeRegistrations(event.id);
   if (changes.some((c) => c.label === 'Date' || c.label === 'Time')) {
-    mutatePrivate((data) => {
-      for (const r of data.registrations) if (r.eventId === event.id) r.reminderSentAt = undefined;
-    });
+    // Reset the reminder stamp so everyone is reminded again before the new date/time.
+    await store.prisma.eventRegistration.updateMany({ where: { eventId: event.id }, data: { reminderSentAt: null } });
   }
-  const brand = emailBrand();
+  const brand = await emailBrand();
   for (const r of regs) {
     const booking = emailBookingFrom(r, event, siteUrl());
     queueMail(r.email, eventUpdatedEmail(brand, booking, changes));
@@ -97,10 +96,10 @@ export function notifyEventUpdated(event: CommunityEvent, changes: EventChange[]
 }
 
 /** Approval: fixes the fee (if not yet paid) and emails the applicant a link to pay. */
-export function notifyMembershipApproved(app: CommunityMemberApplication): void {
+export async function notifyMembershipApproved(app: CommunityMemberApplication): Promise<void> {
   queueMail(
     app.email,
-    membershipApprovedEmail(emailBrand(), {
+    membershipApprovedEmail(await emailBrand(), {
       name: app.name,
       plan: MEMBERSHIP_PLANS.find((p) => p.key === app.plan)?.name ?? app.plan,
       fee: app.membershipFee ?? 0,
@@ -110,10 +109,10 @@ export function notifyMembershipApproved(app: CommunityMemberApplication): void 
 }
 
 /** Receipt for a payment recorded offline by the team. */
-export function notifyMembershipPaidOffline(app: CommunityMemberApplication, payment: MembershipPayment, renewal: boolean): void {
+export async function notifyMembershipPaidOffline(app: CommunityMemberApplication, payment: MembershipPayment, renewal: boolean): Promise<void> {
   queueMail(
     app.email,
-    membershipPaidEmail(emailBrand(), {
+    membershipPaidEmail(await emailBrand(), {
       name: app.name,
       plan: MEMBERSHIP_PLANS.find((p) => p.key === app.plan)?.name ?? app.plan,
       amount: payment.amount,

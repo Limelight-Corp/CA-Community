@@ -7,6 +7,6 @@ export const dynamic = 'force-dynamic';
 
 /** The signed-in member (or null). */
 export async function GET(req: Request) {
-  const account = memberFromRequest(req);
-  return json({ user: account ? publicAccount(account) : null });
+  const account = await memberFromRequest(req);
+  return json({ user: account ? await publicAccount(account) : null });
 }

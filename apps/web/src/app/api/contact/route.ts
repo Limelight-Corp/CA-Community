@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    saveContactMessage(parsed.data);
+    await saveContactMessage(parsed.data);
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.error('Failed to save contact message:', error);

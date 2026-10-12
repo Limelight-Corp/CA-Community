@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const rows = [...readPrivate().messages].sort(byNewest);
+    const rows = [...(await readPrivate()).messages].sort(byNewest);
     return NextResponse.json({ success: true, count: rows.length, data: rows });
   } catch (error) {
     return handleError(error, 'Messages GET');
@@ -25,7 +25,7 @@ export async function PATCH(request: NextRequest) {
     if (!isPlainObject(body)) return bad('Invalid JSON body');
     const parsed = schema.safeParse(body);
     if (!parsed.success) return bad('A message id and a valid status are required', 422);
-    const item = updateMessageStatus(parsed.data.id, parsed.data.status);
+    const item = await updateMessageStatus(parsed.data.id, parsed.data.status);
     return NextResponse.json({ success: true, item });
   } catch (error) {
     return handleError(error, 'Messages PATCH');

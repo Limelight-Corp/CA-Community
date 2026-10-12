@@ -4,7 +4,21 @@
  * One PrismaClient per process. In development Next.js re-evaluates modules on every change, so
  * the client is cached on globalThis to avoid opening a new connection pool each time.
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import { PrismaClient } from '../generated/client';
+
+/**
+ * Vercel deploys each route and the middleware as separate functions with their own file layout,
+ * and Prisma does not search every place the build puts its query engine (the middleware gets it
+ * in .next/server). Point Prisma at the engine explicitly when it is found.
+ */
+const VERCEL_ENGINE = 'libquery_engine-rhel-openssl-3.0.x.so.node';
+if (process.env.VERCEL && !process.env.PRISMA_QUERY_ENGINE_LIBRARY) {
+  const dirs = ['.next/server', '.next/server/chunks', '.next', '.prisma/client', 'generated/client', 'node_modules/.prisma/client', '../../packages/db/generated/client'];
+  const found = dirs.map((d) => path.join(process.cwd(), d, VERCEL_ENGINE)).find((f) => fs.existsSync(f));
+  if (found) process.env.PRISMA_QUERY_ENGINE_LIBRARY = found;
+}
 
 /**
  * On serverless hosts DATABASE_URL has connection_limit=1, so parallel queries wait for that one

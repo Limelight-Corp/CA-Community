@@ -25,9 +25,22 @@ END
 $$;
 
 -- App roles can never become superuser, create databases/roles, bypass RLS or replicate.
-ALTER ROLE ascend_web      NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 40;
-ALTER ROLE ascend_admin    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 15;
-ALTER ROLE ascend_readonly NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 5;
+-- On hosted PostgreSQL (e.g. Supabase) the setup user is not a superuser: it cannot touch the
+-- superuser-only attributes — but roles it creates never have them, so only the rest is set.
+DO $$
+DECLARE
+  su boolean := (SELECT rolsuper FROM pg_roles WHERE rolname = current_user);
+  r record;
+BEGIN
+  FOR r IN SELECT * FROM (VALUES ('ascend_web', 40), ('ascend_admin', 15), ('ascend_readonly', 5)) AS v(name, lim) LOOP
+    IF su THEN
+      EXECUTE format('ALTER ROLE %I NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT %s', r.name, r.lim);
+    ELSE
+      EXECUTE format('ALTER ROLE %I NOCREATEDB NOCREATEROLE CONNECTION LIMIT %s', r.name, r.lim);
+    END IF;
+  END LOOP;
+END
+$$;
 
 -- Runaway or stuck queries are cut off instead of piling up (also limits slow-query DoS).
 ALTER ROLE ascend_web      SET statement_timeout = '5s';
@@ -38,9 +51,16 @@ ALTER ROLE ascend_admin    SET idle_in_transaction_session_timeout = '60s';
 ALTER ROLE ascend_readonly SET idle_in_transaction_session_timeout = '60s';
 ALTER ROLE ascend_web      SET lock_timeout = '3s';
 ALTER ROLE ascend_admin    SET lock_timeout = '10s';
--- Log slow statements from the apps for tuning.
-ALTER ROLE ascend_web      SET log_min_duration_statement = '500ms';
-ALTER ROLE ascend_admin    SET log_min_duration_statement = '1s';
+-- Log slow statements from the apps for tuning (a superuser-only setting; skipped on hosted DBs,
+-- which have their own slow-query logs).
+DO $$
+BEGIN
+  IF (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) THEN
+    ALTER ROLE ascend_web   SET log_min_duration_statement = '500ms';
+    ALTER ROLE ascend_admin SET log_min_duration_statement = '1s';
+  END IF;
+END
+$$;
 
 -- Nobody gets anything by default.
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
@@ -202,5 +222,12 @@ CREATE TRIGGER events_seats_guard BEFORE UPDATE OF seats_taken ON events
   FOR EACH ROW EXECUTE FUNCTION ascend_event_seats_guard();
 
 -- Future tables created by the owner get no implicit access.
-ALTER DEFAULT PRIVILEGES FOR ROLE ascend_owner IN SCHEMA public REVOKE ALL ON TABLES FROM PUBLIC;
-ALTER DEFAULT PRIVILEGES FOR ROLE ascend_owner IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM PUBLIC;
+-- Needs membership of ascend_owner (always true for a superuser; may not be on hosted DBs).
+DO $$
+BEGIN
+  ALTER DEFAULT PRIVILEGES FOR ROLE ascend_owner IN SCHEMA public REVOKE ALL ON TABLES FROM PUBLIC;
+  ALTER DEFAULT PRIVILEGES FOR ROLE ascend_owner IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM PUBLIC;
+EXCEPTION WHEN insufficient_privilege THEN
+  RAISE NOTICE 'skipped default privileges for ascend_owner (not a member)';
+END
+$$;

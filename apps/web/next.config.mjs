@@ -7,6 +7,7 @@
  * Images may come from any https URL because CMS editors can paste external image links.
  * Add a domain here before embedding anything new.
  */
+import { fileURLToPath } from 'node:url';
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://*.razorpay.com https://www.googletagmanager.com https://connect.facebook.net https://challenges.cloudflare.com",
@@ -41,6 +42,10 @@ const nextConfig = {
   poweredByHeader: false,
   // Prisma (via @ascend/db) loads its query engine at runtime, so it must not be bundled.
   serverExternalPackages: ['@ascend/db'],
+  // Monorepo: trace files from the repo root, and ship Prisma's generated client (query engine
+  // binary + schema) with every server function — Vercel would otherwise leave it out.
+  outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
+  outputFileTracingIncludes: { '/**/*': ['../../packages/db/generated/client/**/*'] },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

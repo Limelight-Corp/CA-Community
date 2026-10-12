@@ -2,6 +2,7 @@
  * Security headers for the admin console (checklist §23). Stricter than the website: no third
  * parties except video previews, never framed, and camera allowed only for the check-in scanner.
  */
+import { fileURLToPath } from 'node:url';
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
@@ -33,6 +34,10 @@ const nextConfig = {
   poweredByHeader: false,
   // Prisma (via @ascend/db) loads its query engine at runtime, so it must not be bundled.
   serverExternalPackages: ['@ascend/db'],
+  // Monorepo: trace files from the repo root, and ship Prisma's generated client (query engine
+  // binary + schema) with every server function — Vercel would otherwise leave it out.
+  outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
+  outputFileTracingIncludes: { '/**/*': ['../../packages/db/generated/client/**/*'] },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

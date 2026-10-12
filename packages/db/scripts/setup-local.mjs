@@ -12,6 +12,12 @@
  * DATABASE_URL into apps/web/.env.local and apps/admin/.env.local. Existing session secrets from
  * the old JSON stores are copied to MEMBER_SESSION_SECRET / ADMIN_SESSION_SECRET so people who
  * are signed in stay signed in. No password or secret is ever printed.
+ *
+ * Hosted database for Vercel (e.g. Supabase):
+ *   DATABASE_MIGRATION_URL="<session pooler URL>" ASCEND_DB_NAME=postgres npm run setup --workspace=@ascend/db -- --vercel
+ * --vercel leaves the local .env.local files alone and writes everything the two Vercel projects
+ * need to packages/db/.env.vercel (gitignored): app-role URLs on the transaction pooler (port 6543,
+ * pgbouncer mode) plus the current local secrets, so data imported from this machine still works.
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -24,6 +30,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const pkg = path.resolve(here, '..');
 const root = path.resolve(pkg, '../..');
 const DB_NAME = process.env.ASCEND_DB_NAME || 'ascend';
+const VERCEL = process.argv.includes('--vercel');
+const vercelFile = path.join(pkg, '.env.vercel');
 
 const env = { ...readEnvFile(path.join(pkg, '.env')), ...process.env };
 const superUrl = env.DATABASE_MIGRATION_URL;
@@ -64,7 +72,7 @@ const prismaEnv = { ...process.env, DATABASE_URL: ownerUrl, DATABASE_MIGRATION_U
 const prisma = (args) => execFileSync(process.execPath, [prismaCli, ...args], { cwd: pkg, env: prismaEnv, stdio: ['ignore', 'pipe', 'pipe'] }).toString();
 prisma(['migrate', 'deploy', '--schema', 'prisma/schema.prisma']);
 console.log('✓ tables created / up to date (prisma migrate deploy)');
-for (const file of ['sql/10-constraints.sql', 'sql/20-security.sql']) {
+for (const file of ['sql/10-constraints.sql', 'sql/20-security.sql', 'sql/30-hosted.sql']) {
   prisma(['db', 'execute', '--schema', 'prisma/schema.prisma', '--file', file]);
   console.log(`✓ applied ${file}`);
 }
@@ -75,14 +83,18 @@ const apps = [
   { role: 'ascend_admin', file: path.join(root, 'apps/admin/.env.local'), limit: 5 },
 ];
 const su = new URL(ownerUrl);
+// Supabase's pooler addresses a role as "<role>.<project-ref>" (same suffix as the setup user).
+const roleSuffix = decodeURIComponent(su.username).includes('.') ? decodeURIComponent(su.username).slice(decodeURIComponent(su.username).indexOf('.')) : '';
 await run(ownerUrl, async (db) => {
-  await db.$executeRawUnsafe(`REVOKE CONNECT ON DATABASE "${DB_NAME}" FROM PUBLIC`);
+  // Only on a database of our own: hosted providers' shared "postgres" database needs PUBLIC connect.
+  if (DB_NAME !== 'postgres') await db.$executeRawUnsafe(`REVOKE CONNECT ON DATABASE "${DB_NAME}" FROM PUBLIC`);
   for (const app of apps) {
-    const current = readEnvFile(app.file).DATABASE_URL;
+    const vercelKey = app.role === 'ascend_web' ? 'WEB_DATABASE_URL' : 'ADMIN_DATABASE_URL';
+    const current = VERCEL ? readEnvFile(vercelFile)[vercelKey] : readEnvFile(app.file).DATABASE_URL;
     let password;
     try {
       const u = current ? new URL(current) : null;
-      if (u && decodeURIComponent(u.username) === app.role && u.pathname === `/${DB_NAME}`) password = decodeURIComponent(u.password);
+      if (u && decodeURIComponent(u.username) === app.role + roleSuffix && u.pathname === `/${DB_NAME}`) password = decodeURIComponent(u.password);
     } catch {
       /* not a URL — replace it */
     }
@@ -90,11 +102,39 @@ await run(ownerUrl, async (db) => {
     // Hex only, so it is safe inside the quoted literal.
     await db.$executeRawUnsafe(`ALTER ROLE ${app.role} WITH LOGIN PASSWORD '${password}'`);
     await db.$executeRawUnsafe(`GRANT CONNECT ON DATABASE "${DB_NAME}" TO ${app.role}`);
-    const url = `postgresql://${app.role}:${password}@${su.host}/${DB_NAME}?schema=public&connection_limit=${app.limit}`;
-    upsertEnv(app.file, { DATABASE_URL: url });
-    console.log(`✓ ${app.role}: password set, DATABASE_URL written to ${path.relative(root, app.file)}`);
+    const user = encodeURIComponent(app.role + roleSuffix);
+    if (VERCEL) {
+      // Serverless: Supabase's transaction pooler (port 6543), one connection per function instance.
+      const url = `postgresql://${user}:${password}@${su.hostname}:6543/${DB_NAME}?schema=public&pgbouncer=true&connection_limit=1`;
+      upsertEnv(vercelFile, { [vercelKey]: url });
+      console.log(`✓ ${app.role}: password set, ${vercelKey} written to ${path.relative(root, vercelFile)}`);
+    } else {
+      const url = `postgresql://${user}:${password}@${su.host}/${DB_NAME}?schema=public&connection_limit=${app.limit}`;
+      upsertEnv(app.file, { DATABASE_URL: url });
+      console.log(`✓ ${app.role}: password set, DATABASE_URL written to ${path.relative(root, app.file)}`);
+    }
   }
 });
+
+if (VERCEL) {
+  // Same secrets as this machine: the booking-token key must match the one `import` encrypts with.
+  const web = readEnvFile(path.join(root, 'apps/web/.env.local'));
+  const admin = readEnvFile(path.join(root, 'apps/admin/.env.local'));
+  const tokenKey = web.BOOKING_TOKEN_KEY;
+  if (!tokenKey) {
+    console.error('setup --vercel: run the local setup first (BOOKING_TOKEN_KEY missing in apps/web/.env.local).');
+    process.exit(1);
+  }
+  upsertEnv(vercelFile, {
+    BOOKING_TOKEN_KEY: tokenKey,
+    MEMBER_SESSION_SECRET: web.MEMBER_SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+    ADMIN_SESSION_SECRET: admin.ADMIN_SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  });
+  console.log(`✓ secrets written to ${path.relative(root, vercelFile)}`);
+  console.log(`\nDone. Copy the values from ${path.relative(root, vercelFile)} into Vercel (see docs/DEPLOY_VERCEL_SUPABASE.md),`);
+  console.log('then delete that file. Next: import the data into this database.');
+  process.exit(0);
+}
 
 // 5. Session secrets: keep current sessions valid by reusing the JSON stores' secrets.
 function jsonSecret(file) {

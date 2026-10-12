@@ -45,7 +45,8 @@ const nextConfig = {
   // Monorepo: trace files from the repo root, and ship Prisma's generated client (query engine
   // binary + schema) with every server function — Vercel would otherwise leave it out.
   outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
-  outputFileTracingIncludes: { '/**/*': ['../../packages/db/generated/client/**/*'] },
+  // copy-engine.mjs (prebuild) puts the engine in ./.prisma/client, a folder Prisma always searches.
+  outputFileTracingIncludes: { '/**/*': ['./.prisma/client/**/*', '../../packages/db/generated/client/**/*'] },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

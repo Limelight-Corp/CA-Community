@@ -19,6 +19,8 @@ generator client {
   previewFeatures = ["postgresqlExtensions"]
   // Own output folder so this client never overwrites apps/api's generated @prisma/client.
   output          = "../generated/client"
+  // native = this machine; rhel-openssl-3.0.x = Vercel / AWS Lambda runtime.
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

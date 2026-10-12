@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "predev": "npm --prefix ../.. run build:packages",
-    "prebuild": "npm --prefix ../.. run build:packages",
+    "predev": "npm --prefix ../.. run build:packages && node ../../packages/db/scripts/copy-engine.mjs .",
+    "prebuild": "npm --prefix ../.. run build:packages && node ../../packages/db/scripts/copy-engine.mjs .",
     "build": "next build",
     "start": "next start -p 3001",
     "admin:seed": "node scripts/seed-admin.mjs",

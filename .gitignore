@@ -62,3 +62,5 @@ backups/
 
 # Generated Prisma client for packages/db
 packages/db/generated/
+# Prisma engine copied next to each app at build time (packages/db/scripts/copy-engine.mjs)
+.prisma/

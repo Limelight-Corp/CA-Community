@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "@ascend/db": "*",
     "@ascend/shared": "*",
     "@ascend/ui": "*",
     "@serwist/next": "^9.0.9",

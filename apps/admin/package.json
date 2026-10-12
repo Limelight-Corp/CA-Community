@@ -12,6 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ascend/db": "*",
     "@ascend/shared": "*",
     "@ascend/ui": "*",
     "@tanstack/react-query": "^5.59.16",

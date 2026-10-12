@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
+import { cache } from 'react';
 import type { CommunityContentType, CommunityStoreData, SiteSettings, PrivateStoreData } from '@ascend/shared';
 import { store } from '@ascend/db';
 
@@ -40,10 +41,12 @@ export function dataDir(): string {
 // Content
 // ---------------------------------------------------------------------------------------------
 
-/** Every content collection plus settings (admin lists, sitemap, search). */
-export function readStore(): Promise<CommunityStoreData> {
-  return store.readContentStore();
-}
+/**
+ * Every content collection plus settings (admin lists, sitemap, search).
+ * Cached per request: the console layout, the page and analytics all read it, and on Vercel each
+ * function has a single database connection, so repeated reads would queue behind each other.
+ */
+export const readStore = cache((): Promise<CommunityStoreData> => store.readContentStore());
 
 export function getSettings(): Promise<SiteSettings> {
   return store.getSettings();
@@ -76,10 +79,8 @@ export function deleteItem(type: ContentType, id: string): Promise<boolean> {
 // Private records
 // ---------------------------------------------------------------------------------------------
 
-/** Bookings, memberships, messages and mentorship in one snapshot (admin lists, exports). */
-export function readPrivate(): Promise<PrivateStoreData> {
-  return store.readPrivateStore();
-}
+/** Bookings, memberships, messages and mentorship in one snapshot (admin lists, exports). Cached per request. */
+export const readPrivate = cache((): Promise<PrivateStoreData> => store.readPrivateStore());
 
 // ---------------------------------------------------------------------------------------------
 // Ids

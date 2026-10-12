@@ -6,11 +6,21 @@
  */
 import { PrismaClient } from '../generated/client';
 
+/**
+ * On serverless hosts DATABASE_URL has connection_limit=1, so parallel queries wait for that one
+ * connection. Prisma gives up after pool_timeout (10 s by default); allow longer unless it is set.
+ */
+function databaseUrl(): string | undefined {
+  const url = process.env.DATABASE_URL;
+  if (!url || /[?&]pool_timeout=/.test(url)) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}pool_timeout=30`;
+}
+
 const globalForPrisma = globalThis as unknown as { __ascendPrisma?: PrismaClient };
 
 export const prisma: PrismaClient =
   globalForPrisma.__ascendPrisma ??
-  new PrismaClient({ log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'] });
+  new PrismaClient({ datasourceUrl: databaseUrl(), log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'] });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.__ascendPrisma = prisma;
 

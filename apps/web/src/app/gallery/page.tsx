@@ -9,7 +9,7 @@ import { GalleryGrid, type GalleryCardData } from '../../components/content/Gall
 import { siteTaxonomy } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'Gallery',
     description: `Photos and videos from ${siteName} events, conferences, networking sessions, workshops and community activities.`,
@@ -17,8 +17,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function GalleryPage() {
-  const gallery = getItems<CommunityGalleryItem>('gallery', true);
+export default async function GalleryPage() {
+  const gallery = await getItems<CommunityGalleryItem>('gallery', true);
   const items: GalleryCardData[] = gallery.map((g) => {
     const embedUrl = videoEmbedUrl(g.videoUrl) ?? undefined;
     return {
@@ -46,7 +46,7 @@ export default function GalleryPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <GalleryGrid items={items} categories={siteTaxonomy('galleryCategories', gallery.map((g) => g.category))} />
+          <GalleryGrid items={items} categories={await siteTaxonomy('galleryCategories', gallery.map((g) => g.category))} />
         </Container>
       </Section>
     </>

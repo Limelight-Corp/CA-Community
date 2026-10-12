@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function RegistrationsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const rows = [...readPrivate().registrations].sort(byNewest).map(publicRegistration);
-  const events = [...readStore().events]
+  const rows = [...(await readPrivate()).registrations].sort(byNewest).map(publicRegistration);
+  const events = [...(await readStore()).events]
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
     .map((e) => ({ id: e.id, title: e.title }));
   return (

@@ -15,7 +15,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const app = account ? await membershipFor(account) : undefined;
   const payment = app?.payments?.find((p) => p.id === decodeURIComponent(id));
   if (!app || !payment) return NextResponse.json({ error: 'Receipt not found.' }, { status: 404 });
-  const pdf = await buildMembershipReceiptPdf(app, payment, planName(app.plan), getSettings());
+  const pdf = await buildMembershipReceiptPdf(app, payment, planName(app.plan), await getSettings());
   return new NextResponse(Buffer.from(pdf), {
     headers: {
       'Content-Type': 'application/pdf',

@@ -1,9 +1,7 @@
 # Database design — moving from JSON files to PostgreSQL
 
-Status: **schema designed, validated and dry-run tested on an in-memory PostgreSQL (PGlite) with a
-copy of the real data — 72/72 checks passed; not applied to any real database yet.** The web and admin
-apps still read and write `data/*.json`. Moving them over is a separate, approved step (see
-[Migration plan](#migration-plan)).
+Status: **live — the web and admin apps read and write PostgreSQL (database `ascend`). The JSON
+files in data/ are a frozen pre-go-live snapshot and are no longer used by the apps.**
 
 Files:
 
@@ -140,24 +138,44 @@ left for the migration phase.
 - `log_min_duration_statement` is set per role to catch slow queries; review
   `pg_stat_statements` after launch.
 
-## Migration plan
+## Running it
 
-Nothing below has been done; each step needs sign-off.
+```bash
+# once per machine / server (needs DATABASE_MIGRATION_URL in packages/db/.env)
+npm run setup --workspace=@ascend/db     # database, migrations, constraints, security, app roles, .env.local keys
+npm run import --workspace=@ascend/db    # one-time copy of data/*.json (refuses if the DB already has data)
+npm run backup                           # pg_dump of the database + uploaded files (also runs daily)
+```
 
-1. Provision PostgreSQL (Docker service already exists in `docker-compose.yml`), create the
-   database and set role passwords.
-2. `npm run migrate:deploy --workspace=@ascend/db`, then `npm run harden --workspace=@ascend/db`.
-3. Write a one-off import script: read `data/*.json`, map ids, hash the plaintext booking tokens
-   and check-in codes, resolve wing names/numbers to wing ids, insert in one transaction per file.
-   Run it against a copy first and compare counts.
-   The dry run (PGlite, all 72 checks passing) found data the database rules reject; the import
-   must fix these and report them:
-   - an event ("dummy") with an empty description;
-   - 14 bookings marked attended with no check-in time;
-   - 8 paid/refunded bookings with no payment date and 9 refunded bookings with no refund date
-     (seed/test data).
-4. Replace `lib/community-store.ts` / `member-accounts.ts` / `admin-users.ts` in both apps with
-   Prisma calls (same function names, so most callers do not change), and move session secrets to
-   env vars.
-5. Run the existing end-to-end test scripts against the database build; then switch production
-   with a short maintenance window and keep the JSON files as a backup.
+- App roles: the website connects as `ascend_web`, the admin console as `ascend_admin` (written to
+  each app's `.env.local` by setup). `BOOKING_TOKEN_KEY` (both apps), `MEMBER_SESSION_SECRET` (web)
+  and `ADMIN_SESSION_SECRET` (admin) also live there — never in the database.
+- `import -- --replace` refuses when the live site has created records that are not in the JSON
+  files. Only `--discard-new-data` overrides it — do not use it after go-live without a backup.
+- Changes to `packages/db` need a rebuild of both apps (Next.js bundles the workspace package).
+
+## What changed in the apps
+
+- `lib/community-store.ts` in both apps is a thin async layer over `@ascend/db`'s `store`
+  (same function names as before). Every read-modify-write of the JSON files became a targeted
+  query or a transaction:
+  - bookings lock the event row (`SELECT … FOR UPDATE`): duplicate check, seat holds and the
+    insert cannot interleave — verified with 10 simultaneous bookings for 3 seats → exactly 3;
+  - payment verify and the Razorpay webhook lock the booking row, so a payment is confirmed (and a
+    seat taken) exactly once;
+  - membership payments lock the membership row; the open order amount is stored in
+    `order_amount` because the website role may not change the approved `fee`;
+  - reminders claim rows with `UPDATE … WHERE reminder_sent_at IS NULL RETURNING`, so several
+    servers never send the same reminder twice;
+  - admin booking actions, mentor matching and category renames run in single transactions.
+- Contact messages are inserted without reading them back: the website role can write to the
+  inbox but never read it.
+
+## Verification
+
+- Import: every count matches; a field-by-field comparison of what the app reads back against the
+  JSON found 0 differences (3,818 fields).
+- End-to-end on PostgreSQL 17: logins 38/38; bookings, payments, memberships, messages, admin
+  content, registration actions, check-in and mentorship 69/69; all public pages render.
+- Backup: `pg_dump` custom-format dump restorable with `pg_restore` (all 31 tables).
+

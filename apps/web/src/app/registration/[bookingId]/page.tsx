@@ -83,11 +83,11 @@ export default async function RegistrationPage({
   const token = Array.isArray(sp.t) ? sp.t[0] : sp.t;
   if (!token) notFound();
 
-  const reg = findRegistrationWithToken(safeDecode(bookingId), token);
+  const reg = await findRegistrationWithToken(safeDecode(bookingId), token);
   if (!reg) notFound();
 
-  const settings = getSettings();
-  const event = findEventById(reg.eventId);
+  const settings = await getSettings();
+  const event = await findEventById(reg.eventId);
   const view: View =
     reg.status === 'confirmed'
       ? 'confirmed'
@@ -98,7 +98,7 @@ export default async function RegistrationPage({
           : 'pending';
   const badge = BADGE[view];
   // Entry QR only for confirmed bookings (pending / cancelled bookings are not valid for entry).
-  const qrSvg = view === 'confirmed' ? await checkinQrSvg(checkinPayload(reg, ensureCheckinCode(reg))) : null;
+  const qrSvg = view === 'confirmed' ? await checkinQrSvg(checkinPayload(reg, await ensureCheckinCode(reg))) : null;
   const gatewayOn = !!razorpayConfig();
   const emailOn = mailConfigured();
   const feeLabel = priceLabel(reg.fee);

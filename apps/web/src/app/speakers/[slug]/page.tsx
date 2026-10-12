@@ -19,8 +19,8 @@ type Params = Promise<{ slug: string }>;
 // Rendered per request so edits in the admin show up at once.
 export const dynamic = 'force-dynamic';
 
-function findSpeaker(slug: string) {
-  return getItems<CommunitySpeaker>('speakers', true).find((s) => s.slug === slug);
+async function findSpeaker(slug: string) {
+  return (await getItems<CommunitySpeaker>('speakers', true)).find((s) => s.slug === slug);
 }
 
 function initials(name: string) {
@@ -41,7 +41,7 @@ function parseStat(v: string): { n: number; prefix: string; suffix: string } | n
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const speaker = findSpeaker(slug);
+  const speaker = await findSpeaker(slug);
   if (!speaker) return { title: 'Speaker not found' };
   const description = truncate(`${speaker.name} — ${speaker.headline || speaker.title}. ${speaker.bio}`, 160);
   const image = safeUrl(speaker.avatarUrl);
@@ -55,13 +55,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function SpeakerPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const speaker = findSpeaker(slug);
+  const speaker = await findSpeaker(slug);
   if (!speaker) notFound();
 
-  const { siteName } = getSettings();
-  const allSpeakers = getItems<CommunitySpeaker>('speakers', true);
-  const wings = getItems<CommunityWing>('wings', true);
-  const theirs = sortByDate(getItems<CommunityEvent>('events', true).filter((e) => e.speakerSlugs?.includes(speaker.slug)));
+  const { siteName } = await getSettings();
+  const allSpeakers = await getItems<CommunitySpeaker>('speakers', true);
+  const wings = await getItems<CommunityWing>('wings', true);
+  const theirs = sortByDate((await getItems<CommunityEvent>('events', true)).filter((e) => e.speakerSlugs?.includes(speaker.slug)));
   const upcoming = theirs.filter((e) => isUpcoming(e));
   const past = theirs.filter((e) => !isUpcoming(e)).reverse();
   const linkedin = safeUrl(speaker.linkedinUrl);

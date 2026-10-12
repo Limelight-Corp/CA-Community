@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (!app || (app.gatewayOrderId !== orderId && !app.payments?.some((x) => x.gatewayOrderId === orderId))) {
     return json({ ok: false, error: 'This payment does not belong to your membership.' }, 403);
   }
-  const done = completeMembershipPayment(orderId, paymentId);
+  const done = await completeMembershipPayment(orderId, paymentId);
   if (!done || done === 'mismatch') return json({ ok: false, error: 'Payment could not be matched to your membership.' }, 409);
   return json({ ok: true, validUntil: done.app.validUntil, receiptId: done.payment.id });
 }

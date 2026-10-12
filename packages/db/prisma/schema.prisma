@@ -575,6 +575,10 @@ model EventRegistration {
   accessTokenHash  String             @unique @map("access_token_hash") @db.Char(64)
   /// SHA-256 of the QR check-in code.
   checkinCodeHash  String?            @unique @map("checkin_code_hash") @db.Char(64)
+  /// The booking-link token and check-in code, encrypted by the website (AES-256-GCM, key in
+  /// BOOKING_TOKEN_KEY — never in the database) so links and QR passes can be shown again.
+  accessTokenEnc   String?            @map("access_token_enc") @db.VarChar(200)
+  checkinCodeEnc   String?            @map("checkin_code_enc") @db.VarChar(200)
   eventId          String             @map("event_id")
   /// Set when the email belongs to a verified member account.
   accountId        String?            @map("account_id")
@@ -637,9 +641,11 @@ model Membership {
   linkedinUrl        String?          @map("linkedin_url") @db.VarChar(500)
   photoUrl           String?          @map("photo_url") @db.VarChar(500)
   status             MembershipStatus @default(PENDING)
-  /// Fee fixed when the application is approved.
+  /// Fee fixed when the application is approved (admin only — the website role cannot change it).
   fee                Decimal?         @db.Decimal(10, 2)
   gatewayOrderId     String?          @unique @map("gateway_order_id") @db.VarChar(64)
+  /// Amount of the open Razorpay order (first payment or renewal); the payment is checked against it.
+  orderAmount        Decimal?         @map("order_amount") @db.Decimal(10, 2)
   validUntil         DateTime?        @map("valid_until") @db.Timestamptz(3)
   /// The validUntil a renewal reminder was sent for (one reminder per term).
   renewalReminderFor DateTime?        @map("renewal_reminder_for") @db.Timestamptz(3)

@@ -16,10 +16,10 @@ export const metadata: Metadata = {
 
 /** Mentoring formats named in the wings' proposed activities (Blueprint slide 6). */
 
-export default function MentorshipPage() {
+export default async function MentorshipPage() {
   /** Mentoring formats named in the wings' activities (Blueprint slide 6). */
-  const FORMATS = siteWings().flatMap((w) => w.activities.filter((a) => /mentor/i.test(a)).map((a) => ({ activity: a, wing: w })));
-  const mentors = approvedMentors();
+  const FORMATS = (await siteWings()).flatMap((w) => w.activities.filter((a) => /mentor/i.test(a)).map((a) => ({ activity: a, wing: w })));
+  const mentors = await approvedMentors();
   const communities = ORG_COMMUNITIES.filter((c) => c.points.some((p) => /mentor/i.test(p)));
 
   const steps = [

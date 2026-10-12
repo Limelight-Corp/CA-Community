@@ -117,4 +117,18 @@ for (const [file, key, source] of [
   console.log(`✓ ${key} written to ${path.relative(root, file)}`);
 }
 
+// 6. Key that encrypts booking-link tokens and check-in codes (in the apps' env only; never in the DB).
+// The admin console needs the same key: its emails (event changes, booking actions) carry the
+// attendee's booking link.
+const webEnv = path.join(root, 'apps/web/.env.local');
+const adminEnv = path.join(root, 'apps/admin/.env.local');
+const tokenKey = readEnvFile(webEnv).BOOKING_TOKEN_KEY || crypto.randomBytes(32).toString('hex');
+for (const file of [webEnv, adminEnv]) {
+  if (readEnvFile(file).BOOKING_TOKEN_KEY === tokenKey) console.log(`✓ BOOKING_TOKEN_KEY already set in ${path.relative(root, file)}`);
+  else {
+    upsertEnv(file, { BOOKING_TOKEN_KEY: tokenKey });
+    console.log(`✓ BOOKING_TOKEN_KEY written to ${path.relative(root, file)}`);
+  }
+}
+
 console.log('\nDone. Next: npm run import --workspace=@ascend/db   (copies data/*.json into PostgreSQL)');

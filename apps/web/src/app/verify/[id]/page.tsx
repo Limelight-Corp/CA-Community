@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 export default async function VerifyCertificatePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const certificateId = decodeURIComponent(id).toUpperCase();
-  const record = findCertificate(certificateId);
+  const record = await findCertificate(certificateId);
   const valid = !!record && isCertificateValid(record.reg);
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   const event = record?.event;
   const issued = record?.reg.attendedAt
     ? new Date(record.reg.attendedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })

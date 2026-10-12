@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = Body.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return NextResponse.json({ success: false, error: 'Invalid request' }, { status: 400 });
-    const result = checkIn(parsed.data);
-    const stats = parsed.data.eventId ? checkinStats(parsed.data.eventId) : undefined;
+    const result = await checkIn(parsed.data);
+    const stats = parsed.data.eventId ? await checkinStats(parsed.data.eventId) : undefined;
     return NextResponse.json({ success: true, data: { ...result, stats } });
   } catch (error) {
     return handleError(error, 'Check-in');
@@ -28,5 +28,5 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const eventId = request.nextUrl.searchParams.get('eventId');
   if (!eventId) return NextResponse.json({ success: false, error: 'eventId is required' }, { status: 400 });
-  return NextResponse.json({ success: true, data: checkinStats(eventId) }, { headers: { 'Cache-Control': 'no-store' } });
+  return NextResponse.json({ success: true, data: await checkinStats(eventId) }, { headers: { 'Cache-Control': 'no-store' } });
 }

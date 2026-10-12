@@ -169,8 +169,10 @@ BEGIN
     IF TG_OP = 'INSERT' AND NEW.status <> 'PENDING' THEN
       RAISE EXCEPTION 'new mentors must be PENDING' USING ERRCODE = 'insufficient_privilege';
     END IF;
+    -- Allowed for the member: pause/resume once approved, and re-apply after a rejection.
     IF TG_OP = 'UPDATE' AND NEW.status IS DISTINCT FROM OLD.status
-       AND NOT (OLD.status IN ('APPROVED', 'PAUSED') AND NEW.status IN ('APPROVED', 'PAUSED')) THEN
+       AND NOT (OLD.status IN ('APPROVED', 'PAUSED') AND NEW.status IN ('APPROVED', 'PAUSED'))
+       AND NOT (OLD.status = 'REJECTED' AND NEW.status = 'PENDING') THEN
       RAISE EXCEPTION 'mentor approval is admin-only' USING ERRCODE = 'insufficient_privilege';
     END IF;
   END IF;

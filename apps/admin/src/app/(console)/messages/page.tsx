@@ -5,8 +5,8 @@ import { MessagesInbox } from '../../../components/messages/MessagesInbox';
 
 export const dynamic = 'force-dynamic';
 
-export default function MessagesPage() {
-  const rows = [...readPrivate().messages].sort(byNewest);
+export default async function MessagesPage() {
+  const rows = [...(await readPrivate()).messages].sort(byNewest);
   const unread = rows.filter((m) => m.status === 'new').length;
   return (
     <>

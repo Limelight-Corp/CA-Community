@@ -39,8 +39,8 @@ import { StickyRegisterBar } from '../../../components/events/StickyRegisterBar'
 
 type Params = Promise<{ slug: string }>;
 
-function findEvent(slug: string): CommunityEvent | undefined {
-  return getItems<CommunityEvent>('events', true).find((e) => e.slug === slug);
+async function findEvent(slug: string): Promise<CommunityEvent | undefined> {
+  return (await getItems<CommunityEvent>('events', true)).find((e) => e.slug === slug);
 }
 
 const STATUS_STYLE: Record<EventStatus, string> = {
@@ -60,7 +60,7 @@ function summary(e: CommunityEvent): string {
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const event = findEvent(slug);
+  const event = await findEvent(slug);
   if (!event) return { title: 'Event not found', robots: { index: false } };
   const description = summary(event);
   const images = event.imageUrl ? [{ url: event.imageUrl, alt: event.title }] : undefined;
@@ -75,12 +75,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function EventDetailPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const event = findEvent(slug);
+  const event = await findEvent(slug);
   if (!event) notFound();
 
-  const settings = getSettings();
-  const wings = getItems<CommunityWing>('wings', true);
-  const speakers = eventSpeakers(event, getItems<CommunitySpeaker>('speakers', true));
+  const settings = await getSettings();
+  const wings = await getItems<CommunityWing>('wings', true);
+  const speakers = eventSpeakers(event, await getItems<CommunitySpeaker>('speakers', true));
   const wing = eventWing(event, wings);
   const status = eventStatus(event);
   const registerable = canRegister(event);

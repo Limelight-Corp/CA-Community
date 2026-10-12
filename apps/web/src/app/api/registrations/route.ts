@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { CommunityRegistration } from '@ascend/shared';
-import { mutatePrivate, newId, newSecret } from '../../../lib/community-store';
+import { newId, newSecret, store } from '../../../lib/community-store';
 import { canRegister, seatsLeft } from '../../../lib/events';
 import { notifyRegistrationCreated } from '../../../lib/notifications';
 import {
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     return json({ error: 'Registration could not be completed.' }, 400);
   }
 
-  const event = findPublishedEvent(input.eventSlug);
+  const event = await findPublishedEvent(input.eventSlug);
   if (!event) return json({ error: 'This event could not be found.' }, 404);
 
   // Per-recipient cap: each new booking emails the address given, so limit bookings per email
@@ -103,23 +103,22 @@ export async function POST(req: Request) {
   const isAbandoned = (r: CommunityRegistration) =>
     r.status === 'pending_payment' && !r.paidAt && Date.parse(r.updatedAt || r.createdAt) < abandonedBefore;
 
-  const outcome = mutatePrivate<Outcome>((data) => {
-    const existing = data.registrations.find(
-      (r) =>
-        r.eventId === event.id &&
-        r.email.toLowerCase() === input.email &&
-        (r.status === 'confirmed' || (r.status === 'pending_payment' && !isAbandoned(r)))
-    );
+  // One transaction with the event row locked: the duplicate check, the seat check and the insert
+  // cannot interleave with another booking for the same event (any number of servers).
+  const outcome = await store.withEventLock<Outcome>(event.id, async (tx) => {
+    const current = (await store.getEvent({ id: event.id }, tx)) ?? event;
+    const mine = await store.listRegistrations({ eventId: event.id, email: input.email, status: { in: ['CONFIRMED', 'PENDING_PAYMENT'] } }, tx);
+    const existing = mine.find((r) => r.status === 'confirmed' || (r.status === 'pending_payment' && !isAbandoned(r)));
     if (existing) {
       // Only hand back the existing booking to someone who also knows the registered mobile.
       return existing.mobile === input.mobile ? { kind: 'existing', reg: existing } : { kind: 'conflict' };
     }
 
-    if (!canRegister(event) || seatsLeft(event) <= 0) {
+    if (!canRegister(current) || seatsLeft(current) <= 0) {
       return { kind: 'closed', message: 'Registrations for this event are closed.' };
     }
-    // Checked inside the same write as the insert, so two requests cannot both take the last seat.
-    if (seatsAvailable(event, data.registrations) <= 0) {
+    // Checked under the lock, so two requests cannot both take the last seat.
+    if ((await seatsAvailable(current, undefined, tx)) <= 0) {
       return {
         kind: 'closed',
         message: 'All remaining seats are held by people completing their payment. Please try again in about 30 minutes.',
@@ -130,7 +129,7 @@ export async function POST(req: Request) {
     const fee = Math.max(0, Number(event.fee) || 0);
     const reg: CommunityRegistration = {
       id: newId('reg'),
-      bookingId: generateBookingId(event, data.registrations),
+      bookingId: generateBookingId(event),
       accessToken: newSecret(),
       checkinCode: newSecret(),
       eventId: event.id,
@@ -151,7 +150,9 @@ export async function POST(req: Request) {
       createdAt: stamp,
       updatedAt: stamp,
     };
-    data.registrations.push(reg);
+    await store.insertRegistration(reg, tx);
+    // Free registrations take their seat in the same transaction.
+    if (reg.status === 'confirmed') await takeSeat(event.id, tx);
     return { kind: 'created', reg };
   });
 
@@ -168,9 +169,7 @@ export async function POST(req: Request) {
   if (outcome.kind === 'closed') return json({ error: outcome.message }, 409);
 
   const reg = outcome.reg;
-  // Free registrations take their seat immediately (synchronously after the private write).
-  if (outcome.kind === 'created' && reg.status === 'confirmed') takeSeat(event.id);
-  if (outcome.kind === 'created') notifyRegistrationCreated(reg, event);
+  if (outcome.kind === 'created') await notifyRegistrationCreated(reg, event);
 
   // Paid bookings are paid on the separate payment page (which requires a member login).
   return json(

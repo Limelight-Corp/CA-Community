@@ -38,8 +38,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
     // "xls" (old links) now gets the modern .xlsx file too.
     const format: ExportFormat = formatParam === 'csv' ? 'csv' : 'xlsx';
 
-    const priv = readPrivate();
-    const events = readStore().events;
+    const priv = await readPrivate();
+    const events = (await readStore()).events;
     const eventById = new Map(events.map((e) => [e.id, e]));
     const eventDate = (r: CommunityRegistration) => eventById.get(r.eventId)?.date ?? '';
 
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
         }).sort(byNewest);
         const planName = (m: CommunityMemberApplication) =>
           MEMBERSHIP_PLANS.find((p) => p.key === m.plan)?.name ?? m.plan;
-        const wings = adminWings();
+        const wings = await adminWings();
         const wingNames = (m: CommunityMemberApplication) =>
           (m.interests ?? [])
             .map((n) => wings.find((w) => w.number === n)?.name)

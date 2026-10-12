@@ -20,3 +20,6 @@ export * from '../generated/client';
 export function isUniqueViolation(err: unknown): boolean {
   return typeof err === 'object' && err !== null && (err as { code?: string }).code === 'P2002';
 }
+
+// PostgreSQL data layer in the apps' shapes.
+export * as store from './store';

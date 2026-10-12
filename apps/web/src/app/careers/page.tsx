@@ -11,7 +11,7 @@ import { siteTaxonomy } from '../../lib/taxonomy';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'Careers & articleship',
     description: `Articleship, jobs and internships for Chartered Accountants and CA students, shared by ${siteName}.`,
@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function CareersPage() {
-  const jobs: JobCard[] = openJobs().map((j) => ({
+export default async function CareersPage() {
+  const jobs: JobCard[] = (await openJobs()).map((j) => ({
     slug: j.slug,
     title: j.title,
     organisation: j.organisation,
@@ -48,7 +48,7 @@ export default function CareersPage() {
       />
       <Section className="pt-12 md:pt-16">
         <Container size="wide">
-          <JobBoard jobs={jobs} types={siteTaxonomy('jobTypes', jobs.map((j) => j.type))} modes={[...WORK_MODES]} />
+          <JobBoard jobs={jobs} types={await siteTaxonomy('jobTypes', jobs.map((j) => j.type))} modes={[...WORK_MODES]} />
         </Container>
       </Section>
       <CtaBand

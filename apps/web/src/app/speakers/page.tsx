@@ -13,7 +13,7 @@ import { CtaBand, PageHero, Section } from '../../components/content/ui';
 import { PagedList } from '../../components/content/PagedList';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: 'Speakers',
     description: `Meet the Chartered Accountants, leaders and experts speaking at ${siteName} events across tax, audit, practice, technology, leadership and more.`,
@@ -21,9 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function SpeakersPage() {
-  const speakers = getItems<CommunitySpeaker>('speakers', true);
-  const events = getItems<CommunityEvent>('events', true).filter((e) => isUpcoming(e));
+export default async function SpeakersPage() {
+  const speakers = await getItems<CommunitySpeaker>('speakers', true);
+  const events = (await getItems<CommunityEvent>('events', true)).filter((e) => isUpcoming(e));
   const upcomingCount = (slug: string) => events.filter((e) => e.speakerSlugs?.includes(slug)).length;
   const topics = Array.from(new Set(speakers.flatMap((s) => s.expertise)));
 

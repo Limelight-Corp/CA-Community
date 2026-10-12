@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const sp = request.nextUrl.searchParams;
-    const rows = filterRegistrations(readPrivate().registrations, {
+    const rows = filterRegistrations((await readPrivate()).registrations, {
       q: sp.get('q') ?? undefined,
       event: sp.get('event') ?? undefined,
       payment: sp.get('payment') ?? undefined,
@@ -44,11 +44,11 @@ export async function PATCH(request: NextRequest) {
     const { id, ...action } = parsed.data;
     if (action.action === 'refund') {
       const refunded = await refundRegistration(id);
-      notifyRegistrationAction(refunded, 'mark_refunded');
+      await notifyRegistrationAction(refunded, 'mark_refunded');
       return NextResponse.json({ success: true, item: publicRegistration(refunded) });
     }
-    const updated = applyRegistrationAction(id, action);
-    notifyRegistrationAction(updated, action.action);
+    const updated = await applyRegistrationAction(id, action);
+    await notifyRegistrationAction(updated, action.action);
     return NextResponse.json({ success: true, item: publicRegistration(updated) });
   } catch (error) {
     return handleError(error, 'Registrations PATCH');

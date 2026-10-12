@@ -15,7 +15,7 @@ import { authenticateAdmin } from './lib/admin-users';
  *
  * The admin console does not yet use the API's real admin authentication (password + TOTP).
  * Every request — pages and `/api/*` routes alike — needs a signed session cookie issued by
- * the sign-in page at /login, which checks admin accounts in data/admin-users.json (created
+ * the sign-in page at /login, which checks admin accounts in the admin_users table (created
  * with `npm run admin:seed`) and, as a fallback, credentials from the environment:
  *
  *   ADMIN_GATE_USER, ADMIN_GATE_PASSWORD  (optional: ADMIN_SESSION_SECRET)

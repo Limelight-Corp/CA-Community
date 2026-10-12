@@ -11,10 +11,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const rows = paymentRows(readPrivate().registrations).sort(byNewest);
+  const rows = paymentRows((await readPrivate()).registrations).sort(byNewest);
   const sum = (status: string) => rows.filter((r) => r.paymentStatus === status).reduce((s, r) => s + (Number(r.fee) || 0), 0);
   const count = (status: string) => rows.filter((r) => r.paymentStatus === status).length;
-  const events = [...readStore().events]
+  const events = [...(await readStore()).events]
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
     .map((e) => ({ id: e.id, title: e.title }));
 

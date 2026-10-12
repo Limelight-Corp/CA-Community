@@ -13,12 +13,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
   const { id } = await params;
   const token = new URL(req.url).searchParams.get('t') ?? '';
-  const record = findCertificate(decodeURIComponent(id));
+  const record = await findCertificate(decodeURIComponent(id));
   // Same answer for "no such certificate" and "wrong link", so IDs can't be probed.
   if (!record || !isCertificateValid(record.reg) || !safeEqual(record.reg.accessToken, token)) {
     return NextResponse.json({ error: 'Certificate not found.' }, { status: 404 });
   }
-  const pdf = await buildCertificatePdf(record, getSettings().siteName);
+  const pdf = await buildCertificatePdf(record, (await getSettings()).siteName);
   return new NextResponse(Buffer.from(pdf), {
     headers: {
       'Content-Type': 'application/pdf',

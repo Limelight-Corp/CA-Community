@@ -177,9 +177,9 @@ function conversion(rows: CommunityRegistration[]): number {
   return Math.round((paidEvents.filter((r) => r.paymentStatus === 'paid').length / paidEvents.length) * 100);
 }
 
-export function getAnalytics(rangeKey: RangeKey): AnalyticsData {
-  const store = readStore();
-  const priv = readPrivate();
+export async function getAnalytics(rangeKey: RangeKey): Promise<AnalyticsData> {
+  const store = await readStore();
+  const priv = await readPrivate();
   const option = RANGE_OPTIONS.find((r) => r.key === rangeKey)!;
 
   const to = todayIst();

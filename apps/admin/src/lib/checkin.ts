@@ -4,7 +4,7 @@
  */
 import type { CommunityRegistration } from '@ascend/shared';
 import { applyRegistrationAction } from './admin-data';
-import { readPrivate, readStore } from './community-store';
+import { store } from './community-store';
 
 export type CheckinStatus = 'checked_in' | 'already' | 'wrong_event' | 'not_confirmed' | 'cancelled' | 'not_found' | 'invalid';
 
@@ -50,7 +50,7 @@ const toAttendee = (r: CommunityRegistration): CheckinAttendee => ({
  * `code` is the full QR text; `bookingId` is the manual fallback (admins are authenticated, so a
  * typed booking ID is trusted). `eventId` (optional) is the event the volunteer is scanning for.
  */
-export function checkIn(input: { code?: string; bookingId?: string; eventId?: string }): CheckinResult {
+export async function checkIn(input: { code?: string; bookingId?: string; eventId?: string }): Promise<CheckinResult> {
   let bookingId = input.bookingId?.trim().toUpperCase();
   let code: string | undefined;
   if (input.code) {
@@ -63,10 +63,14 @@ export function checkIn(input: { code?: string; bookingId?: string; eventId?: st
   }
   if (!bookingId) return { status: 'invalid', message: 'Scan a ticket or enter a booking ID.' };
 
-  const reg = readPrivate().registrations.find((r) => r.bookingId.toUpperCase() === bookingId);
+  // Indexed lookups (booking id, and the QR code by its hash) — no full scan at the entrance.
+  const reg = await store.getRegistration({ bookingId });
   if (!reg) return { status: 'not_found', message: `No booking found for ${bookingId}.` };
-  if (code !== undefined && (!reg.checkinCode || !constantTimeEqual(reg.checkinCode, code))) {
-    return { status: 'invalid', message: 'This QR does not match the booking — it may be copied or outdated. Check the booking ID.' };
+  if (code !== undefined) {
+    const byCode = await store.getRegistration({ checkinCode: code });
+    if (!byCode || !constantTimeEqual(byCode.id, reg.id)) {
+      return { status: 'invalid', message: 'This QR does not match the booking — it may be copied or outdated. Check the booking ID.' };
+    }
   }
 
   const attendee = toAttendee(reg);
@@ -79,19 +83,19 @@ export function checkIn(input: { code?: string; bookingId?: string; eventId?: st
   }
   if (reg.attended) return { status: 'already', message: 'Already checked in.', attendee };
 
-  const updated = applyRegistrationAction(reg.id, { action: 'set_attended', value: true });
+  const updated = await applyRegistrationAction(reg.id, { action: 'set_attended', value: true });
   return { status: 'checked_in', message: 'Checked in.', attendee: toAttendee(updated) };
 }
 
 /** Live numbers for the scanner header. */
-export function checkinStats(eventId: string) {
-  const regs = readPrivate().registrations.filter((r) => r.eventId === eventId && r.status === 'confirmed');
+export async function checkinStats(eventId: string) {
+  const regs = await store.listRegistrations({ eventId, status: 'CONFIRMED' });
   const present = regs.filter((r) => r.attended);
   const recent = present
     .filter((r) => r.attendedAt)
     .sort((a, b) => (b.attendedAt! > a.attendedAt! ? 1 : -1))
     .slice(0, 8)
     .map(toAttendee);
-  const event = readStore().events.find((e) => e.id === eventId);
+  const event = await store.getEvent({ id: eventId });
   return { eventId, eventTitle: event?.title ?? '', confirmed: regs.length, checkedIn: present.length, recent };
 }

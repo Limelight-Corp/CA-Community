@@ -38,14 +38,14 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
   const has = terms.length > 0;
 
   const events = has
-    ? getItems<CommunityEvent>('events', true).filter((e) => matches(terms, e.title, e.description, e.city, e.venue, e.category, e.mode))
+    ? (await getItems<CommunityEvent>('events', true)).filter((e) => matches(terms, e.title, e.description, e.city, e.venue, e.category, e.mode))
     : [];
-  const news = has ? getItems<CommunityNews>('news', true).filter((n) => matches(terms, n.title, n.summary, n.content, n.category, n.author)) : [];
-  const resources = has ? getItems<CommunityResource>('resources', true).filter((r) => matches(terms, r.title, r.category, r.format)) : [];
+  const news = has ? (await getItems<CommunityNews>('news', true)).filter((n) => matches(terms, n.title, n.summary, n.content, n.category, n.author)) : [];
+  const resources = has ? (await getItems<CommunityResource>('resources', true)).filter((r) => matches(terms, r.title, r.category, r.format)) : [];
   const speakers = has
-    ? getItems<CommunitySpeaker>('speakers', true).filter((s) => matches(terms, s.name, s.title, s.bio, s.organisation, s.qualification, s.expertise))
+    ? (await getItems<CommunitySpeaker>('speakers', true)).filter((s) => matches(terms, s.name, s.title, s.bio, s.organisation, s.qualification, s.expertise))
     : [];
-  const jobs = has ? openJobs().filter((j) => matches(terms, j.title, j.organisation, j.type, j.location, j.description, j.experience, j.wing)) : [];
+  const jobs = has ? (await openJobs()).filter((j) => matches(terms, j.title, j.organisation, j.type, j.location, j.description, j.experience, j.wing)) : [];
   const total = events.length + news.length + resources.length + speakers.length + jobs.length;
 
   const groups = [

@@ -10,7 +10,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const parsed = z.object({ id: z.string().min(1), status: z.enum(['pending', 'approved', 'paused', 'rejected']) }).safeParse(await request.json().catch(() => null));
     if (!parsed.success) return bad('Invalid request', 422);
-    return NextResponse.json({ success: true, item: setMentorStatus(parsed.data.id, parsed.data.status) });
+    return NextResponse.json({ success: true, item: await setMentorStatus(parsed.data.id, parsed.data.status) });
   } catch (error) {
     return handleError(error, 'Mentor status');
   }

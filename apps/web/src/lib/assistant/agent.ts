@@ -46,8 +46,8 @@ How to help:
 Site facts:
 ${'{{FACTS}}'}`;
 
-function systemPrompt(): string {
-  return SYSTEM_PROMPT.replace('{{FACTS}}', siteFacts());
+async function systemPrompt(): Promise<string> {
+  return SYSTEM_PROMPT.replace('{{FACTS}}', await siteFacts());
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -84,8 +84,8 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
         month: z.string().optional().describe('YYYY-MM'),
         include_past: z.boolean().optional(),
       }),
-      run: (input) => {
-        const cards = searchEvents({
+      run: async (input) => {
+        const cards = await searchEvents({
           query: input.query,
           city: input.city,
           mode: input.mode,
@@ -104,8 +104,8 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
       description:
         'Search the ASCEND website (pages, membership, contact, policies, resources, news, speakers, wings). Returns titles, short descriptions and direct links.',
       inputSchema: z.object({ query: z.string().describe('What the visitor is looking for') }),
-      run: ({ query }) => {
-        const cards = searchSite(query);
+      run: async ({ query }) => {
+        const cards = await searchSite(query);
         for (const c of cards) if (!collected.links.some((l) => l.href === c.href && l.title === c.title)) collected.links.push(c);
         return JSON.stringify(cards.length ? cards : { result: 'Nothing matched. Suggest the Contact page or a follow-up.' });
       },
@@ -122,7 +122,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
         message: z.string().describe("The visitor's request in their own words, plus useful context from the chat"),
         visitor_confirmed: z.boolean().describe('true only if the visitor explicitly said yes to being contacted'),
       }),
-      run: (input) => {
+      run: async (input) => {
         if (!input.visitor_confirmed) return 'Not saved: ask the visitor to confirm first.';
         if (collected.lead) return 'Already saved in this reply.';
         if (!rateLimit(`lead:${ctx.ip}`, 3, 10 * 60_000)) return 'Not saved: too many requests from this connection. Suggest the Contact page.';
@@ -136,7 +136,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
         if (!parsed.success) {
           return `Not saved: ${parsed.error.issues.map((i) => `${String(i.path[0])}: ${i.message}`).join('; ')}. Ask the visitor to correct this.`;
         }
-        const saved = saveContactMessage(parsed.data);
+        const saved = await saveContactMessage(parsed.data);
         collected.lead = { id: saved.id };
         return 'Saved. The team will follow up by email or phone.';
       },
@@ -153,7 +153,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
     fallbacks: 'default',
     output_config: { effort: 'low' },
     cache_control: { type: 'ephemeral' },
-    system: systemPrompt(),
+    system: await systemPrompt(),
     tools,
     messages,
     max_iterations: 6,

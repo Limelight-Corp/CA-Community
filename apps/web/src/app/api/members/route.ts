@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { CommunityMemberApplication } from '@ascend/shared';
-import { mutatePrivate, newId } from '../../../lib/community-store';
+import { newId, store } from '../../../lib/community-store';
 import { notifyMemberApplication } from '../../../lib/notifications';
 import { clientIp, HONEYPOT_FIELD, rateLimit, readJsonBody } from '../../../lib/form-guard';
 import { fieldErrors, memberApplicationSchema } from '../../../lib/form-schemas';
@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
   const input = parsed.data;
 
   try {
-    const outcome = mutatePrivate<CommunityMemberApplication | 'duplicate'>((data) => {
-      if (data.members.some((m) => m.email.toLowerCase() === input.email)) return 'duplicate';
+    // One application per email: the database's unique email decides (no race between two submits).
+    const outcome = await (async (): Promise<CommunityMemberApplication | 'duplicate'> => {
       const stamp = new Date().toISOString();
       const application: CommunityMemberApplication = {
         id: newId('mem'),
@@ -60,14 +60,13 @@ export async function POST(request: NextRequest) {
         areaOfPractice: input.areaOfPractice,
         organisation: input.organisation,
         linkedinUrl: input.linkedinUrl,
-        interests: knownWingNumbers(input.interests),
+        interests: await knownWingNumbers(input.interests),
         status: 'pending',
         createdAt: stamp,
         updatedAt: stamp,
       };
-      data.members.push(application);
-      return application;
-    });
+      return (await store.createMember(application)) ?? 'duplicate';
+    })();
 
     if (outcome === 'duplicate') {
       return NextResponse.json({
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest) {
         message: 'We have already received an application with this email address. Our team will be in touch — no need to apply again.',
       });
     }
-    notifyMemberApplication(outcome);
+    await notifyMemberApplication(outcome);
     return NextResponse.json({ success: true, status: 'received' }, { status: 201 });
   } catch (error) {
     console.error('Failed to save membership application:', error);

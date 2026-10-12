@@ -36,7 +36,7 @@ const instrumentSerif = Instrument_Serif({
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = getSettings();
+  const settings = await getSettings();
   const title = `${settings.siteName} — ${settings.heroHeadline} ${settings.heroHeadlineAccent}`;
   return {
     metadataBase: new URL(siteUrl()),
@@ -53,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Site-wide Organization + WebSite structured data (with the site search action). */
-function siteLd(settings: ReturnType<typeof getSettings>) {
+function siteLd(settings: Awaited<ReturnType<typeof getSettings>>) {
   const base = siteUrl();
   const sameAs = Object.values(settings.social ?? {}).filter((u): u is string => typeof u === 'string' && /^https?:\/\//.test(u));
   return {
@@ -91,9 +91,9 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const themeCss = generateThemeCssVariables(DEFAULT_DARK_TOKENS);
-  const settings = getSettings();
+  const settings = await getSettings();
   // Read at request time (not inlined at build), so they can be set on the server without a rebuild.
   const gaId = process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID;
   const metaPixelId = process.env.META_PIXEL_ID;

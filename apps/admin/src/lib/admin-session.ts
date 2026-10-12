@@ -1,7 +1,7 @@
 /**
  * Signed admin session cookie (server-only: middleware runs on the Node.js runtime).
  *
- * Admins sign in with an account from data/admin-users.json (created by `npm run admin:seed`)
+ * Admins sign in with an account from the admin_users table (created by `npm run admin:seed`)
  * or, as a fallback, with ADMIN_GATE_USER / ADMIN_GATE_PASSWORD from the environment.
  * A successful sign-in sets an httpOnly cookie `<payload>.<HMAC-SHA256>` where
  * payload = base64url({ u, src, iat, exp }).

@@ -4,6 +4,8 @@
  *
  *   npm run import --workspace=@ascend/db              # refuses if the database already has data
  *   npm run import --workspace=@ascend/db -- --replace # empties the tables first, then imports
+ *     (refuses when the live site has created records that are not in the JSON files, unless
+ *      --discard-new-data is also given — never use it after go-live without a backup)
  *
  * The JSON files are only read, never changed. Plaintext booking tokens and check-in codes are
  * stored as SHA-256 hashes (existing links keep working: the app hashes what it receives). Rows
@@ -27,6 +29,21 @@ if (!env.DATABASE_MIGRATION_URL) {
 }
 const url = withDatabase(env.DATABASE_MIGRATION_URL, process.env.ASCEND_DB_NAME || 'ascend');
 const { PrismaClient } = await import('../generated/client/index.js');
+
+// Booking tokens are stored hashed (lookup) and sealed with the website's key (to show links again).
+const tokenKeyHex = readEnvFile(path.join(root, 'apps/web/.env.local')).BOOKING_TOKEN_KEY;
+if (!tokenKeyHex || !/^[0-9a-f]{64}$/i.test(tokenKeyHex)) {
+  console.error('import: BOOKING_TOKEN_KEY is missing in apps/web/.env.local — run `npm run setup --workspace=@ascend/db` first.');
+  process.exit(1);
+}
+const tokenKey = Buffer.from(tokenKeyHex, 'hex');
+function seal(plain) {
+  if (!plain) return null;
+  const iv = crypto.randomBytes(12);
+  const c = crypto.createCipheriv('aes-256-gcm', tokenKey, iv);
+  const body = Buffer.concat([c.update(String(plain), 'utf8'), c.final()]);
+  return `v1.${iv.toString('base64url')}.${body.toString('base64url')}.${c.getAuthTag().toString('base64url')}`;
+}
 const db = new PrismaClient({ datasourceUrl: url, log: ['error'] });
 
 const read = (f, fallback) => {
@@ -67,6 +84,24 @@ if (Number(existing[0].n) > 0 && !replace) {
   process.exit(1);
 }
 
+// Safety net after go-live: --replace would erase records the live site created (they are not in
+// the JSON files). Refuse unless explicitly told to discard them.
+if (replace && !process.argv.includes('--discard-new-data')) {
+  const known = (list) => (list ?? []).map((x) => x.id);
+  const newer = {
+    bookings: await db.eventRegistration.count({ where: { id: { notIn: known(priv.registrations) } } }),
+    accounts: await db.memberAccount.count({ where: { id: { notIn: known(accounts) } } }),
+    memberships: await db.membership.count({ where: { id: { notIn: known(priv.members) } } }),
+    messages: await db.contactMessage.count({ where: { id: { notIn: known(priv.messages) } } }),
+  };
+  const total = Object.values(newer).reduce((a, b) => a + b, 0);
+  if (total > 0) {
+    console.error(`import: the database has records that are not in data/*.json (${Object.entries(newer).filter(([, n]) => n).map(([k, n]) => `${n} ${k}`).join(', ')}).`);
+    console.error('--replace would erase them. Take a backup (npm run backup), then add --discard-new-data only if you really mean it.');
+    process.exit(1);
+  }
+}
+
 await db.$transaction(
   async (tx) => {
     if (replace) {
@@ -95,7 +130,7 @@ await db.$transaction(
     const wingByNumber = new Map(), wingByName = new Map();
     for (const w of store.wings ?? []) {
       await tx.wing.create({
-        data: { id: w.id, number: w.number, name: w.name, slug: slugify(w.name), color: w.color, tags: w.tags ?? '', activities: w.activities ?? [], isPublished: w.isPublished !== false, createdAt: date(w.createdAt) ?? undefined },
+        data: { id: w.id, number: w.number, name: w.name, slug: slugify(w.name), color: w.color, tags: w.tags ?? '', activities: w.activities ?? [], isPublished: w.isPublished !== false, createdAt: date(w.createdAt) ?? undefined, updatedAt: date(w.updatedAt) ?? undefined },
       });
       wingByNumber.set(w.number, w.id);
       wingByName.set(w.name.toLowerCase(), w.id);
@@ -112,7 +147,7 @@ await db.$transaction(
         data: {
           id: sp.id, slug: sp.slug, name: sp.name, title: sp.title, qualification: blank(sp.qualification), organisation: blank(sp.organisation), headline: blank(sp.headline),
           bio: sp.bio, expertise: sp.expertise ?? [], highlights: sp.highlights ?? [], talks: sp.talks ?? [], stats: sp.stats ?? [], quote: blank(sp.quote),
-          avatarUrl: blank(sp.avatarUrl), linkedinUrl: blank(sp.linkedinUrl), isPublished: sp.isPublished !== false, createdAt: date(sp.createdAt) ?? undefined,
+          avatarUrl: blank(sp.avatarUrl), linkedinUrl: blank(sp.linkedinUrl), isPublished: sp.isPublished !== false, createdAt: date(sp.createdAt) ?? undefined, updatedAt: date(sp.updatedAt) ?? undefined,
         },
       });
       speakerBySlug.set(sp.slug, sp.id);
@@ -129,7 +164,7 @@ await db.$transaction(
           mode: up(e.mode), venue: e.venue, city: e.city ?? '', mapUrl: blank(e.mapUrl), fee: e.fee ?? 0, memberFee: e.memberFee ?? 0, seatsTotal: e.seatsTotal ?? 0,
           seatsTaken: e.seatsTaken ?? 0, cpeHours: e.cpeHours ?? null, description, terms: blank(e.terms), imageUrl: blank(e.imageUrl),
           registrationOpen: e.registrationOpen !== false, featured: !!e.featured, isPublished: e.isPublished !== false, cancelledAt: date(e.cancelledAt),
-          cancellationNote: blank(e.cancellationNote), createdAt: date(e.createdAt) ?? undefined,
+          cancellationNote: blank(e.cancellationNote), createdAt: date(e.createdAt) ?? undefined, updatedAt: date(e.updatedAt) ?? undefined,
           agenda: { create: (e.agenda ?? []).map((a, position) => ({ position, time: a.time ?? '', title: a.title, speaker: blank(a.speaker) })) },
         },
       });
@@ -142,28 +177,28 @@ await db.$transaction(
       await tx.newsArticle.create({
         data: {
           id: n.id, slug: n.slug, title: n.title, category: n.category, dateLabel: n.date, publishedOn: dateOnly(n.date) ?? dateOnly(n.createdAt) ?? new Date(),
-          author: blank(n.author), summary: n.summary, content: n.content, coverImageUrl: blank(n.coverImageUrl), isPublished: n.isPublished !== false, createdAt: date(n.createdAt) ?? undefined,
+          author: blank(n.author), summary: n.summary, content: n.content, coverImageUrl: blank(n.coverImageUrl), isPublished: n.isPublished !== false, createdAt: date(n.createdAt) ?? undefined, updatedAt: date(n.updatedAt) ?? undefined,
         },
       });
     for (const r of store.resources ?? [])
       await tx.resource.create({
         data: {
           id: r.id, title: r.title, category: r.category, format: r.format, wingId: wingFor(r.wing, `resource "${r.title}"`), fileUrl: blank(r.fileUrl),
-          isMembersOnly: !!r.isMembersOnly, downloads: r.downloads ?? 0, isPublished: r.isPublished !== false, createdAt: date(r.createdAt) ?? undefined,
+          isMembersOnly: !!r.isMembersOnly, downloads: r.downloads ?? 0, isPublished: r.isPublished !== false, createdAt: date(r.createdAt) ?? undefined, updatedAt: date(r.updatedAt) ?? undefined,
         },
       });
     for (const g of store.gallery ?? [])
       await tx.galleryItem.create({
         data: {
           id: g.id, title: g.title, category: g.category, dateLabel: g.date, location: g.location, accentGradient: g.accentGradient ?? '', imageUrl: blank(g.imageUrl),
-          videoUrl: blank(g.videoUrl), isPublished: g.isPublished !== false, createdAt: date(g.createdAt) ?? undefined,
+          videoUrl: blank(g.videoUrl), isPublished: g.isPublished !== false, createdAt: date(g.createdAt) ?? undefined, updatedAt: date(g.updatedAt) ?? undefined,
         },
       });
     for (const t of store.team ?? [])
       await tx.teamMember.create({
         data: {
           id: t.id, name: t.name, designation: t.designation, group: up(t.group), wingId: wingFor(t.wing, `team member "${t.name}"`), background: blank(t.background),
-          photoUrl: blank(t.photoUrl), linkedinUrl: blank(t.linkedinUrl), sortOrder: t.order ?? 10, isPublished: t.isPublished !== false, createdAt: date(t.createdAt) ?? undefined,
+          photoUrl: blank(t.photoUrl), linkedinUrl: blank(t.linkedinUrl), sortOrder: t.order ?? 10, isPublished: t.isPublished !== false, createdAt: date(t.createdAt) ?? undefined, updatedAt: date(t.updatedAt) ?? undefined,
         },
       });
     for (const t of store.testimonials ?? [])
@@ -172,7 +207,7 @@ await db.$transaction(
       await tx.initiative.create({
         data: {
           id: i.id, title: i.title, description: i.description, tag: blank(i.tag), date: dateOnly(i.date), ctaLabel: blank(i.ctaLabel), ctaUrl: blank(i.ctaUrl),
-          imageUrl: blank(i.imageUrl), isPublished: i.isPublished !== false, createdAt: date(i.createdAt) ?? undefined,
+          imageUrl: blank(i.imageUrl), isPublished: i.isPublished !== false, createdAt: date(i.createdAt) ?? undefined, updatedAt: date(i.updatedAt) ?? undefined,
         },
       });
     for (const j of store.jobs ?? [])
@@ -181,7 +216,7 @@ await db.$transaction(
           id: j.id, slug: j.slug, title: j.title, organisation: j.organisation, type: j.type, location: j.location, workMode: up(j.workMode), experience: blank(j.experience),
           compensation: blank(j.compensation), description: j.description, requirements: j.requirements ?? [], applyUrl: blank(j.applyUrl), applyEmail: blank(j.applyEmail),
           deadline: dateOnly(j.deadline), wingId: wingFor(j.wing, `job "${j.slug}"`), logoUrl: blank(j.logoUrl), isMembersOnly: !!j.isMembersOnly, featured: !!j.featured,
-          isPublished: j.isPublished !== false, createdAt: date(j.createdAt) ?? undefined,
+          isPublished: j.isPublished !== false, createdAt: date(j.createdAt) ?? undefined, updatedAt: date(j.updatedAt) ?? undefined,
         },
       });
 
@@ -191,7 +226,7 @@ await db.$transaction(
       await tx.memberAccount.create({
         data: {
           id: a.id, name: a.name, email: a.email.trim().toLowerCase(), mobile: blank(a.mobile), passwordHash: a.passwordHash, emailVerifiedAt: date(a.emailVerifiedAt),
-          sessionVersion: a.sessionVersion ?? 1, lastLoginAt: date(a.lastLoginAt), createdAt: date(a.createdAt) ?? undefined,
+          sessionVersion: a.sessionVersion ?? 1, lastLoginAt: date(a.lastLoginAt), createdAt: date(a.createdAt) ?? undefined, updatedAt: date(a.updatedAt) ?? undefined,
           profile: {
             create: {
               city: blank(p.city), membershipNo: blank(p.membershipNo), qualificationYear: blank(p.qualificationYear), areaOfPractice: blank(p.areaOfPractice),
@@ -210,7 +245,7 @@ await db.$transaction(
       await tx.adminUser.create({
         data: {
           id: u.id, username: u.username, name: u.name, role: up(u.role), passwordHash: u.passwordHash, active: u.active !== false,
-          passwordChangedAt: new Date((u.passwordChangedAt ?? 0) * 1000), lastLoginAt: date(u.lastLoginAt), createdAt: date(u.createdAt) ?? undefined,
+          passwordChangedAt: new Date((u.passwordChangedAt ?? 0) * 1000), lastLoginAt: date(u.lastLoginAt), createdAt: date(u.createdAt) ?? undefined, updatedAt: date(u.updatedAt) ?? undefined,
         },
       });
 
@@ -225,7 +260,8 @@ await db.$transaction(
       if (r.paymentStatus === 'refunded' && !refundedAt) { refundedAt = date(r.updatedAt); refundFixed++; }
       await tx.eventRegistration.create({
         data: {
-          id: r.id, bookingId: r.bookingId, accessTokenHash: sha(r.accessToken), checkinCodeHash: r.checkinCode ? sha(r.checkinCode) : null, eventId: r.eventId,
+          id: r.id, bookingId: r.bookingId, accessTokenHash: sha(r.accessToken), checkinCodeHash: r.checkinCode ? sha(r.checkinCode) : null,
+          accessTokenEnc: seal(r.accessToken), checkinCodeEnc: seal(r.checkinCode), eventId: r.eventId,
           accountId: accountByEmail.get(r.email.trim().toLowerCase()) ?? null, eventTitle: r.eventTitle, name: r.name, email: r.email, mobile: r.mobile, city: r.city,
           membershipNo: blank(r.membershipNo), organisation: blank(r.organisation), designation: blank(r.designation), requirements: blank(r.requirements),
           whatsappOptIn: !!r.whatsappOptIn, fee: r.fee ?? 0, status: up(r.status), paymentStatus: up(r.paymentStatus), gatewayOrderId: blank(r.gatewayOrderId),

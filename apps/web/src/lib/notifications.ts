@@ -26,8 +26,8 @@ import { siteUrl } from './seo';
  * request that triggered it.
  */
 
-function eventFor(reg: CommunityRegistration): CommunityEvent | undefined {
-  return getItems<CommunityEvent>('events').find((e) => e.id === reg.eventId);
+async function eventFor(reg: CommunityRegistration): Promise<CommunityEvent | undefined> {
+  return (await getItems<CommunityEvent>('events')).find((e) => e.id === reg.eventId);
 }
 
 function adminRegistrationsUrl(reg: CommunityRegistration): string {
@@ -35,41 +35,41 @@ function adminRegistrationsUrl(reg: CommunityRegistration): string {
 }
 
 /** New booking: confirmation (free) or "complete your payment" (paid) + admin alert. */
-export function notifyRegistrationCreated(reg: CommunityRegistration, event?: CommunityEvent): void {
-  const brand = emailBrand();
-  const booking = emailBookingFrom(reg, event ?? eventFor(reg), siteUrl());
+export async function notifyRegistrationCreated(reg: CommunityRegistration, event?: CommunityEvent): Promise<void> {
+  const brand = await emailBrand();
+  const booking = emailBookingFrom(reg, event ?? (await eventFor(reg)), siteUrl());
   queueMail(reg.email, reg.status === 'confirmed' ? registrationConfirmedEmail(brand, booking) : paymentPendingEmail(brand, booking));
   if (reg.status === 'confirmed' && reg.whatsappOptIn) queueWhatsApp(reg.mobile, waBookingConfirmed(booking));
-  queueMail(adminRecipients(), adminNewRegistrationEmail(brand, booking, adminRegistrationsUrl(reg)), { replyTo: reg.email });
+  queueMail(await adminRecipients(), adminNewRegistrationEmail(brand, booking, adminRegistrationsUrl(reg)), { replyTo: reg.email });
 }
 
 /** Payment verified: receipt to the attendee + admin alert. */
-export function notifyPaymentConfirmed(reg: CommunityRegistration): void {
-  const brand = emailBrand();
-  const booking = emailBookingFrom(reg, eventFor(reg), siteUrl());
+export async function notifyPaymentConfirmed(reg: CommunityRegistration): Promise<void> {
+  const brand = await emailBrand();
+  const booking = emailBookingFrom(reg, await eventFor(reg), siteUrl());
   queueMail(reg.email, paymentConfirmedEmail(brand, booking));
   if (reg.whatsappOptIn) queueWhatsApp(reg.mobile, waBookingConfirmed(booking));
-  queueMail(adminRecipients(), adminPaymentReceivedEmail(brand, booking, adminRegistrationsUrl(reg)), { replyTo: reg.email });
+  queueMail(await adminRecipients(), adminPaymentReceivedEmail(brand, booking, adminRegistrationsUrl(reg)), { replyTo: reg.email });
 }
 
 /** A payment attempt failed (sent once per attempt; a retry starts a new attempt). */
-export function notifyPaymentFailed(reg: CommunityRegistration): void {
-  const brand = emailBrand();
-  queueMail(reg.email, paymentFailedEmail(brand, emailBookingFrom(reg, eventFor(reg), siteUrl())));
+export async function notifyPaymentFailed(reg: CommunityRegistration): Promise<void> {
+  const brand = await emailBrand();
+  queueMail(reg.email, paymentFailedEmail(brand, emailBookingFrom(reg, await eventFor(reg), siteUrl())));
 }
 
 /** Contact form / support-assistant lead → admin. */
-export function notifyContactMessage(msg: CommunityContactMessage): void {
-  queueMail(adminRecipients(), adminContactMessageEmail(emailBrand(), msg, adminUrl('/messages')), { replyTo: msg.email });
+export async function notifyContactMessage(msg: CommunityContactMessage): Promise<void> {
+  queueMail(await adminRecipients(), adminContactMessageEmail(await emailBrand(), msg, adminUrl('/messages')), { replyTo: msg.email });
 }
 
 /** Membership application → acknowledgement to the applicant + admin alert. */
-export function notifyMemberApplication(app: CommunityMemberApplication): void {
-  const brand = emailBrand();
+export async function notifyMemberApplication(app: CommunityMemberApplication): Promise<void> {
+  const brand = await emailBrand();
   const plan = MEMBERSHIP_PLANS.find((p) => p.key === app.plan)?.name ?? app.plan;
   queueMail(app.email, memberApplicationEmail(brand, { name: app.name, plan }));
   queueMail(
-    adminRecipients(),
+    await adminRecipients(),
     adminMemberApplicationEmail(brand, { name: app.name, email: app.email, mobile: app.mobile, city: app.city, plan }, adminUrl('/members')),
     { replyTo: app.email }
   );

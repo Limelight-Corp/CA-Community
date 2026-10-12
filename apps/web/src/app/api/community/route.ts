@@ -31,11 +31,11 @@ export async function GET(request: NextRequest) {
       if (!isContentType(type)) {
         return NextResponse.json({ success: false, error: 'Unknown content type' }, { status: 400 });
       }
-      const items = getItems(type, true);
+      const items = await getItems(type, true);
       return NextResponse.json({ success: true, type, count: items.length, data: items });
     }
 
-    const allData = readStore();
+    const allData = await readStore();
     const published = <T extends { isPublished?: boolean }>(list: T[] | undefined) =>
       (list || []).filter((x) => x.isPublished !== false);
 

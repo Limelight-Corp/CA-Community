@@ -38,7 +38,7 @@ export default async function DirectoryPage() {
           {member ? (
             <DirectoryBrowser
               entries={entries}
-              wings={siteWings().map((w) => ({ number: w.number, name: w.name }))}
+              wings={(await siteWings()).map((w) => ({ number: w.number, name: w.name }))}
               selfListed={!!account?.profile.directoryOptIn}
             />
           ) : (

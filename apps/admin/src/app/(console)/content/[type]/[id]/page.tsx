@@ -13,7 +13,7 @@ export default async function EditContentPage({ params }: { params: Promise<{ ty
   const { type, id } = await params;
   if (!isManagedContentType(type)) notFound();
   const config = CONTENT_TYPES[type];
-  const all = getItems<Item>(type);
+  const all = await getItems<Item>(type);
   const item = all.find((x) => x.id === decodeURIComponent(id));
   if (!item) notFound();
   const takenSlugs = all
@@ -28,7 +28,7 @@ export default async function EditContentPage({ params }: { params: Promise<{ ty
         backHref={`/content/${type}`}
         backLabel={config.label}
       />
-      <ContentForm key={item.updatedAt ?? item.id} type={type} item={item} takenSlugs={takenSlugs} options={fieldOptions(type)} />
+      <ContentForm key={item.updatedAt ?? item.id} type={type} item={item} takenSlugs={takenSlugs} options={await fieldOptions(type)} />
     </>
   );
 }

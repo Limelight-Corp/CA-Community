@@ -6,7 +6,7 @@ import { SESSION_COOKIE, gateBypassed, verifySessionToken } from '../../lib/admi
 export const dynamic = 'force-dynamic';
 
 export default async function ConsoleLayout({ children }: { children: React.ReactNode }) {
-  const priv = readPrivate();
+  const priv = await readPrivate();
   const counts = {
     pendingMembers: priv.members.filter((m) => m.status === 'pending').length,
     unreadMessages: priv.messages.filter((m) => m.status === 'new').length,

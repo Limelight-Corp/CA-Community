@@ -11,10 +11,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const store = readStore();
+  const store = await readStore();
   const event = store.events.find((e) => e.id === id);
   if (!event) notFound();
-  const regs = readPrivate().registrations.filter((r) => r.eventId === event.id);
+  const regs = (await readPrivate()).registrations.filter((r) => r.eventId === event.id);
   const active = regs.filter((r) => r.status === 'confirmed' || r.status === 'pending_payment');
   const speakers = store.speakers.map((s) => ({ slug: s.slug, name: s.name, title: s.title }));
   return (
@@ -55,8 +55,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
         key={event.updatedAt ?? event.id}
         event={event}
         speakers={speakers}
-        categories={adminTaxonomy('eventCategories')}
-        wings={adminWings().map((w) => ({ number: w.number, name: w.name }))}
+        categories={await adminTaxonomy('eventCategories')}
+        wings={(await adminWings()).map((w) => ({ number: w.number, name: w.name }))}
         takenSlugs={store.events.filter((e) => e.id !== event.id).map((e) => e.slug)}
       />
     </>

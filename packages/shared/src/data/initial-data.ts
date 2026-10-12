@@ -64,6 +64,8 @@ export interface CommunityGalleryItem {
   videoUrl?: string;
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface CommunitySpeaker {
@@ -90,6 +92,8 @@ export interface CommunitySpeaker {
   quote?: string;
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface CommunityWing {
@@ -101,6 +105,8 @@ export interface CommunityWing {
   activities: string[];
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface CommunityNews {
@@ -115,6 +121,8 @@ export interface CommunityNews {
   coverImageUrl?: string;
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface CommunityResource {
@@ -129,6 +137,8 @@ export interface CommunityResource {
   fileUrl?: string;
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface CommunityTeamMember {
@@ -144,6 +154,8 @@ export interface CommunityTeamMember {
   order: number;
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface CommunityTestimonial {
@@ -154,6 +166,8 @@ export interface CommunityTestimonial {
   photoUrl?: string;
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface CommunityInitiative {
@@ -167,6 +181,8 @@ export interface CommunityInitiative {
   imageUrl?: string;
   isPublished: boolean;
   createdAt?: string;
+  /** Set by the store on every write. */
+  updatedAt?: string;
 }
 
 export interface SiteSettings {
@@ -339,6 +355,8 @@ export interface CommunityMemberApplication {
   status: 'pending' | 'approved' | 'rejected';
   /** Fee (₹) fixed at approval; updated to the amount of each payment order that is opened. */
   membershipFee?: number;
+  /** Amount of the open online-payment order (set by the website; the payment must match it). */
+  orderAmount?: number;
   /** Open Razorpay order for the next payment. */
   gatewayOrderId?: string;
   /** Membership is active until this moment (ISO); extended by each payment. */

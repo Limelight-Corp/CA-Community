@@ -141,7 +141,7 @@ CALL ascend_check('event_registrations', 'reg_refund_ck',
 CALL ascend_check('event_registrations', 'reg_attended_ck', 'NOT attended OR attended_at IS NOT NULL');
 
 CALL ascend_check('memberships', 'memberships_contact_ck', 'ascend_is_email(email) AND ascend_is_mobile(mobile)');
-CALL ascend_check('memberships', 'memberships_fee_ck', 'fee IS NULL OR fee >= 0');
+CALL ascend_check('memberships', 'memberships_fee_ck', '(fee IS NULL OR fee >= 0) AND (order_amount IS NULL OR order_amount > 0)');
 CALL ascend_check('memberships', 'memberships_links_ck', 'ascend_is_https(linkedin_url) AND ascend_is_link(photo_url)');
 CALL ascend_check('membership_payments', 'membership_payments_amount_ck', 'amount >= 0 AND valid_until > valid_from');
 CALL ascend_check('membership_payments', 'membership_payments_gateway_ck', 'method = ''OFFLINE'' OR gateway_payment_id IS NOT NULL');

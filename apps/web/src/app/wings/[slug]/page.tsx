@@ -38,9 +38,9 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const wing = findWingHub(slug);
+  const wing = await findWingHub(slug);
   if (!wing) return { title: 'Wing not found' };
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: `${wing.name} Wing`,
     description: `${wing.name} — a professional wing of ${siteName}: ${wing.focus.join(', ')}. Convener, events and resources.`,
@@ -111,19 +111,19 @@ function ResourceRow({ r }: { r: CommunityResource }) {
 
 export default async function WingHubPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const wing = findWingHub(slug);
+  const wing = await findWingHub(slug);
   if (!wing) notFound();
 
-  const all = allWingHubs();
+  const all = await allWingHubs();
   const idx = all.findIndex((w) => w.slug === wing.slug);
   const prev = all[(idx - 1 + all.length) % all.length]!;
   const next = all[(idx + 1) % all.length]!;
-  const { conveners, committee } = wingPeople(wing);
-  const { upcoming, past } = wingEvents(wing);
-  const wingRes = wingResources(wing);
-  const libraryPicks = wingRes.length ? [] : getItems<CommunityResource>('resources', true).slice(0, 3);
-  const storeWing = getItems<CommunityWing>('wings', true).find((w) => w.number === wing.number);
-  const speakers = getItems<CommunitySpeaker>('speakers', true);
+  const { conveners, committee } = await wingPeople(wing);
+  const { upcoming, past } = await wingEvents(wing);
+  const wingRes = await wingResources(wing);
+  const libraryPicks = wingRes.length ? [] : (await getItems<CommunityResource>('resources', true)).slice(0, 3);
+  const storeWing = (await getItems<CommunityWing>('wings', true)).find((w) => w.number === wing.number);
+  const speakers = await getItems<CommunitySpeaker>('speakers', true);
   const joinHref = `/join?wing=${wing.slug}#register`;
   const num = String(wing.number).padStart(2, '0');
   const nextEvent = upcoming[0];

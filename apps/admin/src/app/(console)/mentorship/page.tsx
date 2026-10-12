@@ -10,9 +10,9 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Mentorship' };
 
 
-export default function MentorshipAdminPage() {
-  const { mentors, mentorshipRequests: requests } = readPrivate();
-  const wings = adminWings();
+export default async function MentorshipAdminPage() {
+  const { mentors, mentorshipRequests: requests } = await readPrivate();
+  const wings = await adminWings();
   const wingName = (n: number) => wingLabel(wings, n);
   const mentorRows = [...mentors]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))

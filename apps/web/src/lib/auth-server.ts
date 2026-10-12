@@ -45,13 +45,13 @@ export function fieldErrorsOf(error: z.ZodError): Record<string, string> {
 export async function sendVerificationEmail(account: Pick<MemberAccount, 'id' | 'name' | 'email'>): Promise<void> {
   const token = await issueToken(account.id, 'verify');
   if (!token) return;
-  queueMail(account.email, verifyEmailEmail(emailBrand(), { name: account.name, url: `${siteUrl()}/verify-email?token=${token}` }));
+  queueMail(account.email, verifyEmailEmail(await emailBrand(), { name: account.name, url: `${siteUrl()}/verify-email?token=${token}` }));
 }
 
 export async function sendPasswordResetEmail(account: Pick<MemberAccount, 'id' | 'name' | 'email'>): Promise<void> {
   const token = await issueToken(account.id, 'reset');
   if (!token) return;
-  queueMail(account.email, passwordResetEmail(emailBrand(), { name: account.name, url: `${siteUrl()}/reset-password?token=${token}` }));
+  queueMail(account.email, passwordResetEmail(await emailBrand(), { name: account.name, url: `${siteUrl()}/reset-password?token=${token}` }));
 }
 
 /** Per-email failed-login counter (in memory): 5 failures lock the email for 15 minutes. */

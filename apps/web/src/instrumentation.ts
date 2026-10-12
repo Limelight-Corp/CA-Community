@@ -6,11 +6,11 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs' || process.env.REMINDER_SCHEDULER === 'off') return;
   const { sendDueReminders, sendMembershipRenewalReminders } = await import('./lib/reminders');
-  const run = () => {
+  const run = async () => {
     try {
-      const result = sendDueReminders();
+      const result = await sendDueReminders();
       if (result.sent) console.log(`[reminders] sent ${result.sent} reminder(s): ${result.bookings.join(', ')}`);
-      const renewals = sendMembershipRenewalReminders();
+      const renewals = await sendMembershipRenewalReminders();
       if (renewals.sent) console.log(`[reminders] sent ${renewals.sent} membership renewal reminder(s)`);
     } catch (err) {
       console.error('[reminders] run failed:', err);

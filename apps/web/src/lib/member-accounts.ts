@@ -11,7 +11,7 @@ import crypto from 'crypto';
 import { promisify } from 'util';
 import { membershipState, type CommunityMemberApplication } from '@ascend/shared';
 import { prisma, isUniqueViolation, type Prisma } from '@ascend/db';
-import { readPrivate } from './community-store';
+import { store } from './community-store';
 
 export interface MemberProfile {
   city?: string;
@@ -276,13 +276,12 @@ export async function markEmailVerified(id: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Membership (application status still lives in the private store until phase 2 of the
-// PostgreSQL move; linked by verified email)
+// Membership (the application linked by verified email)
 // ---------------------------------------------------------------------------------------------
 
 export async function membershipFor(account: Pick<MemberAccount, 'email' | 'emailVerifiedAt'>): Promise<CommunityMemberApplication | undefined> {
   if (!account.emailVerifiedAt) return undefined;
-  return readPrivate().members.find((m) => m.email.toLowerCase() === account.email);
+  return store.getMember({ email: account.email });
 }
 
 /** Members-only access: verified email + an approved, paid and unexpired membership. */

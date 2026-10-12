@@ -7,7 +7,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
 import QRCode from 'qrcode';
 import type { CommunityEvent, CommunityRegistration } from '@ascend/shared';
-import { getItems, readPrivate } from './community-store';
+import { store } from './community-store';
 import { formatEventDate, locationLabel } from './events';
 import { siteUrl } from './seo';
 
@@ -20,11 +20,11 @@ export function isCertificateValid(reg: CommunityRegistration): boolean {
   return reg.status === 'confirmed' && !!reg.attended && !!reg.certificateId;
 }
 
-export function findCertificate(certificateId: string): CertificateRecord | undefined {
+export async function findCertificate(certificateId: string): Promise<CertificateRecord | undefined> {
   if (!/^ASC-CERT-[A-Z0-9]{6,12}$/.test(certificateId)) return undefined;
-  const reg = readPrivate().registrations.find((r) => r.certificateId === certificateId);
+  const reg = await store.getRegistration({ certificateId });
   if (!reg) return undefined;
-  const event = getItems<CommunityEvent>('events').find((e) => e.id === reg.eventId);
+  const event = await store.getEvent({ id: reg.eventId });
   return { reg, event };
 }
 

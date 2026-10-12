@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const doc = getLegalDoc(slug);
   if (!doc) return { title: 'Not found' };
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
   return {
     title: doc.title,
     description: `${doc.summary} (${siteName})`,
@@ -29,7 +29,7 @@ export default async function LegalDocPage({ params }: { params: Params }) {
   const { slug } = await params;
   const doc = getLegalDoc(slug);
   if (!doc) notFound();
-  const { siteName } = getSettings();
+  const { siteName } = await getSettings();
 
   return (
     <>

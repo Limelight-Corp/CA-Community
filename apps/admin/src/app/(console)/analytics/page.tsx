@@ -24,7 +24,7 @@ export const metadata: Metadata = { title: 'Analytics' };
 
 export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
   const { range } = await searchParams;
-  const data = getAnalytics(parseRange(range));
+  const data = await getAnalytics(parseRange(range));
   const period = data.range.label;
   const labels = data.timeline.map((p) => p.label);
   const bucketWord = data.range.bucketDays === 1 ? 'day' : data.range.bucketDays === 7 ? 'week' : 'month';

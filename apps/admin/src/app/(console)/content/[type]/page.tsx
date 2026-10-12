@@ -14,7 +14,7 @@ export default async function ContentTypePage({ params }: { params: Promise<{ ty
   const { type } = await params;
   if (!isManagedContentType(type)) notFound();
   const config = CONTENT_TYPES[type];
-  let items = getItems<Item>(type);
+  let items = await getItems<Item>(type);
   if (type === 'team') {
     const groups = ['Leadership', 'Core Team', 'Advisory Board', 'Wing Conveners'];
     items = [...items].sort(

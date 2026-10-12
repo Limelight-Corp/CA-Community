@@ -8,6 +8,7 @@
  * Add a domain here before embedding anything new.
  */
 import { fileURLToPath } from 'node:url';
+import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin';
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://*.razorpay.com https://www.googletagmanager.com https://connect.facebook.net https://challenges.cloudflare.com",
@@ -47,6 +48,12 @@ const nextConfig = {
   outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
   // copy-engine.mjs (prebuild) puts the engine in ./.prisma/client, a folder Prisma always searches.
   outputFileTracingIncludes: { '/**/*': ['./.prisma/client/**/*', '../../packages/db/generated/client/**/*'] },
+  // Next bundles @ascend/db, so Prisma looks for its engine next to the server bundle (.next/server).
+  // Prisma's monorepo plugin copies the engine + schema there at build time.
+  webpack(config, { isServer }) {
+    if (isServer) config.plugins.push(new PrismaPlugin());
+    return config;
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

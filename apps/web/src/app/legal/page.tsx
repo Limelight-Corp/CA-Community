@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { Container, Kicker } from '@ascend/ui';
-import { LEGAL_DOCS } from '../../components/content/legal-docs';
+import { legalDocs } from '../../lib/legal';
 
 export const metadata: Metadata = {
   title: 'Legal',
@@ -11,17 +11,20 @@ export const metadata: Metadata = {
   alternates: { canonical: '/legal' },
 };
 
-export default function LegalIndexPage() {
+export default async function LegalIndexPage() {
+  const docs = await legalDocs();
   return (
     <section className="py-16 md:py-24">
       <Container size="wide" className="flex flex-col gap-10">
         <div className="flex flex-col gap-6">
           <Kicker>Legal</Kicker>
           <h1 className="font-display text-[clamp(44px,8vw,112px)] font-medium leading-[0.92] tracking-[-0.055em] text-[var(--fg)]">The fine print.</h1>
-          <p className="max-w-[56ch] text-[17px] text-[var(--muted)]">Draft policies — the exact legal wording is to be reviewed by the organisation’s legal/professional advisor.</p>
+          {docs.some((d) => !d.edited) && (
+            <p className="max-w-[56ch] text-[17px] text-[var(--muted)]">Draft policies — the exact legal wording is to be reviewed by the organisation’s legal/professional advisor.</p>
+          )}
         </div>
         <ul className="border-t border-[var(--line)]">
-          {LEGAL_DOCS.map((d, i) => (
+          {docs.map((d, i) => (
             <li key={d.slug}>
               <Link href={`/legal/${d.slug}`} className="group grid gap-2 border-b border-[var(--line)] py-6 md:grid-cols-[4rem_1fr_1.4fr_auto] md:items-center md:gap-8">
                 <span className="font-mono text-[12px] text-gold">{String(i + 1).padStart(2, '0')}</span>

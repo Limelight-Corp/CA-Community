@@ -150,6 +150,19 @@ enum OutboxStatus {
 // Site configuration
 // ===========================================================================================
 
+/// Admin-edited wording of a legal page (privacy, terms …). A page without a row shows the
+/// default draft text that ships with the code (@ascend/shared legal-docs).
+model LegalDocument {
+  slug      String   @id @db.VarChar(40)
+  title     String   @db.VarChar(120)
+  summary   String   @db.VarChar(400)
+  /// Sections as text: "## Heading" lines, paragraphs separated by a blank line.
+  content   String
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("legal_documents")
+}
+
 /// Single row (id = 1, enforced by a CHECK). Was `settings` in community-store.json.
 model SiteSettings {
   id                 Int      @id @default(1)

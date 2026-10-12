@@ -59,6 +59,7 @@ export async function POST(req: Request) {
     | { kind: 'unknown' }
     | { kind: 'mismatch' }
     | { kind: 'noop' }
+    | { kind: 'paidCancelled'; reg: CommunityRegistration }
     | { kind: 'paid'; reg: CommunityRegistration }
     | { kind: 'failed'; reg: CommunityRegistration };
 
@@ -83,6 +84,16 @@ export async function POST(req: Request) {
     // The captured amount must match the server-computed fee for this booking.
     if (payment.amount !== Math.round(reg.fee * 100) || (payment.currency && payment.currency !== 'INR')) {
       return { kind: 'mismatch' };
+    }
+    // Money arrived for a booking the admin had cancelled: record the payment so it shows up for a
+    // refund, but never reopen the booking or take a seat.
+    if (reg.status === 'cancelled') {
+      const recorded = (await store.updateRegistration(
+        { id: reg.id },
+        { paymentStatus: 'paid', gatewayPaymentId: payment.id || reg.gatewayPaymentId, paidAt: stamp },
+        tx
+      ))!;
+      return { kind: 'paidCancelled', reg: recorded };
     }
     const wasConfirmed = reg.status === 'confirmed';
     const paid = (await store.updateRegistration(
@@ -110,6 +121,9 @@ export async function POST(req: Request) {
       if (event !== 'payment.failed') console.warn(`[razorpay webhook] ${event}: no booking or membership for order ${payment.order_id}`);
       return ok({ ignored: true });
     }
+    case 'paidCancelled':
+      console.error(`[razorpay webhook] payment ${payment.id} received for cancelled booking ${outcome.reg.bookingId} — refund it from the admin Payments page`);
+      return ok({ cancelledBooking: true });
     case 'mismatch':
       console.error(`[razorpay webhook] ${event}: amount mismatch for order ${payment.order_id} (${payment.amount})`);
       return ok({ ignored: true });

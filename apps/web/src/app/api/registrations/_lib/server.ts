@@ -117,31 +117,16 @@ export function generateBookingId(event: CommunityEvent): string {
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Rate limiting (in-memory, per process)                                                     */
+/* Rate limiting (shared by every server instance, counted in PostgreSQL)                      */
 /* ------------------------------------------------------------------------------------------ */
-
-const buckets = new Map<string, number[]>();
 
 /** The caller's IP as seen by our proxy — never the client-supplied part of X-Forwarded-For. */
 export function clientIp(req: Request): string {
   return clientIpFromHeaders(req.headers);
 }
 
-/** Returns true when the key is still within `limit` hits per `windowMs`. */
-export function rateLimit(key: string, limit = 10, windowMs = 10 * 60_000): boolean {
-  const now = Date.now();
-  const hits = (buckets.get(key) || []).filter((t) => now - t < windowMs);
-  if (hits.length >= limit) {
-    buckets.set(key, hits);
-    return false;
-  }
-  hits.push(now);
-  buckets.set(key, hits);
-  if (buckets.size > 5000) {
-    for (const [k, v] of buckets) if (!v.some((t) => now - t < windowMs)) buckets.delete(k);
-  }
-  return true;
-}
+/** Await it: true while the key is within `limit` hits per `windowMs`. */
+export { rateLimit } from '@ascend/db';
 
 /* ------------------------------------------------------------------------------------------ */
 /* Razorpay                                                                                    */

@@ -160,12 +160,12 @@ export function EventForm({
     if (!Number.isFinite(memberFee) || memberFee < 0) e.memberFee = 'Enter 0 or a positive amount';
     else if (memberFee > fee) e.memberFee = 'Member fee should not exceed the standard fee';
     if (!Number.isInteger(seats) || seats < 0) e.seatsTotal = 'Enter a whole number of seats';
+    else if (event && seats < (Number(event.seatsTaken) || 0)) {
+      e.seatsTotal = `Capacity cannot be below the ${event.seatsTaken} seats already taken`;
+    }
     if (form.cpeHours.trim() !== '') {
       const h = Number(form.cpeHours);
       if (!Number.isFinite(h) || h < 0 || h > 100) e.cpeHours = 'Enter hours between 0 and 100';
-    }
-    else if (event && seats < (Number(event.seatsTaken) || 0)) {
-      e.seatsTotal = `Capacity cannot be below the ${event.seatsTaken} seats already taken`;
     }
     if (!form.description.trim()) e.description = 'Description is required';
     form.agenda.forEach((row, i) => {

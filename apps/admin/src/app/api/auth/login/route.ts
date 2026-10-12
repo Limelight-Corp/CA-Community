@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FailureThrottle, clientIpFromHeaders } from '@ascend/shared';
+import { clientIpFromHeaders } from '@ascend/shared';
+import { SharedFailureThrottle } from '@ascend/db';
 import { bad, isPlainObject } from '../../../../lib/api-helpers';
 import {
   SESSION_COOKIE,
@@ -16,12 +17,13 @@ import { sameOrigin } from '../same-origin';
 export const dynamic = 'force-dynamic';
 
 /**
- * In-memory brute-force brake, counted both per username (5 failures / 15 min) and per client IP
+ * Brute-force brake shared by every server instance (PostgreSQL) and with the HTTP Basic check in
+ * middleware.ts, counted both per username (5 failures / 15 min) and per client IP
  * (20 / 15 min). The IP comes from our proxy, so a forged X-Forwarded-For cannot reset it.
  */
 const WINDOW_MS = 15 * 60 * 1000;
-const byUser = new FailureThrottle(5, WINDOW_MS);
-const byIp = new FailureThrottle(20, WINDOW_MS);
+const byUser = new SharedFailureThrottle('admin-user', 5, WINDOW_MS);
+const byIp = new SharedFailureThrottle('admin-ip', 20, WINDOW_MS);
 
 function isHttps(request: NextRequest): boolean {
   const proto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
   if (!(await signInConfigured())) return bad('Admin sign-in is not configured on this server.', 503);
 
   const ipKey = clientIpFromHeaders(request.headers);
-  const ipMinutes = byIp.lockedFor(ipKey);
+  const ipMinutes = await byIp.lockedFor(ipKey);
   if (ipMinutes > 0) return tooMany(ipMinutes);
 
   const body = await request.json().catch(() => null);
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     });
   }
   const userKey = username.toLowerCase();
-  const userMinutes = byUser.lockedFor(userKey);
+  const userMinutes = await byUser.lockedFor(userKey);
   if (userMinutes > 0) return tooMany(userMinutes);
 
   // Accounts in the admin store first, then the environment credentials as a fallback.
@@ -64,13 +66,13 @@ export async function POST(request: NextRequest) {
     constantTimeEqual(username, cfg.user) &&
     constantTimeEqual(password, cfg.password);
   if (!dbUser && !envOk) {
-    byIp.fail(ipKey);
-    const left = byUser.fail(userKey);
+    await byIp.fail(ipKey);
+    const left = await byUser.fail(userKey);
     await new Promise((r) => setTimeout(r, 400));
     return left > 0 ? bad('Incorrect username or password.', 401) : tooMany(15);
   }
 
-  byUser.clear(userKey);
+  await byUser.clear(userKey);
   if (dbUser) await recordAdminLogin(dbUser.id);
   const token = dbUser
     ? await createSessionToken(dbUser.username, 'db')

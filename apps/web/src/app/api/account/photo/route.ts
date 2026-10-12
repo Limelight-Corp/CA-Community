@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
   const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
-  if (!rateLimit(`photo:${account.id}`, 20, 60 * 60_000)) return json({ error: 'Too many uploads. Please try again later.' }, 429);
+  if (!(await rateLimit(`photo:${account.id}`, 20, 60 * 60_000))) return json({ error: 'Too many uploads. Please try again later.' }, 429);
   if (Number(req.headers.get('content-length') || 0) > MAX + 64 * 1024) return json({ error: 'The photo must be under 2 MB.' }, 413);
 
   const form = await req.formData().catch(() => null);

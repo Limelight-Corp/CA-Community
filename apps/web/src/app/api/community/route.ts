@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { CommunityResource } from '@ascend/shared';
 import { readStore, getItems, ContentType } from '../../../lib/community-store';
+import { resourceDownloadUrl, safeUrl } from '../../../lib/content';
 
 /**
  * Public, read-only content feed for the website.
@@ -18,6 +20,14 @@ const CONTENT_TYPES: readonly ContentType[] = [
   'resources',
 ];
 
+/**
+ * Resources never carry their stored file path or external link: the link goes through the
+ * download route, which enforces members-only access.
+ */
+function publicResource(r: CommunityResource): CommunityResource {
+  return { ...r, fileUrl: safeUrl(r.fileUrl) ? resourceDownloadUrl(r.id) : undefined };
+}
+
 function isContentType(value: string | null): value is ContentType {
   return value !== null && (CONTENT_TYPES as readonly string[]).includes(value);
 }
@@ -31,7 +41,7 @@ export async function GET(request: NextRequest) {
       if (!isContentType(type)) {
         return NextResponse.json({ success: false, error: 'Unknown content type' }, { status: 400 });
       }
-      const items = await getItems(type, true);
+      const items = type === 'resources' ? (await getItems<CommunityResource>(type, true)).map(publicResource) : await getItems(type, true);
       return NextResponse.json({ success: true, type, count: items.length, data: items });
     }
 
@@ -47,7 +57,7 @@ export async function GET(request: NextRequest) {
         speakers: published(allData.speakers),
         wings: published(allData.wings),
         news: published(allData.news),
-        resources: published(allData.resources),
+        resources: published(allData.resources).map(publicResource),
       },
     });
   } catch (error) {

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/registrations/<bookingId>/receipt?t=<access token> → receipt / confirmation PDF. */
 export async function GET(req: Request, { params }: { params: Promise<{ bookingId: string }> }) {
-  if (!rateLimit(`receipt:${clientIp(req)}`, 30, 10 * 60_000)) {
+  if (!(await rateLimit(`receipt:${clientIp(req)}`, 30, 10 * 60_000))) {
     return NextResponse.json({ error: 'Too many requests. Please try again in a few minutes.' }, { status: 429 });
   }
   const { bookingId } = await params;

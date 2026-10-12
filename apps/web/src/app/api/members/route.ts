@@ -13,7 +13,7 @@ import { knownWingNumbers } from '../../../lib/taxonomy';
  * No payment is taken and no email is sent here — the team follows up after review.
  */
 export async function POST(request: NextRequest) {
-  if (!rateLimit(`members:${clientIp(request)}`, 5, 10 * 60_000)) {
+  if (!(await rateLimit(`members:${clientIp(request)}`, 5, 10 * 60_000))) {
     return NextResponse.json(
       { success: false, error: 'Too many submissions from this connection. Please try again in a few minutes.' },
       { status: 429 }

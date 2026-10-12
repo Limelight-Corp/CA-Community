@@ -20,7 +20,7 @@ export type CertificateStatus = 'ready' | 'awaiting_event' | 'not_checked_in' | 
  * Only bookings whose token matches are returned, so nobody can list someone else's certificates.
  */
 export async function POST(req: Request) {
-  if (!rateLimit(`certlookup:${clientIp(req)}`, 30, 10 * 60_000)) {
+  if (!(await rateLimit(`certlookup:${clientIp(req)}`, 30, 10 * 60_000))) {
     return NextResponse.json({ error: 'Too many requests.' }, { status: 429 });
   }
   const parsed = Body.safeParse(await req.json().catch(() => null));

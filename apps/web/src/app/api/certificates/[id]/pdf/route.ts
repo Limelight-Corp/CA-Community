@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/certificates/<certificateId>/pdf?t=<booking access token> → the certificate PDF. */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!rateLimit(`cert:${clientIp(req)}`, 30, 10 * 60_000)) {
+  if (!(await rateLimit(`cert:${clientIp(req)}`, 30, 10 * 60_000))) {
     return NextResponse.json({ error: 'Too many requests. Please try again in a few minutes.' }, { status: 429 });
   }
   const { id } = await params;

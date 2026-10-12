@@ -72,6 +72,22 @@ export async function updateSettings(updates: Partial<SiteSettings>): Promise<Si
   return settings;
 }
 
+/** Admin-edited legal pages (empty until the admin saves one, or if the table is not there yet). */
+export const getLegalOverrides = cache(
+  unstable_cache(
+    async () => {
+      try {
+        return await store.listLegalDocuments();
+      } catch (err) {
+        console.error('Legal pages: using the default wording:', (err as Error).message);
+        return [];
+      }
+    },
+    ['legal-docs'],
+    shared
+  )
+);
+
 // Also cached per request (React cache): pages, metadata and helpers often ask for the same list.
 const listCached = cache(
   unstable_cache((type: ContentType, publishedOnly: boolean) => store.listContent(type, publishedOnly), ['content-list'], shared)

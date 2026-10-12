@@ -6,7 +6,7 @@ import { CAPTCHA_ERROR, tokenFrom, verifyTurnstile } from '../../../lib/turnstil
 
 /** Public contact form (Website Checklist §13). Messages go to the PRIVATE store with status "new". */
 export async function POST(request: NextRequest) {
-  if (!rateLimit(`contact:${clientIp(request)}`, 5, 10 * 60_000)) {
+  if (!(await rateLimit(`contact:${clientIp(request)}`, 5, 10 * 60_000))) {
     return NextResponse.json(
       { success: false, error: 'Too many messages from this connection. Please try again in a few minutes.' },
       { status: 429 }

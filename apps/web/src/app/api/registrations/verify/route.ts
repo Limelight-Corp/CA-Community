@@ -23,7 +23,7 @@ function json(body: unknown, status = 200) {
 }
 
 export async function POST(req: Request) {
-  if (!rateLimit(`verify:${clientIp(req)}`, 30, 10 * 60_000)) {
+  if (!(await rateLimit(`verify:${clientIp(req)}`, 30, 10 * 60_000))) {
     return json({ error: 'Too many attempts. Please wait a few minutes.' }, 429);
   }
   const parsed = VerifyInput.safeParse(await req.json().catch(() => null));
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
 
   type Result =
     | { kind: 'notfound' }
+    | { kind: 'cancelled' }
     | { kind: 'paid'; eventId: string; firstTime: boolean; status: string; paymentStatus: string; reg: CommunityRegistration }
     | { kind: 'failed'; status: string; paymentStatus: string; reg: CommunityRegistration; newlyFailed: boolean };
 
@@ -50,12 +51,18 @@ export async function POST(req: Request) {
     if (!reg || !byToken || byToken.id !== reg.id) return { kind: 'notfound' };
 
     // Idempotent: an already-paid registration stays paid and never takes a second seat.
+    if (reg.paymentStatus === 'paid' && reg.status === 'cancelled') return { kind: 'cancelled' };
     if (reg.paymentStatus === 'paid') {
       return { kind: 'paid', eventId: reg.eventId, firstTime: false, status: reg.status, paymentStatus: reg.paymentStatus, reg: { ...reg } };
     }
 
     const orderMatches = !!reg.gatewayOrderId && safeEqual(reg.gatewayOrderId, input.razorpay_order_id || '');
     const stamp = new Date().toISOString();
+    // Paid for a booking the admin had cancelled: record the payment (for a refund), keep it cancelled.
+    if (signatureOk && orderMatches && reg.status === 'cancelled') {
+      await store.updateRegistration({ id: reg.id }, { paymentStatus: 'paid', gatewayPaymentId: input.razorpay_payment_id, paidAt: stamp }, tx);
+      return { kind: 'cancelled' };
+    }
     if (signatureOk && orderMatches) {
       const paid = (await store.updateRegistration(
         { id: reg.id },
@@ -78,6 +85,10 @@ export async function POST(req: Request) {
   });
 
   if (result.kind === 'notfound') return json({ error: 'Registration not found.' }, 404);
+  if (result.kind === 'cancelled') {
+    console.error(`[verify] payment ${input.razorpay_payment_id} received for cancelled booking ${input.bookingId} — refund it from the admin Payments page`);
+    return json({ ok: false, error: 'This booking was cancelled, so the payment was not used for it. We have recorded the payment — please contact us about the refund.' }, 409);
+  }
   if (result.kind === 'paid') {
     if (result.firstTime) await notifyPaymentConfirmed(result.reg);
     return json({ ok: true, status: result.status, paymentStatus: result.paymentStatus });

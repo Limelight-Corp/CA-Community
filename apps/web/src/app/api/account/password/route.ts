@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
   const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
-  if (!rateLimit(`password:${account.id}`, 10, 15 * 60_000)) return json({ error: 'Too many attempts. Please wait a few minutes.' }, 429);
+  if (!(await rateLimit(`password:${account.id}`, 10, 15 * 60_000))) return json({ error: 'Too many attempts. Please wait a few minutes.' }, 429);
   const parsed = Input.safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Invalid request.' }, 400);
   if (!(await verifyPassword(parsed.data.currentPassword, account.passwordHash))) {

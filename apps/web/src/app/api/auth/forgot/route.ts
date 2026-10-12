@@ -13,7 +13,7 @@ const Input = z.object({ email: z.string().trim().toLowerCase().email().max(160)
 /** Always answers the same way, so it can't be used to find out which emails have accounts. */
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  if (!rateLimit(`forgot:${clientIp(req)}`, 10, 60 * 60_000)) {
+  if (!(await rateLimit(`forgot:${clientIp(req)}`, 10, 60 * 60_000))) {
     return json({ error: 'Too many requests. Please try again later.' }, 429);
   }
   const body = await readJsonBody(req);
@@ -21,6 +21,6 @@ export async function POST(req: NextRequest) {
   const parsed = Input.safeParse(body);
   if (!parsed.success) return json({ error: 'Enter a valid email address.' }, 422);
   const account = await findAccountByEmail(parsed.data.email);
-  if (account && rateLimit(`forgot-mail:${account.id}`, 3, 60 * 60_000)) await sendPasswordResetEmail(account);
+  if (account && (await rateLimit(`forgot-mail:${account.id}`, 3, 60 * 60_000))) await sendPasswordResetEmail(account);
   return json({ ok: true });
 }

@@ -3,7 +3,7 @@ import type { CommunityEvent, CommunityNews, CommunitySpeaker } from '@ascend/sh
 import { getItems } from '../lib/community-store';
 import { siteUrl } from '../lib/seo';
 import { isoDate } from '../lib/content';
-import { LEGAL_DOCS } from '../components/content/legal-docs';
+import { LEGAL_DOCS } from '@ascend/shared';
 import { allWingHubs } from '../lib/wings';
 import { openJobs } from '../lib/jobs';
 

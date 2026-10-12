@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const account = await memberFromRequest(req);
   if (!account) return json({ error: 'Please log in.' }, 401);
   if (!(await isApprovedMember(account))) return json({ error: 'Mentorship is a member benefit — it opens once your membership is active.' }, 403);
-  if (!rateLimit(`mreq:${account.id}`, 5, 60 * 60_000)) return json({ error: 'Too many requests. Please try again later.' }, 429);
+  if (!(await rateLimit(`mreq:${account.id}`, 5, 60 * 60_000))) return json({ error: 'Too many requests. Please try again later.' }, 429);
   const parsed = RequestInput.safeParse(await readJsonBody(req));
   if (!parsed.success) return json({ error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsOf(parsed.error) }, 422);
   const result = await createRequest(account, { ...parsed.data, stage: parsed.data.stage as (typeof MENTORSHIP_STAGES)[number], wings: await knownWingNumbers(parsed.data.wings) });

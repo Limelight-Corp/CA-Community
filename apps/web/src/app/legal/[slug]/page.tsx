@@ -5,7 +5,8 @@ import { notFound } from 'next/navigation';
 import { AlertTriangle, ArrowUpRight } from 'lucide-react';
 import { Container, Kicker, cn } from '@ascend/ui';
 import { getSettings } from '../../../lib/community-store';
-import { LEGAL_DOCS, getLegalDoc } from '../../../components/content/legal-docs';
+import { LEGAL_DOCS } from '@ascend/shared';
+import { legalDoc, legalDocs } from '../../../lib/legal';
 
 type Params = Promise<{ slug: string }>;
 
@@ -15,7 +16,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const doc = getLegalDoc(slug);
+  const doc = await legalDoc(slug);
   if (!doc) return { title: 'Not found' };
   const { siteName } = await getSettings();
   return {
@@ -27,8 +28,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function LegalDocPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const doc = getLegalDoc(slug);
+  const doc = await legalDoc(slug);
   if (!doc) notFound();
+  const docs = await legalDocs();
   const { siteName } = await getSettings();
 
   return (
@@ -45,7 +47,7 @@ export default async function LegalDocPage({ params }: { params: Params }) {
       <Container size="wide" className="grid gap-12 py-14 md:py-20 lg:grid-cols-[260px_1fr]">
         <nav aria-label="Legal documents" className="lg:sticky lg:top-28 lg:self-start">
           <ul className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
-            {LEGAL_DOCS.map((d) => {
+            {docs.map((d) => {
               const active = d.slug === doc.slug;
               return (
                 <li key={d.slug} className="shrink-0">
@@ -66,16 +68,20 @@ export default async function LegalDocPage({ params }: { params: Params }) {
         </nav>
 
         <div className="flex max-w-[760px] flex-col gap-10">
-          <div role="note" className="flex gap-3 rounded-[20px] border border-warn/40 bg-warn/10 p-5 text-[14.5px] leading-relaxed text-[var(--fg)]">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warn" aria-hidden />
-            <p>
-              <strong className="font-semibold">Draft</strong> — the exact legal wording is to be reviewed by the organisation’s legal/professional advisor.
-            </p>
-          </div>
+          {doc.edited ? (
+            doc.updatedAt && <p className="font-mono text-[12px] uppercase tracking-[0.12em] text-[var(--muted)]">Last updated {doc.updatedAt.slice(0, 10)}</p>
+          ) : (
+            <div role="note" className="flex gap-3 rounded-[20px] border border-warn/40 bg-warn/10 p-5 text-[14.5px] leading-relaxed text-[var(--fg)]">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warn" aria-hidden />
+              <p>
+                <strong className="font-semibold">Draft</strong> — the exact legal wording is to be reviewed by the organisation’s legal/professional advisor.
+              </p>
+            </div>
+          )}
 
           <ol className="flex flex-col gap-10">
             {doc.sections.map((s, i) => (
-              <li key={s.heading} className="flex flex-col gap-3">
+              <li key={`${i}-${s.heading}`} className="flex flex-col gap-3">
                 <h2 className="flex items-baseline gap-3 font-display text-[clamp(22px,2.4vw,30px)] font-medium tracking-[-0.03em] text-[var(--fg)]">
                   <span className="font-mono text-[12px] text-gold">{String(i + 1).padStart(2, '0')}</span>
                   {s.heading}

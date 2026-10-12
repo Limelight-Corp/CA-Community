@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { CommunityRegistration } from '@ascend/shared';
 import { newId, newSecret, store } from '../../../lib/community-store';
 import { canRegister, seatsLeft } from '../../../lib/events';
-import { notifyRegistrationCreated } from '../../../lib/notifications';
+import { notifyExistingBooking, notifyRegistrationCreated } from '../../../lib/notifications';
 import {
   clientIp,
   findPublishedEvent,
@@ -52,7 +52,7 @@ function json(body: unknown, status = 200) {
 }
 
 export async function POST(req: Request) {
-  if (!rateLimit(`reg:${clientIp(req)}`, 10, 10 * 60_000)) {
+  if (!(await rateLimit(`reg:${clientIp(req)}`, 10, 10 * 60_000))) {
     return json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, 429);
   }
 
@@ -86,14 +86,14 @@ export async function POST(req: Request) {
 
   // Per-recipient cap: each new booking emails the address given, so limit bookings per email
   // address however many IPs they come from (stops using the form to flood someone's inbox).
-  if (!rateLimit(`reg-to:${input.email.toLowerCase()}`, 5, 60 * 60_000)) {
+  if (!(await rateLimit(`reg-to:${input.email.toLowerCase()}`, 5, 60 * 60_000))) {
     return json({ error: 'Too many registrations for this email address. Please try again in an hour.' }, 429);
   }
 
 
   type Outcome =
     | { kind: 'existing'; reg: CommunityRegistration }
-    | { kind: 'conflict' }
+    | { kind: 'conflict'; reg: CommunityRegistration }
     | { kind: 'closed'; message: string }
     | { kind: 'created'; reg: CommunityRegistration };
 
@@ -110,8 +110,9 @@ export async function POST(req: Request) {
     const mine = await store.listRegistrations({ eventId: event.id, email: input.email, status: { in: ['CONFIRMED', 'PENDING_PAYMENT'] } }, tx);
     const existing = mine.find((r) => r.status === 'confirmed' || (r.status === 'pending_payment' && !isAbandoned(r)));
     if (existing) {
-      // Only hand back the existing booking to someone who also knows the registered mobile.
-      return existing.mobile === input.mobile ? { kind: 'existing', reg: existing } : { kind: 'conflict' };
+      // The booking link is never handed back here — knowing an email and mobile is not proof of
+      // identity. It is emailed to the registered address instead (see below).
+      return existing.mobile === input.mobile ? { kind: 'existing', reg: existing } : { kind: 'conflict', reg: existing };
     }
 
     if (!canRegister(current) || seatsLeft(current) <= 0) {
@@ -156,20 +157,18 @@ export async function POST(req: Request) {
     return { kind: 'created', reg };
   });
 
-  if (outcome.kind === 'conflict') {
-    return json(
-      {
-        error:
-          'This email is already registered for this event. Open the confirmation link from your registration, or contact us if you need help.',
-        fieldErrors: { email: 'Already registered for this event' },
-      },
-      409
-    );
+  if (outcome.kind === 'existing' || outcome.kind === 'conflict') {
+    await notifyExistingBooking(outcome.reg);
+    return json({
+      alreadyRegistered: true,
+      message:
+        'This email is already registered for this event. We have emailed the booking link to that address — open it to see your pass or complete the payment.',
+    });
   }
   if (outcome.kind === 'closed') return json({ error: outcome.message }, 409);
 
   const reg = outcome.reg;
-  if (outcome.kind === 'created') await notifyRegistrationCreated(reg, event);
+  await notifyRegistrationCreated(reg, event);
 
   // Paid bookings are paid on the separate payment page (which requires a member login).
   return json(
@@ -179,8 +178,7 @@ export async function POST(req: Request) {
       status: reg.status,
       paymentStatus: reg.paymentStatus,
       fee: reg.fee,
-      duplicate: outcome.kind === 'existing' || undefined,
     },
-    outcome.kind === 'created' ? 201 : 200
+    201
   );
 }

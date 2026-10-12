@@ -1,5 +1,6 @@
 /**
- * DRAFT legal documents (Website Checklist §24).
+ * Default (DRAFT) legal documents (Website Checklist §24). The admin can replace the wording of
+ * each one (Admin → Legal pages); these defaults are used until then.
  * Generic placeholder wording only — to be reviewed and replaced by the organisation's
  * legal / professional advisor before launch. Do not add registration numbers or addresses here.
  */
@@ -288,4 +289,60 @@ export const LEGAL_DOCS: LegalDoc[] = [
 
 export function getLegalDoc(slug: string): LegalDoc | undefined {
   return LEGAL_DOCS.find((d) => d.slug === slug);
+}
+
+export type LegalSlug = LegalDoc['slug'];
+export const LEGAL_SLUGS = LEGAL_DOCS.map((d) => d.slug);
+
+/**
+ * Admin-editable text form of a document's sections: a line starting with "## " starts a
+ * section (its heading), and paragraphs are separated by a blank line.
+ */
+export function legalSectionsToText(sections: LegalSection[]): string {
+  return sections.map((s) => [`## ${s.heading}`, ...s.body].join('\n\n')).join('\n\n');
+}
+
+export function legalTextToSections(text: string): LegalSection[] {
+  const sections: LegalSection[] = [];
+  let current: LegalSection | null = null;
+  for (const block of text.replace(/\r\n/g, '\n').split(/\n{2,}/)) {
+    const lines = block.trim();
+    if (!lines) continue;
+    const heading = /^##\s+(.+)$/m.exec(lines.split('\n')[0] ?? '');
+    if (heading) {
+      current = { heading: heading[1]!.trim(), body: [] };
+      sections.push(current);
+      const rest = lines.split('\n').slice(1).join(' ').trim();
+      if (rest) current.body.push(rest);
+    } else {
+      if (!current) {
+        current = { heading: '', body: [] };
+        sections.push(current);
+      }
+      current.body.push(lines.replace(/\s*\n\s*/g, ' '));
+    }
+  }
+  return sections;
+}
+
+/** A stored override of a document (title, summary and section text), as saved by the admin. */
+export interface LegalOverride {
+  slug: string;
+  title: string;
+  summary: string;
+  content: string;
+  updatedAt?: string;
+}
+
+/** The default document with the admin's saved wording applied, if any. */
+export function applyLegalOverride(doc: LegalDoc, override?: LegalOverride): LegalDoc & { edited: boolean; updatedAt?: string } {
+  if (!override) return { ...doc, edited: false };
+  return {
+    ...doc,
+    title: override.title,
+    summary: override.summary,
+    sections: legalTextToSections(override.content),
+    edited: true,
+    updatedAt: override.updatedAt,
+  };
 }

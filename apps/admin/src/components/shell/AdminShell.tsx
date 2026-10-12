@@ -16,7 +16,7 @@ import {
   Layers,
   Tags,
   Menu,
-  Megaphone,
+  Megaphone, Scale,
   Mic2,
   Newspaper,
   Quote,
@@ -90,6 +90,7 @@ const NAV: { heading: string; items: NavItem[] }[] = [
     items: [
       { href: '/settings', label: 'Site Settings', icon: Settings },
       { href: '/settings#announcement', label: 'Announcement bar', icon: Megaphone },
+      { href: '/legal', label: 'Legal pages', icon: Scale },
     ],
   },
 ];

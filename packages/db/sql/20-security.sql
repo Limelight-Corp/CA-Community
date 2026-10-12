@@ -84,7 +84,8 @@ GRANT EXECUTE ON FUNCTION ascend_is_email(citext), ascend_is_mobile(text), ascen
 -- ---------------------------------------------------------------------------------------------
 GRANT SELECT ON
   site_settings, taxonomy_terms, wings, events, event_agenda_items, speakers, event_speakers,
-  news_articles, resources, gallery_items, team_members, testimonials, initiatives, jobs
+  news_articles, resources, gallery_items, team_members, testimonials, initiatives, jobs,
+  legal_documents
 TO ascend_web;
 -- Seat counter and download counter only (not the rest of the event / resource).
 GRANT UPDATE (seats_taken, updated_at) ON events TO ascend_web;
@@ -113,7 +114,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   news_articles, resources, gallery_items, team_members, testimonials, initiatives, jobs,
   event_registrations, memberships, membership_payments, membership_interests,
   mentors, mentor_wings, mentorship_requests, mentorship_request_wings, contact_messages,
-  notification_outbox, rate_limit_buckets
+  notification_outbox, rate_limit_buckets, legal_documents
 TO ascend_admin;
 GRANT SELECT, INSERT, UPDATE ON admin_users TO ascend_admin;
 -- Admins see member accounts (to link bookings) but never the password hash or tokens.
@@ -130,7 +131,7 @@ GRANT SELECT ON
   site_settings, taxonomy_terms, wings, events, event_agenda_items, speakers, event_speakers,
   news_articles, resources, gallery_items, team_members, testimonials, initiatives, jobs,
   memberships, membership_payments, membership_interests, mentors, mentor_wings,
-  mentorship_requests, mentorship_request_wings, contact_messages
+  mentorship_requests, mentorship_request_wings, contact_messages, legal_documents
 TO ascend_readonly;
 GRANT SELECT (id, booking_id, event_id, account_id, event_title, name, email, mobile, city,
   membership_no, organisation, designation, fee, status, payment_status, paid_at, refund_amount,

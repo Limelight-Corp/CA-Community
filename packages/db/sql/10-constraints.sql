@@ -54,6 +54,10 @@ $$;
 -- ---------------------------------------------------------------------------------------------
 -- Site settings & taxonomies
 -- ---------------------------------------------------------------------------------------------
+CALL ascend_check('legal_documents', 'legal_documents_slug_ck',
+  $c$slug IN ('privacy', 'terms', 'event-terms', 'refund', 'payment', 'cookies')$c$);
+CALL ascend_check('legal_documents', 'legal_documents_text_ck',
+  $c$length(btrim(title)) > 0 AND length(btrim(summary)) > 0 AND length(content) BETWEEN 1 AND 60000$c$);
 CALL ascend_check('site_settings', 'site_settings_singleton', 'id = 1');
 CALL ascend_check('site_settings', 'site_settings_fees_ck',
   '(fee_core IS NULL OR fee_core BETWEEN 0 AND 1000000) AND (fee_associate IS NULL OR fee_associate BETWEEN 0 AND 1000000) AND (fee_student IS NULL OR fee_student BETWEEN 0 AND 1000000)');

@@ -43,6 +43,16 @@ export async function notifyRegistrationCreated(reg: CommunityRegistration, even
   queueMail(await adminRecipients(), adminNewRegistrationEmail(brand, booking, adminRegistrationsUrl(reg)), { replyTo: reg.email });
 }
 
+/**
+ * Someone submitted the form again for an existing booking: the booking link goes only to the
+ * registered email address (never back to whoever filled in the form).
+ */
+export async function notifyExistingBooking(reg: CommunityRegistration): Promise<void> {
+  const brand = await emailBrand();
+  const booking = emailBookingFrom(reg, await eventFor(reg), siteUrl());
+  queueMail(reg.email, reg.status === 'confirmed' ? registrationConfirmedEmail(brand, booking) : paymentPendingEmail(brand, booking));
+}
+
 /** Payment verified: receipt to the attendee + admin alert. */
 export async function notifyPaymentConfirmed(reg: CommunityRegistration): Promise<void> {
   const brand = await emailBrand();

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 /** Returns one registration to the holder of its access token (`?t=`). Never lists. */
 export async function GET(req: Request, { params }: { params: Promise<{ bookingId: string }> }) {
   const notFound = NextResponse.json({ error: 'Not found' }, { status: 404, headers: { 'Cache-Control': 'no-store' } });
-  if (!rateLimit(`lookup:${clientIp(req)}`, 60, 10 * 60_000)) {
+  if (!(await rateLimit(`lookup:${clientIp(req)}`, 60, 10 * 60_000))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
   const { bookingId } = await params;

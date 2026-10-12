@@ -13,7 +13,7 @@ const INVALID = 'Incorrect email or password.';
 
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  if (!rateLimit(`login:${clientIp(req)}`, 30, 15 * 60_000)) {
+  if (!(await rateLimit(`login:${clientIp(req)}`, 30, 15 * 60_000))) {
     return json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, 429);
   }
   const parsed = Input.safeParse(await readJsonBody(req));
@@ -21,17 +21,17 @@ export async function POST(req: NextRequest) {
     return json({ error: 'Enter your email and password.' }, 400);
   }
   const email = normaliseEmail(parsed.data.email);
-  if (loginLocked(email)) {
+  if (await loginLocked(email)) {
     return json({ error: 'Too many failed attempts for this account. Try again in 15 minutes or reset your password.' }, 429);
   }
 
   const account = await findAccountByEmail(email);
   // verifyPassword runs even for unknown emails so timing doesn't reveal which accounts exist.
   if (!(await verifyPassword(parsed.data.password, account?.passwordHash)) || !account) {
-    recordLoginFailure(email);
+    await recordLoginFailure(email);
     return json({ error: INVALID }, 401);
   }
-  clearLoginFailures(email);
+  await clearLoginFailures(email);
   await recordLogin(account.id);
   const res = json({ user: await publicAccount(account) });
   setSessionCookie(res, account, req);

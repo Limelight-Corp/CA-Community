@@ -19,3 +19,5 @@ export * from './whatsapp/templates';
 export * from './constants/jobs';
 export * from './constants/taxonomy';
 export * from './security/client-ip';
+export * from './content/legal-docs';
+export * from './security/safe-redirect';

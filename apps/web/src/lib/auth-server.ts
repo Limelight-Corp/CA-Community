@@ -7,6 +7,7 @@ import { passwordResetEmail, verifyEmailEmail } from '@ascend/shared';
 import { issueToken, type MemberAccount } from './member-accounts';
 import { emailBrand, queueMail } from './mailer';
 import { siteUrl } from './seo';
+import { SharedFailureThrottle } from '@ascend/db';
 
 export function json(body: unknown, status = 200) {
   return NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
@@ -54,21 +55,18 @@ export async function sendPasswordResetEmail(account: Pick<MemberAccount, 'id' |
   queueMail(account.email, passwordResetEmail(await emailBrand(), { name: account.name, url: `${siteUrl()}/reset-password?token=${token}` }));
 }
 
-/** Per-email failed-login counter (in memory): 5 failures lock the email for 15 minutes. */
-const failures = new Map<string, { count: number; until: number }>();
-const LOCK_AFTER = 5;
-const LOCK_MS = 15 * 60_000;
+/**
+ * Per-email failed-login counter, shared by every server instance (PostgreSQL): 5 failures lock
+ * the email for 15 minutes.
+ */
+const loginFailures = new SharedFailureThrottle('loginfail', 5, 15 * 60_000);
 
-export function loginLocked(email: string): boolean {
-  const f = failures.get(email);
-  return !!f && f.count >= LOCK_AFTER && f.until > Date.now();
+export async function loginLocked(email: string): Promise<boolean> {
+  return (await loginFailures.lockedFor(email)) > 0;
 }
-export function recordLoginFailure(email: string): void {
-  const now = Date.now();
-  const f = failures.get(email);
-  if (!f || f.until <= now) failures.set(email, { count: 1, until: now + LOCK_MS });
-  else f.count += 1;
+export async function recordLoginFailure(email: string): Promise<void> {
+  await loginFailures.fail(email);
 }
-export function clearLoginFailures(email: string): void {
-  failures.delete(email);
+export async function clearLoginFailures(email: string): Promise<void> {
+  await loginFailures.clear(email);
 }

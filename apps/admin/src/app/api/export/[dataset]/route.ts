@@ -13,14 +13,14 @@ import { MEMBER_STATUS_LABEL, PAYMENT_STATUS_LABEL, REGISTRATION_STATUS_LABEL, s
 import { bad, handleError } from '../../../../lib/api-helpers';
 
 /**
- * Data exports: GET /api/export/{registrations|payments|members}?format=csv|xlsx&<filters>
+ * Data exports: GET /api/export/{registrations|payments|membership-payments|members}?format=csv|xlsx&<filters>
  *
  * Filters mirror the admin tables (q, event, payment, status, plan, city) so the file contains
  * what the admin sees. Protected by the admin access gate (src/middleware.ts).
  */
 export const dynamic = 'force-dynamic';
 
-const DATASETS = ['registrations', 'payments', 'members'] as const;
+const DATASETS = ['registrations', 'payments', 'membership-payments', 'members'] as const;
 type Dataset = (typeof DATASETS)[number];
 
 function param(sp: URLSearchParams, key: string): string | undefined {
@@ -99,10 +99,40 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dat
           { header: 'Gateway order ID', value: (r) => r.gatewayOrderId },
           { header: 'Gateway payment ID', value: (r) => r.gatewayPaymentId },
           { header: 'Paid at', value: (r) => r.paidAt },
+          { header: 'Refund ID', value: (r) => r.refundId },
+          {
+            header: 'Refund amount (INR)',
+            value: (r) => (r.paymentStatus === 'refunded' ? (r.refundAmount ?? (Number(r.fee) || 0)) : ''),
+          },
+          { header: 'Refunded at', value: (r) => r.refundedAt },
           { header: 'Registration status', value: (r) => REGISTRATION_STATUS_LABEL[r.status] ?? r.status },
           { header: 'Created at', value: (r) => r.createdAt },
         ];
         return exportResponse(rows, columns, { format, baseName: 'payment-report', sheetTitle: 'Payments' });
+      }
+      case 'membership-payments': {
+        const q = param(sp, 'q')?.toLowerCase();
+        const planName = (key: string) => MEMBERSHIP_PLANS.find((p) => p.key === key)?.name ?? key;
+        const rows = priv.members
+          .flatMap((m) => (m.payments ?? []).map((p) => ({ m, p })))
+          .filter(({ m, p }) => !q || [m.name, m.email, m.mobile, p.id, p.gatewayPaymentId].some((v) => v?.toLowerCase().includes(q)))
+          .sort((a, b) => b.p.paidAt.localeCompare(a.p.paidAt));
+        const columns: ExportColumn<(typeof rows)[number]>[] = [
+          { header: 'Receipt', value: ({ p }) => p.id },
+          { header: 'Member', value: ({ m }) => m.name },
+          { header: 'Email', value: ({ m }) => m.email },
+          { header: 'Mobile', value: ({ m }) => m.mobile },
+          { header: 'Plan', value: ({ m }) => planName(m.plan) },
+          { header: 'Amount (INR)', value: ({ p }) => p.amount },
+          { header: 'Method', value: ({ p }) => (p.method === 'razorpay' ? 'Online (Razorpay)' : 'Offline') },
+          { header: 'Gateway order ID', value: ({ p }) => p.gatewayOrderId },
+          { header: 'Gateway payment ID', value: ({ p }) => p.gatewayPaymentId },
+          { header: 'Paid at', value: ({ p }) => p.paidAt },
+          { header: 'Valid from', value: ({ p }) => p.validFrom.slice(0, 10) },
+          { header: 'Valid until', value: ({ p }) => p.validUntil.slice(0, 10) },
+          { header: 'Recorded by', value: ({ p }) => p.recordedBy },
+        ];
+        return exportResponse(rows, columns, { format, baseName: 'membership-payments', sheetTitle: 'Membership payments' });
       }
       case 'members': {
         const rows = filterMembers(priv.members, {

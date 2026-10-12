@@ -21,7 +21,7 @@ const Input = z.object({
 /** Creates a member account, signs it in and emails a verification link. */
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  if (!rateLimit(`register:${clientIp(req)}`, 10, 60 * 60_000)) {
+  if (!(await rateLimit(`register:${clientIp(req)}`, 10, 60 * 60_000))) {
     return json({ error: 'Too many sign-ups from this network. Please try again later.' }, 429);
   }
   const body = await readJsonBody(req);

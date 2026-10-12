@@ -54,6 +54,10 @@ async function systemPrompt(): Promise<string> {
 
 export async function runAssistant(history: ChatTurn[], ctx: { ip: string; page?: string }): Promise<AssistantReply> {
   if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) return basicReply(history);
+  // Site-wide daily budget for AI replies (ASSISTANT_DAILY_AI_LIMIT, default 1000); after it the
+  // assistant keeps answering in its basic, no-AI mode, so a flood of messages cannot run up costs.
+  const dailyLimit = Number(process.env.ASSISTANT_DAILY_AI_LIMIT) || 1000;
+  if (!(await rateLimit('assistant-ai-day:site', dailyLimit, 24 * 60 * 60_000))) return basicReply(history);
   try {
     return await aiReply(history, ctx);
   } catch (error) {
@@ -125,7 +129,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
       run: async (input) => {
         if (!input.visitor_confirmed) return 'Not saved: ask the visitor to confirm first.';
         if (collected.lead) return 'Already saved in this reply.';
-        if (!rateLimit(`lead:${ctx.ip}`, 3, 10 * 60_000)) return 'Not saved: too many requests from this connection. Suggest the Contact page.';
+        if (!(await rateLimit(`lead:${ctx.ip}`, 3, 10 * 60_000))) return 'Not saved: too many requests from this connection. Suggest the Contact page.';
         const parsed = contactMessageSchema.safeParse({
           name: input.name,
           email: input.email,

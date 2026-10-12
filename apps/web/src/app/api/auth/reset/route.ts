@@ -12,7 +12,7 @@ const Input = z.object({ token: z.string().max(100), password: z.string().max(20
 /** Sets a new password from a reset link and signs out every existing session. */
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return json({ error: 'Invalid request.' }, 403);
-  if (!rateLimit(`reset:${clientIp(req)}`, 20, 60 * 60_000)) {
+  if (!(await rateLimit(`reset:${clientIp(req)}`, 20, 60 * 60_000))) {
     return json({ error: 'Too many attempts. Please try again later.' }, 429);
   }
   const parsed = Input.safeParse(await readJsonBody(req));
@@ -29,6 +29,6 @@ export async function POST(req: NextRequest) {
   }
   // Opening the emailed link proves the address belongs to them.
   await setPassword(account.id, passwordHash, { verifyEmail: true });
-  clearLoginFailures(account.email);
+  await clearLoginFailures(account.email);
   return json({ ok: true });
 }

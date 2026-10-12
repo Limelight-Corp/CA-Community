@@ -1036,6 +1036,76 @@ export async function updateMentorshipRequest(
 }
 
 // =============================================================================================
+// Rate limits — fixed-window counters shared by every server instance (rate_limit_buckets)
+// =============================================================================================
+
+/** "scope:hash" — emails and IPs are never stored in clear, and keys stay short. */
+function bucketKey(key: string): string {
+  const scope = key.split(':', 1)[0]!.slice(0, 40);
+  return `${scope}:${sha256(key).slice(0, 48)}`;
+}
+
+/** Counts one hit for `key` in a window of `windowMs`; returns the count in the current window. */
+export async function rateLimitHit(key: string, windowMs: number): Promise<number> {
+  const k = bucketKey(key);
+  const ms = Math.max(1000, Math.round(windowMs));
+  const rows = await prisma.$queryRaw<{ count: number }[]>`
+    INSERT INTO rate_limit_buckets (key, count, window_start, expires_at)
+    VALUES (${k}, 1, now(), now() + ${ms} * interval '1 millisecond')
+    ON CONFLICT (key) DO UPDATE SET
+      count        = CASE WHEN rate_limit_buckets.expires_at <= now() THEN 1 ELSE rate_limit_buckets.count + 1 END,
+      window_start = CASE WHEN rate_limit_buckets.expires_at <= now() THEN now() ELSE rate_limit_buckets.window_start END,
+      expires_at   = CASE WHEN rate_limit_buckets.expires_at <= now() THEN EXCLUDED.expires_at ELSE rate_limit_buckets.expires_at END
+    RETURNING count`;
+  // Now and then, drop long-expired buckets so the table stays small.
+  if (Math.random() < 0.01) {
+    await prisma.$executeRaw`DELETE FROM rate_limit_buckets WHERE expires_at < now() - interval '1 day'`.catch(() => undefined);
+  }
+  return Number(rows[0]?.count ?? 1);
+}
+
+/** Hits counted for `key` in its current window, and the milliseconds until the window ends. */
+export async function rateLimitPeek(key: string): Promise<{ count: number; resetsInMs: number }> {
+  const rows = await prisma.$queryRaw<{ count: number; ms: number }[]>`
+    SELECT count, (EXTRACT(EPOCH FROM (expires_at - now())) * 1000)::int AS ms
+    FROM rate_limit_buckets WHERE key = ${bucketKey(key)} AND expires_at > now()`;
+  return rows[0] ? { count: Number(rows[0].count), resetsInMs: Number(rows[0].ms) } : { count: 0, resetsInMs: 0 };
+}
+
+export async function rateLimitClear(key: string): Promise<void> {
+  await prisma.$executeRaw`DELETE FROM rate_limit_buckets WHERE key = ${bucketKey(key)}`;
+}
+
+// =============================================================================================
+// Legal pages — admin-edited wording; pages without a row use the defaults in @ascend/shared
+// =============================================================================================
+
+export interface LegalDocumentRow {
+  slug: string;
+  title: string;
+  summary: string;
+  content: string;
+  updatedAt: string;
+}
+
+export async function listLegalDocuments(): Promise<LegalDocumentRow[]> {
+  const rows = await prisma.legalDocument.findMany({ orderBy: { slug: 'asc' } });
+  return rows.map((r) => ({ slug: r.slug, title: r.title, summary: r.summary, content: r.content, updatedAt: iso(r.updatedAt) }));
+}
+
+export async function saveLegalDocument(doc: Omit<LegalDocumentRow, 'updatedAt'>): Promise<LegalDocumentRow> {
+  const data = { title: doc.title, summary: doc.summary, content: doc.content };
+  const r = await prisma.legalDocument.upsert({ where: { slug: doc.slug }, create: { slug: doc.slug, ...data }, update: data });
+  return { slug: r.slug, title: r.title, summary: r.summary, content: r.content, updatedAt: iso(r.updatedAt) };
+}
+
+/** Goes back to the default wording. */
+export async function deleteLegalDocument(slug: string): Promise<boolean> {
+  const { count } = await prisma.legalDocument.deleteMany({ where: { slug } });
+  return count > 0;
+}
+
+// =============================================================================================
 // Whole private store (admin lists, exports, analytics) — same shape as private-store.json
 // =============================================================================================
 

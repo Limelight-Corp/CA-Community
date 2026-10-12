@@ -615,7 +615,7 @@ export function ExportButtons({
   params = {},
   label = 'Export',
 }: {
-  dataset: 'registrations' | 'payments' | 'members';
+  dataset: 'registrations' | 'payments' | 'membership-payments' | 'members';
   params?: Record<string, string | undefined>;
   label?: string;
 }) {

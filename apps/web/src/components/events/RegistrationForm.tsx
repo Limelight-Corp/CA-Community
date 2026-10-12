@@ -100,6 +100,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [notice, setNotice] = useState('');
   const [booking, setBooking] = useState<Booking | null>(null);
   const [captcha, setCaptcha] = useState('');
   const [captchaReset, setCaptchaReset] = useState(0);
@@ -157,6 +158,7 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
     e.preventDefault();
     onFirstInteraction();
     setFormError('');
+    setNotice('');
     const errs = validate(values);
     setErrors(errs);
     if (Object.keys(errs).length) {
@@ -185,6 +187,11 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
         return;
       }
 
+      if (data.alreadyRegistered) {
+        // Existing booking: its link was emailed to the registered address.
+        setNotice(data.message || 'You are already registered — check your email for the booking link.');
+        return;
+      }
       const b = data as Booking;
       setBooking(b);
       try {
@@ -348,6 +355,11 @@ export function RegistrationForm({ event }: RegistrationFormProps) {
           </div>
 
           <div aria-live="assertive">
+            {notice && (
+              <p className="mb-3 flex items-start gap-2 rounded-2xl border border-ok/30 bg-ok/10 px-4 py-3 text-[14px] text-[var(--fg)]">
+                <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-ok" aria-hidden /> {notice}
+              </p>
+            )}
             {formError && (
               <p id="form-error" className="flex items-start gap-2 rounded-2xl border border-bad/30 bg-bad/10 px-4 py-3 text-[14px] text-bad">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {formError}

@@ -47,3 +47,5 @@ export function isUniqueViolation(err: unknown): boolean {
 
 // PostgreSQL data layer in the apps' shapes.
 export * as store from './store';
+
+export { rateLimit, SharedFailureThrottle } from './rate-limit';

@@ -26,7 +26,7 @@ function json(body: unknown, status = 200) {
 
 /** Issues a fresh payment order for an existing pending / failed registration. */
 export async function POST(req: Request) {
-  if (!rateLimit(`retry:${clientIp(req)}`, 15, 10 * 60_000)) {
+  if (!(await rateLimit(`retry:${clientIp(req)}`, 15, 10 * 60_000))) {
     return json({ error: 'Too many attempts. Please wait a few minutes.' }, 429);
   }
   if (!(await memberFromRequest(req))) {

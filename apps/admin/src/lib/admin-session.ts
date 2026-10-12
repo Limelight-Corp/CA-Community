@@ -10,6 +10,7 @@
  * or a key derived from the environment credentials.
  */
 import { findAdmin, hasAdminAccounts, type AdminRole } from './admin-users';
+import { sameSitePath } from '@ascend/shared';
 
 export const SESSION_COOKIE = 'ascend_admin_session';
 export const SESSION_TTL_SECONDS = 12 * 60 * 60;
@@ -145,8 +146,7 @@ export async function verifySessionToken(token: string | undefined): Promise<Adm
 
 /** Only same-site relative paths are allowed as post-login destinations. */
 export function safeNextPath(next: string | null | undefined): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\'))
-    return '/dashboard';
-  if (next.startsWith('/login') || next.startsWith('/api/')) return '/dashboard';
-  return next;
+  const path = sameSitePath(next);
+  if (!path || path.startsWith('/login') || path.startsWith('/api/')) return '/dashboard';
+  return path;
 }

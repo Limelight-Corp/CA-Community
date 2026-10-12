@@ -6,7 +6,7 @@ import type { CommunityEvent, CommunityNews, CommunityResource, CommunitySpeaker
 import { MEMBERSHIP_PLANS, membershipFeeFor } from '@ascend/shared';
 import { getItems, getSettings } from '../community-store';
 import { canRegister, eventCategory, formatEventDate, isUpcoming, locationLabel, priceLabel, seatsLeft, sortByDate } from '../events';
-import { LEGAL_DOCS } from '../../components/content/legal-docs';
+import { LEGAL_DOCS } from '@ascend/shared';
 
 export interface LinkCard {
   title: string;

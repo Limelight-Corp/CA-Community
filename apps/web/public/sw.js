@@ -1,4 +1,5 @@
-const CACHE_NAME = 'ascend-ca-v2';
+// v3: stop caching personalised pages (old caches are deleted on activate).
+const CACHE_NAME = 'ascend-ca-v3';
 const PRECACHE_ASSETS = [
   '/',
   '/offline.html',
@@ -19,8 +20,29 @@ function isPrivatePath(pathname) {
     pathname === '/login' ||
     pathname.startsWith('/login/') ||
     pathname.startsWith('/registration/') ||
+    pathname.startsWith('/directory') ||
+    pathname.startsWith('/mentorship') ||
+    pathname.startsWith('/membership') ||
+    pathname.startsWith('/account') ||
+    pathname.startsWith('/verify-email') ||
+    pathname.startsWith('/reset-password') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/verify/') ||
     /^\/events\/[^/]+\/register(?:\/|$)/.test(pathname)
   );
+}
+
+/**
+ * Only shared, public responses go into the cache: never one the server marks private / no-store
+ * (personalised pages), never React Server Component payloads, never URLs carrying a token.
+ */
+function cacheable(request, response) {
+  if (!response || response.status !== 200) return false;
+  const cc = (response.headers.get('Cache-Control') || '').toLowerCase();
+  if (cc.includes('no-store') || cc.includes('private')) return false;
+  if (request.headers.get('RSC') || request.url.includes('_rsc=')) return false;
+  if (/[?&](t|token)=/.test(request.url)) return false;
+  return true;
 }
 
 // Install: Pre-cache static shell & offline fallback
@@ -75,7 +97,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response && response.status === 200) {
+          if (cacheable(request, response)) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
           }
@@ -107,7 +129,7 @@ self.addEventListener('fetch', (event) => {
       caches.match(request).then((cachedResponse) => {
         const fetchPromise = fetch(request)
           .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
+            if (cacheable(request, networkResponse)) {
               const clone = networkResponse.clone();
               caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
             }
@@ -125,7 +147,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (cacheable(request, networkResponse)) {
           const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }

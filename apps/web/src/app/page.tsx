@@ -227,21 +227,6 @@ export default async function HomePage() {
             </Reveal>
           </div>
         </Container>
-
-        {/* Pillars ticker */}
-        <div className="relative z-10 border-y border-mist/[0.08] bg-bg/40 py-5 backdrop-blur-sm">
-          <Marquee duration={30} gap="2.5rem" ariaLabel="Our pillars">
-            {['Learn', 'Connect', 'Grow', 'Transform', 'Thrive', 'Contribute'].map((p, i) => (
-              <span
-                key={p}
-                className="flex shrink-0 items-center gap-10 font-display text-[clamp(28px,4vw,52px)] font-medium tracking-[-0.04em]"
-              >
-                <span className={i % 2 ? 'text-outline' : 'text-[var(--fg)]'}>{p}</span>
-                <Sparkles className="h-6 w-6 text-gold" aria-hidden />
-              </span>
-            ))}
-          </Marquee>
-        </div>
       </Spotlight>
 
       {/* ------------------------------------------------------------------ ABOUT THE COMMUNITY */}

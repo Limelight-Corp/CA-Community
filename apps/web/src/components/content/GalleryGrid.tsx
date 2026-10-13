@@ -97,7 +97,7 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
                     </span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-bg/90 via-bg/20 to-transparent" aria-hidden />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-900/90 via-brand-900/20 to-transparent" aria-hidden />
                 {isVideo ? (
                   <span className="absolute right-4 top-4 grid h-12 w-12 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-transform duration-500 group-hover:scale-110" aria-hidden>
                     <span className="absolute inset-0 animate-ping rounded-full bg-white/20 motion-reduce:hidden" />
@@ -109,7 +109,7 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
                   </span>
                 ) : null}
                 <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-5 text-left">
-                  <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-gold-soft">{g.category}</span>
+                  <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-[#F2C46B]">{g.category}</span>
                   <span className="font-display text-[clamp(18px,1.8vw,24px)] font-medium leading-tight tracking-[-0.03em] text-white transition-transform duration-500 group-hover:-translate-y-1">{g.title}</span>
                   <span className="reveal-up flex items-center gap-1.5 text-[12.5px] text-white/70">
                     {g.location && <MapPin className="h-3.5 w-3.5" aria-hidden />}
@@ -209,7 +209,7 @@ function Lightbox({ items, index, onIndex, onClose }: { items: GalleryCardData[]
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose, step]);
 
-  const navBtn = 'grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold';
+  const navBtn = 'grid h-12 w-12 place-items-center rounded-full border border-mist/[0.14] bg-[rgb(var(--panel-rgb)/0.9)] text-[var(--fg)] shadow-sm backdrop-blur-md transition hover:bg-[var(--panel)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold';
 
   return (
     <div
@@ -236,7 +236,7 @@ function Lightbox({ items, index, onIndex, onClose }: { items: GalleryCardData[]
             key={item.id}
             src={item.embedUrl}
             title={item.title}
-            className="aspect-video w-full max-w-[1100px] rounded-[20px] border border-white/10"
+            className="aspect-video w-full max-w-[1100px] rounded-[20px] border border-mist/[0.1]"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />

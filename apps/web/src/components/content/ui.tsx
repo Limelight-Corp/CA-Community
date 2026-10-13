@@ -72,7 +72,7 @@ export function PillLink({ href, children, variant = 'primary', external, classN
   const classes = cn(
     'group inline-flex h-12 items-center justify-between gap-4 rounded-full pl-5 pr-1.5 text-[14.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
     variant === 'primary' && 'bg-grad-primary text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] hover:brightness-110',
-    variant === 'gold' && 'bg-grad-gold text-brand-950 hover:brightness-105',
+    variant === 'gold' && 'bg-grad-gold text-[#2A1A0E] hover:brightness-105',
     variant === 'ghost' && 'border border-mist/[0.18] text-[var(--fg)] hover:border-mist/50',
     className
   );

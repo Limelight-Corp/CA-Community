@@ -119,7 +119,7 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
 
       <p className="text-[12.5px] leading-relaxed text-[var(--muted)] md:col-span-2">
         We use your details only to reply to you. See our{' '}
-        <Link href="/legal/privacy" className="text-brand-200 underline underline-offset-4 hover:text-white">
+        <Link href="/legal/privacy" className="text-brand-200 underline underline-offset-4 hover:text-[var(--fg)]">
           Privacy Policy
         </Link>
         .

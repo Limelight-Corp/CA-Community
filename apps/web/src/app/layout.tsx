@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Inter_Tight, Instrument_Serif } from 'next/font/google';
-import { generateThemeCssVariables } from '@ascend/ui';
-import { DEFAULT_DARK_TOKENS } from '@ascend/shared';
 import { AuthProvider } from '../context/AuthContext';
 import { getSettings } from '../lib/community-store';
 import { SiteHeader } from '../components/site/SiteHeader';
@@ -85,14 +83,13 @@ function siteLd(settings: Awaited<ReturnType<typeof getSettings>>) {
 }
 
 export const viewport: Viewport = {
-  themeColor: DEFAULT_DARK_TOKENS.bg,
+  themeColor: '#FAF7F2',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const themeCss = generateThemeCssVariables(DEFAULT_DARK_TOKENS);
   const settings = await getSettings();
   // Read at request time (not inlined at build), so they can be set on the server without a rebuild.
   const gaId = process.env.GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID;
@@ -103,16 +100,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="en"
       className={`${inter.variable} ${interTight.variable} ${instrumentSerif.variable}`}
-      data-theme="dark"
+      data-theme="light"
     >
       <head>
-        <style id="ascend-ssr-theme" dangerouslySetInnerHTML={{ __html: themeCss }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteLd(settings)) }} />
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--fg)] font-sans antialiased selection:bg-[var(--lime)] selection:text-white">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-brand-950"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-[#2A1A0E]"
         >
           Skip to content
         </a>

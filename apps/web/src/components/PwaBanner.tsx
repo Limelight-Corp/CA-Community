@@ -86,7 +86,7 @@ export const PwaBanner: React.FC = () => {
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full text-[13px] font-mono shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-4 bg-[rgb(var(--panel-rgb)/0.95)] backdrop-blur-md border border-line-solid-2 text-white"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full text-[13px] font-mono shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-4 bg-[rgb(var(--panel-rgb)/0.95)] backdrop-blur-md border border-line-solid-2 text-[var(--fg)]"
         >
           <span
             className={`w-2 h-2 rounded-full ${
@@ -97,7 +97,7 @@ export const PwaBanner: React.FC = () => {
           {isOffline && (
             <button
               onClick={() => (window.location.href = '/dashboard')}
-              className="ml-1 text-[var(--lime)] underline hover:text-white cursor-pointer bg-transparent border-0 text-[12px] p-0"
+              className="ml-1 text-[var(--lime)] underline hover:text-[var(--fg)] cursor-pointer bg-transparent border-0 text-[12px] p-0"
             >
               Passes →
             </button>
@@ -109,7 +109,7 @@ export const PwaBanner: React.FC = () => {
       {showBanner && deferredPrompt && (
         <aside
           aria-label="Install ASCEND CA App"
-          className="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:max-w-[420px] z-40 p-4 md:p-5 rounded-[16px] bg-[rgb(var(--panel-rgb)/0.92)] backdrop-blur-[16px] border border-line-solid-2 shadow-[0_12px_36px_rgb(var(--black-rgb)/0.7)] text-white flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-6 duration-300"
+          className="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:max-w-[420px] z-40 p-4 md:p-5 rounded-[16px] bg-[rgb(var(--panel-rgb)/0.92)] backdrop-blur-[16px] border border-line-solid-2 shadow-[0_12px_36px_rgb(var(--black-rgb)/0.18)] text-[var(--fg)] flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-6 duration-300"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -119,7 +119,7 @@ export const PwaBanner: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold tracking-tight text-white leading-tight">
+                <h3 className="text-[15px] font-semibold tracking-tight text-[var(--fg)] leading-tight">
                   Install ASCEND CA
                 </h3>
                 <p className="text-[12px] text-[var(--muted)] leading-tight mt-0.5">
@@ -131,7 +131,7 @@ export const PwaBanner: React.FC = () => {
             <button
               onClick={handleDismiss}
               aria-label="Close install prompt"
-              className="text-[var(--faint)] hover:text-white bg-transparent border-0 p-1 cursor-pointer transition-colors"
+              className="text-[var(--faint)] hover:text-[var(--fg)] bg-transparent border-0 p-1 cursor-pointer transition-colors"
             >
               ✕
             </button>
@@ -140,7 +140,7 @@ export const PwaBanner: React.FC = () => {
           <div className="flex items-center justify-end gap-2.5 pt-1 border-t border-[rgb(var(--line-solid-1-rgb)/0.6)]">
             <button
               onClick={handleDismiss}
-              className="text-[12px] font-mono text-[var(--muted)] hover:text-white bg-transparent border-0 px-2 py-1.5 cursor-pointer"
+              className="text-[12px] font-mono text-[var(--muted)] hover:text-[var(--fg)] bg-transparent border-0 px-2 py-1.5 cursor-pointer"
             >
               Not Now
             </button>

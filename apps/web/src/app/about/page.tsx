@@ -190,7 +190,10 @@ export default async function AboutPage() {
                 >
                   <CountUp
                     value={s.value}
-                    className="block font-display text-[clamp(44px,5vw,64px)] font-semibold leading-none tracking-[-0.05em] text-white [text-shadow:0_0_30px_rgb(var(--lime-rgb)/0.45)]"
+                    className={cn(
+                      'block font-display text-[clamp(44px,5vw,64px)] font-semibold leading-none tracking-[-0.05em]',
+                      i === 0 ? 'text-white' : 'text-[var(--fg)]'
+                    )}
                   />
                   <span
                     className={cn(
@@ -244,7 +247,7 @@ export default async function AboutPage() {
               >
                 <div className="flex items-center justify-between">
                   <Kicker tone="gold">Our mission</Kicker>
-                  <span className="fx-icon grid h-12 w-12 place-items-center rounded-2xl bg-grad-gold text-brand-950">
+                  <span className="fx-icon grid h-12 w-12 place-items-center rounded-2xl bg-grad-gold text-[#2A1A0E]">
                     <Target className="h-6 w-6" aria-hidden />
                   </span>
                 </div>
@@ -396,7 +399,7 @@ export default async function AboutPage() {
                             className={cn(
                               'grid h-12 w-12 place-items-center rounded-2xl',
                               gold
-                                ? 'bg-grad-gold text-brand-950'
+                                ? 'bg-grad-gold text-[#2A1A0E]'
                                 : 'bg-brand-500/15 text-brand-200'
                             )}
                           >
@@ -621,7 +624,7 @@ export default async function AboutPage() {
                       <span
                         className={cn(
                           'fx-icon grid h-12 w-12 shrink-0 place-items-center rounded-2xl',
-                          gold ? 'bg-grad-gold text-brand-950' : 'bg-brand-500/15 text-brand-200'
+                          gold ? 'bg-grad-gold text-[#2A1A0E]' : 'bg-brand-500/15 text-brand-200'
                         )}
                       >
                         <Icon className="h-6 w-6" aria-hidden />
@@ -785,13 +788,13 @@ function OrgTree({ nodes }: { nodes: OrgNode[] }) {
             <li className="tree-node w-full" style={d()}>
               <FxCard
                 max={3}
-                className="overflow-hidden rounded-[28px] border border-gold/30 bg-gradient-to-br from-brand-900 via-brand-950 to-bg p-6 text-center md:p-8"
+                className="overflow-hidden rounded-[28px] border border-gold/30 bg-gradient-to-br from-brand-500/[0.08] via-[var(--panel)] to-gold/[0.08] p-6 text-center md:p-8"
               >
                 <div
                   aria-hidden
                   className="pointer-events-none absolute left-1/2 top-0 h-40 w-80 -translate-x-1/2 rounded-full bg-gold/20 blur-[70px]"
                 />
-                <span className="relative mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-grad-gold text-brand-950">
+                <span className="relative mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-grad-gold text-[#2A1A0E]">
                   <Landmark className="h-6 w-6" aria-hidden />
                 </span>
                 <p className="relative mt-4 font-display text-[clamp(26px,3vw,38px)] font-medium tracking-[-0.035em] text-[var(--fg)]">

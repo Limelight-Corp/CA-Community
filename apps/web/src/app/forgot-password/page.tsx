@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
             valid for 1 hour. Don’t forget to check your spam folder.
           </span>
         </p>
-        <Link href="/login" className="text-center text-[14px] font-semibold text-white underline underline-offset-4 hover:text-gold">
+        <Link href="/login" className="text-center text-[14px] font-semibold text-[var(--fg)] underline underline-offset-4 hover:text-gold">
           Back to log in
         </Link>
       </AuthPanel>
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
           {busy ? 'Sending…' : 'Send reset link'}
         </button>
       </form>
-      <Link href="/login" className="text-center text-[14px] text-[var(--muted)] underline underline-offset-4 hover:text-white">
+      <Link href="/login" className="text-center text-[14px] text-[var(--muted)] underline underline-offset-4 hover:text-[var(--fg)]">
         Remembered it? Log in
       </Link>
     </AuthPanel>

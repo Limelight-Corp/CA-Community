@@ -137,7 +137,7 @@ export default async function HomePage() {
                 <Magnetic>
                   <Link
                     href="/join"
-                    className="group flex h-14 items-center gap-4 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-brand-950 shadow-[0_16px_40px_-16px_rgb(var(--gold-rgb)/0.8)] transition hover:brightness-105"
+                    className="group flex h-14 items-center gap-4 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-[#2A1A0E] shadow-[0_16px_40px_-16px_rgb(var(--gold-rgb)/0.8)] transition hover:brightness-105"
                   >
                     Join the Community
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-gold transition-transform duration-300 group-hover:rotate-45">
@@ -219,7 +219,7 @@ export default async function HomePage() {
                       </textPath>
                     </text>
                   </svg>
-                  <span className="absolute inset-0 m-auto grid h-11 w-11 place-items-center rounded-full bg-grad-gold text-brand-950 shadow-[0_0_24px_rgb(var(--gold-rgb)/0.6)]">
+                  <span className="absolute inset-0 m-auto grid h-11 w-11 place-items-center rounded-full bg-grad-gold text-[#2A1A0E] shadow-[0_0_24px_rgb(var(--gold-rgb)/0.6)]">
                     <Sparkles className="h-5 w-5" />
                   </span>
                 </div>
@@ -302,7 +302,7 @@ export default async function HomePage() {
                   <FxCard className="h-full overflow-hidden rounded-[28px] border border-mist/[0.08] bg-grad-surface p-6">
                     <CountUp
                       value={s.k}
-                      className="block font-display text-[64px] font-semibold leading-none tracking-[-0.05em] text-white [text-shadow:0_0_30px_rgb(var(--lime-rgb)/0.5)]"
+                      className="block font-display text-[64px] font-semibold leading-none tracking-[-0.05em] text-[var(--fg)]"
                     />
                     <span className="mt-3 block text-[14px] text-[var(--muted)]">{s.l}</span>
                     <span
@@ -422,24 +422,24 @@ export default async function HomePage() {
               <Reveal delay={350} className="col-span-2 md:col-span-4">
                 <FxCard
                   max={3}
-                  className="grain flex h-full flex-col gap-6 overflow-hidden rounded-[28px] border border-gold/25 bg-gradient-to-r from-brand-900 via-brand-950 to-brand-900 p-7 md:flex-row md:items-center md:justify-between md:p-10"
+                  className="grain flex h-full flex-col gap-6 overflow-hidden rounded-[28px] border border-gold/25 bg-gradient-to-r from-brand-900 via-brand-800 to-brand-900 p-7 md:flex-row md:items-center md:justify-between md:p-10"
                 >
                   <div className="relative flex items-center gap-5">
-                    <span className="fx-icon grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-grad-gold text-brand-950">
+                    <span className="fx-icon grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-grad-gold text-[#2A1A0E]">
                       <TrendingUp className="h-7 w-7" aria-hidden />
                     </span>
                     <div>
-                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
+                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#F2C46B]">
                         06 · {WHY_JOIN[5].title}
                       </span>
-                      <p className="mt-1 font-display text-[clamp(22px,2.6vw,34px)] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)]">
+                      <p className="mt-1 font-display text-[clamp(22px,2.6vw,34px)] font-medium leading-tight tracking-[-0.03em] text-white">
                         {WHY_JOIN[5].text}
                       </p>
                     </div>
                   </div>
                   <Link
                     href="/join"
-                    className="group/cta relative inline-flex h-14 shrink-0 items-center gap-4 self-start rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-brand-950 transition hover:brightness-105 md:self-auto"
+                    className="group/cta relative inline-flex h-14 shrink-0 items-center gap-4 self-start rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-[#2A1A0E] transition hover:brightness-105 md:self-auto"
                   >
                     Join the community
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-gold transition-transform duration-300 group-hover/cta:rotate-45">
@@ -506,7 +506,7 @@ export default async function HomePage() {
                     {it.ctaUrl && (
                       <Link
                         href={it.ctaUrl}
-                        className="group mt-5 inline-flex items-center gap-1.5 text-[14px] font-semibold text-brand-200 hover:text-white"
+                        className="group mt-5 inline-flex items-center gap-1.5 text-[14px] font-semibold text-brand-200 hover:text-[var(--fg)]"
                       >
                         {it.ctaLabel || 'Learn more'}
                         <ArrowUpRight
@@ -611,7 +611,7 @@ export default async function HomePage() {
                           {n.date}
                           {n.author ? ` · ${n.author}` : ''}
                         </p>
-                        <h3 className="font-display text-[21px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-white">
+                        <h3 className="font-display text-[21px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-brand-500">
                           {n.title}
                         </h3>
                         <p className="line-clamp-3 text-[14.5px] leading-relaxed text-[var(--muted)]">
@@ -684,7 +684,7 @@ export default async function HomePage() {
             aria-hidden
             className="pointer-events-none absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-brand-300/50 blur-[110px]"
           />
-          <p className="relative font-mono text-[12px] uppercase tracking-[0.16em] text-gold-soft">
+          <p className="relative font-mono text-[12px] uppercase tracking-[0.16em] text-[#F2C46B]">
             {ORG_POSITIONING.launchLabel}
           </p>
           <h2 className="relative mx-auto mt-6 max-w-[16ch] font-display text-[clamp(44px,7.5vw,112px)] font-medium leading-[0.92] tracking-[-0.055em] text-white">
@@ -694,7 +694,7 @@ export default async function HomePage() {
           <div className="relative mt-12 flex flex-wrap justify-center gap-3">
             <Link
               href="/join"
-              className="group flex h-14 items-center gap-4 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-brand-950 transition hover:brightness-105"
+              className="group flex h-14 items-center gap-4 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-[#2A1A0E] transition hover:brightness-105"
             >
               Join the community
               <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-gold transition-transform duration-300 group-hover:rotate-45">

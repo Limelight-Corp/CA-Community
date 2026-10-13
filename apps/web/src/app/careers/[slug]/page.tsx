@@ -77,7 +77,7 @@ export default async function JobPage({ params }: { params: Params }) {
       <section className="relative -mt-[72px] overflow-hidden pt-[72px]">
         <div className="grid-lines absolute inset-0" aria-hidden />
         <Container size="wide" className="relative z-10 pb-10 pt-10 md:pt-14">
-          <Link href="/careers" className="inline-flex items-center gap-2 text-[13.5px] text-[var(--muted)] hover:text-white">
+          <Link href="/careers" className="inline-flex items-center gap-2 text-[13.5px] text-[var(--muted)] hover:text-[var(--fg)]">
             <ArrowLeft className="h-4 w-4" aria-hidden /> All openings
           </Link>
           <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center">
@@ -167,7 +167,7 @@ export default async function JobPage({ params }: { params: Params }) {
                         Log in
                       </Link>
                     )}
-                    <Link href="/join" className="inline-flex h-11 items-center justify-center rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950">
+                    <Link href="/join" className="inline-flex h-11 items-center justify-center rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-[#2A1A0E]">
                       Become a member
                     </Link>
                   </div>

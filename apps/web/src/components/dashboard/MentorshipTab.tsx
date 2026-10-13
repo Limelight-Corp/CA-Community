@@ -10,7 +10,7 @@ import type { DashboardData, MentorshipData } from '../../lib/member-dashboard';
 
 const panel = 'rounded-[28px] border border-mist/[0.1] bg-grad-surface p-6 sm:p-7';
 const inputCls =
-  'w-full rounded-2xl border border-mist/[0.12] bg-field/80 px-4 py-3 text-[14.5px] text-white outline-none transition placeholder:text-faint focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
+  'w-full rounded-2xl border border-mist/[0.12] bg-field/80 px-4 py-3 text-[14.5px] text-[var(--fg)] outline-none transition placeholder:text-faint focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
 const pillBtn =
   'inline-flex h-10 items-center gap-2 rounded-full border border-mist/[0.16] px-4 text-[13.5px] font-semibold text-[var(--fg)] transition hover:border-brand-300/60 hover:bg-brand-500/10 disabled:opacity-60';
 const primaryBtn =
@@ -70,7 +70,7 @@ export function MentorshipTab({ data }: { data: DashboardData }) {
           Find a mentor — or become one — through formats like Mentor Match, MentorHer and Teach &amp; Mentor. It opens as soon as your membership is
           active.
         </p>
-        <Link href={data.membership ? '/dashboard' : '/join'} className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950">
+        <Link href={data.membership ? '/dashboard' : '/join'} className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-[#2A1A0E]">
           <Sparkles className="h-4 w-4" aria-hidden /> {data.membership ? 'Check my membership' : 'See membership plans'}
         </Link>
       </section>

@@ -119,10 +119,10 @@ export function SiteHeader({
   return (
     <>
       {announcement && (
-        <div className="relative z-50 overflow-hidden border-b border-gold/20 bg-gradient-to-r from-brand-900 via-brand-950 to-brand-900">
+        <div className="relative z-50 overflow-hidden border-b border-gold/20 bg-brand-900">
           <Link
             href="/join"
-            className="mx-auto flex max-w-[1400px] items-center justify-center gap-3 px-5 py-2 text-center text-[12.5px] text-gold-soft hover:text-white"
+            className="mx-auto flex max-w-[1400px] items-center justify-center gap-3 px-5 py-2 text-center text-[12.5px] text-white/90 hover:text-white"
           >
             <span className="live-dot shrink-0 !bg-gold" aria-hidden />
             <span className="truncate">{announcement}</span>
@@ -152,7 +152,7 @@ export function SiteHeader({
                   aria-current={active ? 'page' : undefined}
                   className={cn(
                     'relative whitespace-nowrap rounded-full px-3 py-2 text-[13.5px] font-medium transition-colors xl:px-2.5 xl:text-[13px] 2xl:px-3 2xl:text-[13.5px]',
-                    active ? 'text-white' : 'text-[var(--muted)] hover:text-white'
+                    active ? 'text-[var(--fg)]' : 'text-[var(--muted)] hover:text-[var(--fg)]'
                   )}
                 >
                   {active && (
@@ -171,7 +171,7 @@ export function SiteHeader({
             <Link
               href="/search"
               aria-label="Search"
-              className="grid h-10 w-10 place-items-center rounded-full text-[var(--muted)] transition hover:bg-mist/[0.08] hover:text-white"
+              className="grid h-10 w-10 place-items-center rounded-full text-[var(--muted)] transition hover:bg-mist/[0.08] hover:text-[var(--fg)]"
             >
               <Search className="h-[18px] w-[18px]" />
             </Link>
@@ -213,7 +213,7 @@ export function SiteHeader({
               onClick={() => setOpen(true)}
               aria-label="Open menu"
               aria-expanded={open}
-              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-white xl:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] xl:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -240,7 +240,7 @@ export function SiteHeader({
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-white transition hover:rotate-90 hover:border-gold/50"
+            className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] transition hover:rotate-90 hover:border-gold/50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -307,7 +307,7 @@ export function SiteHeader({
                     <span
                       className={cn(
                         'block font-display text-[17px] font-medium leading-tight tracking-[-0.02em]',
-                        active ? 'text-white' : 'text-[var(--fg)]'
+                        active ? 'text-[var(--fg)]' : 'text-[var(--fg)]'
                       )}
                     >
                       {item.label}
@@ -338,7 +338,7 @@ export function SiteHeader({
               </Link>
               <Link
                 href="/join"
-                className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-grad-gold px-3 text-[13.5px] font-semibold text-brand-950"
+                className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-grad-gold px-3 text-[13.5px] font-semibold text-[#2A1A0E]"
               >
                 <UserPlus className="h-4 w-4" aria-hidden /> Join us
               </Link>

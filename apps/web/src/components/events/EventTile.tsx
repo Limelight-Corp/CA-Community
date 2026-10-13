@@ -8,12 +8,12 @@ import { canRegister, dateParts, eventStatus, locationLabel, priceLabel, seatsLe
 import { safeUrl } from '../../lib/content';
 
 const STATUS_STYLE: Record<EventStatus, string> = {
-  open: 'text-ok border-ok/35 bg-ok/15',
-  filling: 'text-warn border-warn/35 bg-warn/15',
-  soldout: 'text-bad border-bad/35 bg-bad/15',
-  closed: 'text-[var(--muted)] border-mist/20 bg-mist/10',
-  past: 'text-[var(--muted)] border-mist/20 bg-mist/10',
-  cancelled: 'text-bad border-bad/35 bg-bad/15',
+  open: 'text-ok border-ok/35 bg-[color-mix(in_srgb,var(--ok)_14%,white)]',
+  filling: 'text-warn border-warn/35 bg-[color-mix(in_srgb,var(--warn)_14%,white)]',
+  soldout: 'text-bad border-bad/35 bg-[color-mix(in_srgb,var(--bad)_14%,white)]',
+  closed: 'text-[var(--muted)] border-mist/20 bg-white/90',
+  past: 'text-[var(--muted)] border-mist/20 bg-white/90',
+  cancelled: 'text-bad border-bad/35 bg-[color-mix(in_srgb,var(--bad)_14%,white)]',
 };
 
 export interface EventTileProps {
@@ -85,11 +85,11 @@ export function EventTile({ event, wing, speakers = [], className }: EventTilePr
             // eslint-disable-next-line @next/next/no-img-element
             <img src={image} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.07]" loading="lazy" />
           ) : (
-            <div className="grain absolute inset-0 bg-brand-950">
+            <div className="grain absolute inset-0 bg-brand-900">
               <div
                 className="mesh-drift"
                 style={{
-                  background: `radial-gradient(55% 65% at 85% 10%, color-mix(in srgb, ${accent} 85%, transparent) 0%, transparent 70%), radial-gradient(45% 55% at 5% 100%, rgb(var(--gold-rgb) / 0.32), transparent 70%), linear-gradient(160deg, var(--brand-800), var(--brand-950) 70%)`,
+                  background: `radial-gradient(55% 65% at 85% 10%, color-mix(in srgb, ${accent} 85%, transparent) 0%, transparent 70%), radial-gradient(45% 55% at 5% 100%, rgb(var(--gold-rgb) / 0.32), transparent 70%), linear-gradient(160deg, var(--brand-800), var(--brand-900) 70%)`,
                 }}
               />
               <div
@@ -101,7 +101,7 @@ export function EventTile({ event, wing, speakers = [], className }: EventTilePr
               </span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-900/90 via-brand-900/10 to-transparent" />
           <span className="pass-shine" />
 
           {/* Top row: category / mode · status */}
@@ -122,14 +122,14 @@ export function EventTile({ event, wing, speakers = [], className }: EventTilePr
             <span className="flex items-stretch overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md">
               <span className="flex flex-col items-center justify-center bg-white/10 px-3 py-1.5">
                 <span className="font-display text-[22px] font-semibold leading-none text-white">{d.day}</span>
-                <span className="mt-0.5 font-mono text-[9.5px] tracking-[0.16em] text-gold">{d.month}</span>
+                <span className="mt-0.5 font-mono text-[9.5px] tracking-[0.16em] text-[#F2C46B]">{d.month}</span>
               </span>
               <span className="flex flex-col justify-center px-3 py-1.5">
                 <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/60">
                   {d.weekday} · {d.year}
                 </span>
                 <span className="mt-0.5 inline-flex items-center gap-1 text-[12.5px] font-medium text-white">
-                  <Clock className="h-3.5 w-3.5 text-gold" aria-hidden /> {event.time}
+                  <Clock className="h-3.5 w-3.5 text-[#F2C46B]" aria-hidden /> {event.time}
                 </span>
               </span>
             </span>

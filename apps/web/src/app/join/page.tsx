@@ -128,8 +128,8 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                         className="mesh-drift"
                         style={{
                           background: plan.featured
-                            ? 'radial-gradient(55% 75% at 75% 25%, rgb(var(--gold-rgb) / 0.6), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--lime-rgb) / 0.45), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-950))'
-                            : `radial-gradient(55% 75% at 75% 25%, rgb(var(--lime-rgb) / ${i === 1 ? 0.65 : 0.5}), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--gold-rgb) / 0.25), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-950))`,
+                            ? 'radial-gradient(55% 75% at 75% 25%, rgb(var(--gold-rgb) / 0.6), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--lime-rgb) / 0.45), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-900))'
+                            : `radial-gradient(55% 75% at 75% 25%, rgb(var(--lime-rgb) / ${i === 1 ? 0.65 : 0.5}), transparent 70%), radial-gradient(45% 60% at 20% 90%, rgb(var(--gold-rgb) / 0.25), transparent 70%), linear-gradient(140deg, var(--brand-800), var(--brand-900))`,
                           animationDelay: `${-i * 4}s`,
                         }}
                       />
@@ -142,7 +142,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                       <div className="relative flex items-start justify-between gap-3">
                         <span aria-hidden className="h-7 w-10 rounded-md bg-grad-gold opacity-90 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.25)]" />
                         {plan.featured ? (
-                          <span className="rounded-full bg-grad-gold px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-950">
+                          <span className="rounded-full bg-grad-gold px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[#2A1A0E]">
                             Most popular
                           </span>
                         ) : (
@@ -326,7 +326,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                     <span
                       className={cn(
                         'fx-icon grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-display text-[20px] font-semibold',
-                        last ? 'bg-grad-gold text-brand-950' : 'bg-brand-500/15 text-brand-200'
+                        last ? 'bg-grad-gold text-[#2A1A0E]' : 'bg-brand-500/15 text-brand-200'
                       )}
                     >
                       {i + 1}

@@ -217,7 +217,7 @@ export default async function EventDetailPage({ params }: { params: Params }) {
             <div
               className="relative h-full w-full"
               style={{
-                background: `radial-gradient(70% 90% at 88% 8%, color-mix(in srgb, ${accent} 70%, transparent) 0%, transparent 60%), radial-gradient(60% 80% at 0% 100%, rgb(var(--gold-rgb) / 0.3), transparent 60%), linear-gradient(155deg, var(--brand-800), var(--brand-950))`,
+                background: `radial-gradient(70% 90% at 88% 8%, color-mix(in srgb, ${accent} 70%, transparent) 0%, transparent 60%), radial-gradient(60% 80% at 0% 100%, rgb(var(--gold-rgb) / 0.3), transparent 60%), linear-gradient(155deg, var(--brand-800), var(--brand-900))`,
               }}
               aria-hidden
             >
@@ -225,7 +225,7 @@ export default async function EventDetailPage({ params }: { params: Params }) {
               <span className="absolute -bottom-[0.18em] right-4 font-display text-[clamp(120px,26vw,360px)] font-semibold leading-none tracking-[-0.08em] text-outline">
                 {d.day}
               </span>
-              <span className="absolute left-5 top-5 font-mono text-[12px] uppercase tracking-[0.18em] text-gold-soft md:left-8 md:top-8">
+              <span className="absolute left-5 top-5 font-mono text-[12px] uppercase tracking-[0.18em] text-[#F2C46B] md:left-8 md:top-8">
                 {d.weekday} · {d.month} {d.year}
               </span>
               <span className="absolute bottom-5 left-5 max-w-[14ch] font-display text-[clamp(26px,4vw,56px)] font-medium leading-[0.95] tracking-[-0.04em] text-white/90 md:bottom-8 md:left-8">

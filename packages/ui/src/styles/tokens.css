@@ -157,50 +157,116 @@
   --grad-accent-text: linear-gradient(95deg, var(--brand-200) 10%, var(--mist) 90%);
 }
 
-[data-theme="light"] {
-  --bg: #F8FAFC;
+/* ------------------------------------------------------------------------------------------
+ * Light theme — "ASCEND by E Group" (website).
+ * Taken from the E Group logo: crimson ring (#A8272B) as the brand colour, the gold of the wings
+ * as the accent, on warm cream paper with warm near-black text.
+ * `mist` is the tint used for hairlines and translucent surfaces (bg-mist/[0.06] …). On dark it is
+ * a light colour; here it is warm ink, so the same classes give subtle dark lines and washes.
+ * ---------------------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+  --bg: #FAF7F2;
   --card: #FFFFFF;
-  --fg: #060A1F;
-  --muted: #475569;
-  --faint: #94A3B8;
-  --line: rgba(15, 23, 42, 0.09);
-  --soft: #F1F5F9;
+  --fg: #1C1513;
+  --muted: #6B5E57;
+  --faint: #A3968E;
+  --line: rgba(28, 21, 19, 0.1);
+  --soft: #F3EEE6;
   --ink: #FFFFFF;
-  --ink-2: #F1F5F9;
+  --ink-2: #F3EEE6;
 
-  --lime: #2563EB;
+  /* Brand (crimson). `lime` is the historical name of the primary colour token. */
+  --lime: #A8272B;
   --lime-ink: #FFFFFF;
-  --lime-deep: #1D4ED8;
-  --sky: #60A5FA;
-  --cobalt: #1D4ED8;
-  --navy: #1E293B;
-  --mist: #E2E8F0;
+  --lime-deep: #7E1A1E;
+  --sky: #A8272B;
+  --cobalt: #6E171A;
+  --navy: #3D0D0F;
+  --mist: #2A1E1A;
 
-  --ok: #16A34A;
-  --ok-bg: rgba(22, 163, 74, 0.12);
-  --warn: #D97706;
-  --warn-bg: rgba(217, 119, 6, 0.12);
-  --bad: #DC2626;
-  --bad-bg: rgba(220, 38, 38, 0.14);
-  --yellow: #CA8A04;
+  --ok: #1E7F4F;
+  --ok-bg: rgba(30, 127, 79, 0.1);
+  --warn: #B26A00;
+  --warn-bg: rgba(178, 106, 0, 0.1);
+  --bad: #C0262D;
+  --bad-bg: rgba(192, 38, 45, 0.1);
+  --yellow: #B88A12;
 
-  --on-ink: #060A1F;
-  --on-ink-muted: #475569;
+  --on-ink: #1C1513;
+  --on-ink-muted: #6B5E57;
 
   /* Channels of the light values above */
-  --bg-rgb: 248 250 252;
+  --bg-rgb: 250 247 242;
   --card-rgb: 255 255 255;
-  --fg-rgb: 6 10 31;
-  --soft-rgb: 241 245 249;
+  --fg-rgb: 28 21 19;
+  --soft-rgb: 243 238 230;
   --ink-rgb: 255 255 255;
-  --lime-rgb: 37 99 235;
-  --sky-rgb: 96 165 250;
-  --cobalt-rgb: 29 78 216;
-  --navy-rgb: 30 41 59;
-  --mist-rgb: 226 232 240;
-  --ok-rgb: 22 163 74;
-  --warn-rgb: 217 119 6;
-  --bad-rgb: 220 38 38;
+  --lime-rgb: 168 39 43;
+  --sky-rgb: 168 39 43;
+  --cobalt-rgb: 110 23 26;
+  --navy-rgb: 61 13 15;
+  --mist-rgb: 42 30 26;
+  --ok-rgb: 30 127 79;
+  --warn-rgb: 178 106 0;
+  --bad-rgb: 192 38 45;
+
+  /* Crimson ramp */
+  /* On cream the "light tones" (brand-100/200, gold-soft) are used as text, so they are deep. */
+  --brand-100: #7E1A1E;
+  --brand-100-rgb: 126 26 30;
+  --brand-300: #C9484C;
+  --brand-300-rgb: 201 72 76;
+  --brand-400: #B9343A;
+  --brand-400-rgb: 185 52 58;
+  --brand-450: #B02D32;
+  --brand-450-rgb: 176 45 50;
+  --brand-600: #921F23;
+  --brand-600-rgb: 146 31 35;
+  --brand-650: #84191D;
+  --brand-650-rgb: 132 25 29;
+  --brand-800: #561215;
+  --brand-800-rgb: 86 18 21;
+
+  --fg-soft: #4A3D37;
+  --fg-soft-rgb: 74 61 55;
+  --fg-subtle: #5C4E47;
+  --fg-subtle-rgb: 92 78 71;
+
+  --line-solid-1: #E8E0D5;
+  --line-solid-1-rgb: 232 224 213;
+  --line-solid-2: #DDD3C6;
+  --line-solid-2-rgb: 221 211 198;
+  --line-solid-3: #D2C6B7;
+  --line-solid-3-rgb: 210 198 183;
+  --line-hover: #9C8F87;
+  --line-hover-rgb: 156 143 135;
+
+  /* Surfaces: white cards on cream */
+  --surface-hi: #FFFFFF;
+  --surface-hi-rgb: 255 255 255;
+  --surface-lo: #FBF8F4;
+  --surface-lo-rgb: 251 248 244;
+  --field: #FFFFFF;
+  --field-rgb: 255 255 255;
+  --panel: #FFFFFF;
+  --panel-rgb: 255 255 255;
+
+  /* Gold of the wings */
+  /* Text-safe gold on cream (fills use --grad-gold, which stays bright). */
+  --gold: #B07316;
+  --gold-rgb: 176 115 22;
+  --gold-deep: #8A5A0E;
+  --gold-deep-rgb: 138 90 14;
+  --gold-soft: #8A5A0E;
+  --gold-soft-rgb: 138 90 14;
+
+  --grad-primary: linear-gradient(180deg, #B9343A 0%, #A8272B 50%, #8C1E22 100%);
+  --grad-surface: linear-gradient(180deg, #FFFFFF, #FBF8F4);
+  --grad-tile: linear-gradient(160deg, #F6EEE4, #EFE5D8);
+  --grad-avatar: linear-gradient(135deg, #A8272B, #6E171A);
+  --grad-accent-text: linear-gradient(95deg, #A8272B 10%, #D9932A 90%);
+  --grad-gold: linear-gradient(100deg, #E2A13E 0%, #C98419 55%, #A86E14 100%);
+  --grad-hero-text: linear-gradient(100deg, #1C1513 0%, #A8272B 55%, #C98419 100%);
 
   color-scheme: light;
 }
@@ -2032,4 +2098,43 @@ footer .wrap {
 .jr-idle .jr-art * { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .jr-art * { animation: none !important; }
+}
+
+/* ==========================================================================================
+ * Light theme — calm, premium finish (ASCEND by E Group website)
+ * The bold layer above was designed for the dark theme; on cream paper it is toned down:
+ * barely-there colour fields, no film grain, white cards with soft warm shadows, no spinning.
+ * ========================================================================================== */
+:root[data-theme="light"] {
+  --black-rgb: 58 36 28;
+}
+:root[data-theme="light"] .aurora::before,
+:root[data-theme="light"] .aurora::after,
+:root[data-theme="light"] .aurora > i {
+  opacity: 0.14;
+  animation: none;
+}
+:root[data-theme="light"] .grain::after {
+  opacity: 0;
+}
+:root[data-theme="light"] .grid-lines {
+  background-image:
+    linear-gradient(rgb(var(--mist-rgb) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--mist-rgb) / 0.035) 1px, transparent 1px);
+}
+:root[data-theme="light"] .glass-panel {
+  background: rgb(255 255 255 / 0.78);
+  border: 1px solid rgb(var(--mist-rgb) / 0.08);
+  box-shadow: 0 1px 2px rgb(var(--mist-rgb) / 0.04), 0 18px 40px -24px rgb(var(--mist-rgb) / 0.22);
+}
+:root[data-theme="light"] .text-outline {
+  -webkit-text-stroke: 1.2px rgb(var(--mist-rgb) / 0.32);
+}
+:root[data-theme="light"] .spin-slow,
+:root[data-theme="light"] .float {
+  animation: none;
+}
+:root[data-theme="light"] ::selection {
+  background: rgb(var(--lime-rgb) / 0.18);
+  color: var(--fg);
 }

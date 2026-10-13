@@ -120,7 +120,7 @@ export default function MemberLoginPage() {
 
   const fieldClass =
     'relative flex items-center rounded-2xl border border-mist/[0.12] bg-field/80 transition focus-within:border-brand-500 focus-within:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
-  const inputClass = 'w-full bg-transparent py-4 pl-11 pr-4 text-[15px] text-white outline-none placeholder:text-faint';
+  const inputClass = 'w-full bg-transparent py-4 pl-11 pr-4 text-[15px] text-[var(--fg)] outline-none placeholder:text-faint';
 
   return (
     <section className="grain relative -mt-[72px] overflow-hidden pt-[72px]">
@@ -287,7 +287,7 @@ export default function MemberLoginPage() {
                 hint={mode === 'register' ? 'At least 8 characters, with letters and a number.' : undefined}
                 aside={
                   mode === 'login' ? (
-                    <Link href="/forgot-password" className="text-[12px] text-brand-200 hover:text-white hover:underline">
+                    <Link href="/forgot-password" className="text-[12px] text-brand-200 hover:text-[var(--fg)] hover:underline">
                       Forgot password?
                     </Link>
                   ) : undefined
@@ -302,12 +302,12 @@ export default function MemberLoginPage() {
                     placeholder={mode === 'login' ? 'Your password' : 'Choose a password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-transparent py-4 pl-11 pr-12 text-[15px] text-white outline-none placeholder:text-faint"
+                    className="w-full bg-transparent py-4 pl-11 pr-12 text-[15px] text-[var(--fg)] outline-none placeholder:text-faint"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 grid h-8 w-8 place-items-center rounded-full text-[var(--muted)] hover:bg-mist/[0.06] hover:text-white"
+                    className="absolute right-3 grid h-8 w-8 place-items-center rounded-full text-[var(--muted)] hover:bg-mist/[0.06] hover:text-[var(--fg)]"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -365,14 +365,14 @@ export default function MemberLoginPage() {
                 {mode === 'login' ? (
                   <>
                     New here?{' '}
-                    <button type="button" onClick={() => switchMode('register')} className="font-semibold text-white underline underline-offset-4 hover:text-gold">
+                    <button type="button" onClick={() => switchMode('register')} className="font-semibold text-[var(--fg)] underline underline-offset-4 hover:text-gold">
                       Create a free account →
                     </button>
                   </>
                 ) : (
                   <>
                     Want full membership?{' '}
-                    <Link href="/join" className="font-semibold text-white underline underline-offset-4 hover:text-gold">
+                    <Link href="/join" className="font-semibold text-[var(--fg)] underline underline-offset-4 hover:text-gold">
                       See plans →
                     </Link>
                   </>
@@ -434,7 +434,7 @@ function MemberPass({ identity, mode }: { identity: string; mode: 'otp' | 'email
         className="absolute inset-x-10 -bottom-6 h-10 rounded-full bg-brand-500/40 blur-2xl"
       />
       <FxCard max={14} className="float holo rounded-[28px]">
-        <div className="relative aspect-[1.6/1] overflow-hidden rounded-[28px] border border-white/15 bg-gradient-to-br from-brand-500 via-brand-800 to-brand-950 p-5 sm:p-7">
+        <div className="relative aspect-[1.6/1] overflow-hidden rounded-[28px] border border-white/15 bg-gradient-to-br from-brand-500 via-brand-800 to-brand-900 p-5 sm:p-7">
           <div
             aria-hidden
             className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gold/35 blur-[60px]"
@@ -464,7 +464,7 @@ function MemberPass({ identity, mode }: { identity: string; mode: 'otp' | 'email
                   ASCEND
                 </span>
               </span>
-              <span className="rounded-full border border-gold/50 bg-gold/15 px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-gold-soft">
+              <span className="rounded-full border border-gold/50 bg-gold/15 px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-[#F2C46B]">
                 Member pass
               </span>
             </div>
@@ -483,7 +483,7 @@ function MemberPass({ identity, mode }: { identity: string; mode: 'otp' | 'email
                 <p className="mt-1 truncate font-mono text-[clamp(14px,2.2vw,19px)] tracking-wide text-white">
                   {identity || (mode === 'otp' ? '+91 •• ••• •••' : 'you@firm.com')}
                 </p>
-                <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-gold-soft">
+                <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-[#F2C46B]">
                   Founding member · 2027
                 </p>
               </div>
@@ -498,7 +498,7 @@ function MemberPass({ identity, mode }: { identity: string; mode: 'otp' | 'email
                     className={cn(
                       'h-2 w-2 rounded-[1px] sm:h-2.5 sm:w-2.5',
                       [0, 1, 2, 4, 5, 9, 12, 14, 15, 19, 20, 21, 22, 24, 7, 17].includes(i)
-                        ? 'bg-brand-950'
+                        ? 'bg-[#2A1A0E]'
                         : 'bg-transparent'
                     )}
                   />

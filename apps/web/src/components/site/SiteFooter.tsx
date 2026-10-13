@@ -55,7 +55,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href="/join"
-              className="group flex h-14 items-center justify-between gap-6 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-brand-950 transition hover:brightness-105"
+              className="group flex h-14 items-center justify-between gap-6 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-[#2A1A0E] transition hover:brightness-105"
             >
               Join the community
               <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-gold transition-transform duration-300 group-hover:rotate-45">
@@ -161,7 +161,7 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
       <ul className="flex flex-col gap-2.5">
         {links.map((l) => (
           <li key={l.href}>
-            <Link href={l.href} className="draw-underline text-[14.5px] text-[var(--fg)] hover:text-white">
+            <Link href={l.href} className="draw-underline text-[14.5px] text-[var(--fg)] hover:text-brand-500">
               {l.label}
             </Link>
           </li>

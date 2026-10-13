@@ -169,7 +169,7 @@ export function EventsExplorer({ events, wings, speakers, categories, initialCat
             <SlidersHorizontal className="h-[18px] w-[18px]" aria-hidden />
             <span className="hidden sm:inline">Filters</span>
             {activeCount > 0 && (
-              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1 font-mono text-[11px] font-semibold text-brand-950">
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1 font-mono text-[11px] font-semibold text-[#2A1A0E]">
                 {activeCount}
               </span>
             )}

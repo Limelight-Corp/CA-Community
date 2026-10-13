@@ -52,7 +52,7 @@ export function DirectoryBrowser({
             <UserRoundPlus className="mt-0.5 h-5 w-5 shrink-0 text-brand-200" aria-hidden />
             Your profile isn’t listed yet. Turn on “Show me in the member directory” in your dashboard so other members can find you.
           </p>
-          <Link href="/dashboard?tab=profile" className="shrink-0 text-[13.5px] font-semibold text-brand-200 hover:text-white">
+          <Link href="/dashboard?tab=profile" className="shrink-0 text-[13.5px] font-semibold text-brand-200 hover:text-[var(--fg)]">
             Update my profile →
           </Link>
         </div>
@@ -67,7 +67,7 @@ export function DirectoryBrowser({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by name, firm, expertise or wing…"
-            className="h-12 w-full rounded-full border border-mist/[0.14] bg-field/80 pl-11 pr-4 text-[14.5px] text-white outline-none placeholder:text-faint focus:border-brand-500"
+            className="h-12 w-full rounded-full border border-mist/[0.14] bg-field/80 pl-11 pr-4 text-[14.5px] text-[var(--fg)] outline-none placeholder:text-faint focus:border-brand-500"
           />
         </label>
         <div className="flex flex-wrap gap-2">
@@ -102,7 +102,7 @@ export function DirectoryBrowser({
                 setWing('');
                 setPlan('');
               }}
-              className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-[13px] text-[var(--muted)] hover:text-white"
+              className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-[13px] text-[var(--muted)] hover:text-[var(--fg)]"
             >
               <X className="h-4 w-4" aria-hidden /> Clear
             </button>

@@ -173,7 +173,7 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
                   <span className="font-display text-[19px] font-medium text-[var(--fg)]">{p.name}</span>
                   <span
                     aria-hidden
-                    className={cn('grid h-6 w-6 place-items-center rounded-full border', active ? 'border-gold bg-gold text-brand-950' : 'border-mist/[0.2]')}
+                    className={cn('grid h-6 w-6 place-items-center rounded-full border', active ? 'border-gold bg-gold text-[#2A1A0E]' : 'border-mist/[0.2]')}
                   >
                     {active && <Check className="h-3.5 w-3.5" />}
                   </span>
@@ -277,7 +277,7 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
           />
           <span>
             I agree that the community may store and use these details to process my membership application, as described in the{' '}
-            <Link href="/legal/privacy" className="text-brand-200 underline underline-offset-4 hover:text-white">
+            <Link href="/legal/privacy" className="text-brand-200 underline underline-offset-4 hover:text-[var(--fg)]">
               Privacy Policy
             </Link>
             .<span className="text-gold" aria-hidden> *</span>
@@ -298,7 +298,7 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
         <button
           type="submit"
           disabled={submitting}
-          className="group inline-flex h-14 items-center justify-between gap-6 rounded-full bg-grad-gold pl-7 pr-2 text-[15.5px] font-semibold text-brand-950 transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60"
+          className="group inline-flex h-14 items-center justify-between gap-6 rounded-full bg-grad-gold pl-7 pr-2 text-[15.5px] font-semibold text-[#2A1A0E] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60"
         >
           Submit application
           <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-gold transition-transform duration-300 group-hover:rotate-45">

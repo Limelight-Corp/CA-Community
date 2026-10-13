@@ -10,8 +10,8 @@ const buttonVariants = cva(
         lime: 'bg-gradient-to-b from-brand-400 via-brand-500 to-brand-700 text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] border border-transparent hover:brightness-110 active:brightness-95',
         dark: 'bg-gradient-to-b from-brand-400 via-brand-500 to-brand-700 text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] border border-transparent hover:brightness-110 active:brightness-95',
         line: 'border border-[rgb(var(--mist-rgb)/0.16)] bg-[rgb(var(--mist-rgb)/0.04)] text-[var(--fg)] hover:border-[rgb(var(--mist-rgb)/0.4)] hover:bg-[rgb(var(--mist-rgb)/0.08)]',
-        ghost: 'border border-line-solid-3 text-white bg-transparent hover:border-line-hover hover:bg-[rgb(var(--mist-rgb)/0.05)]',
-        link: 'border-0 border-b border-current rounded-none bg-transparent p-0 text-[var(--fg)] hover:text-white pb-0.5 font-medium',
+        ghost: 'border border-line-solid-3 text-[var(--fg)] bg-transparent hover:border-line-hover hover:bg-[rgb(var(--mist-rgb)/0.05)]',
+        link: 'border-0 border-b border-current rounded-none bg-transparent p-0 text-[var(--fg)] hover:opacity-75 pb-0.5 font-medium',
       },
       size: {
         sm: 'px-3.5 py-2 text-[13.5px]',

@@ -114,7 +114,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">Next up</h2>
                   {upcoming.length > 1 && (
-                    <button type="button" onClick={() => setTab('events')} className="text-[13px] font-semibold text-brand-200 hover:text-white">
+                    <button type="button" onClick={() => setTab('events')} className="text-[13px] font-semibold text-brand-200 hover:text-[var(--fg)]">
                       All events →
                     </button>
                   )}
@@ -245,7 +245,7 @@ export function MemberDashboard({ data, initialTab }: { data: DashboardData; ini
                         : 'Become a member to unlock them.'}
                   </p>
                   {!membership && (
-                    <Link href="/join" className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950">
+                    <Link href="/join" className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-[#2A1A0E]">
                       <Sparkles className="h-4 w-4" aria-hidden /> See membership plans
                     </Link>
                   )}
@@ -391,7 +391,7 @@ function MembershipPayButton({ label, siteName, prefill }: { label: string; site
       type="button"
       onClick={pay}
       disabled={busy}
-      className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950 disabled:opacity-60"
+      className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-[#2A1A0E] disabled:opacity-60"
     >
       {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CreditCard className="h-4 w-4" aria-hidden />}
       {label}
@@ -422,7 +422,7 @@ function MembershipCard({
           Become a member for wing membership, member-only resources, discussions and discounts on paid events.
           {!verified && ' Use the same email as this account and confirm it, so we can link your application.'}
         </p>
-        <Link href="/join" className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950">
+        <Link href="/join" className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-[#2A1A0E]">
           <Sparkles className="h-4 w-4" aria-hidden /> See membership plans
         </Link>
       </section>
@@ -513,7 +513,7 @@ function MembershipCard({
                   {longDate(p.paidAt)} · {p.method} · valid till {longDate(p.validUntil)}
                 </span>
                 <span className="ml-auto font-mono text-[var(--fg)]">{inr(p.amount)}</span>
-                <a href={p.receiptUrl} className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-brand-200 hover:text-white">
+                <a href={p.receiptUrl} className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-brand-200 hover:text-[var(--fg)]">
                   <Download className="h-3.5 w-3.5" aria-hidden /> PDF
                 </a>
               </li>
@@ -631,7 +631,7 @@ function EmptyState({ icon: Icon, text, action }: { icon: React.ElementType; tex
       <Icon className="h-6 w-6 text-[var(--muted)]" aria-hidden />
       <p className="text-[14.5px] text-[var(--muted)]">{text}</p>
       {action && (
-        <Link href={action.href} className="text-[13.5px] font-semibold text-brand-200 hover:text-white">
+        <Link href={action.href} className="text-[13.5px] font-semibold text-brand-200 hover:text-[var(--fg)]">
           {action.label} →
         </Link>
       )}
@@ -656,7 +656,7 @@ const PROFILE_FIELDS: { key: string; label: string; placeholder?: string; full?:
 ];
 
 const inputCls =
-  'w-full rounded-2xl border border-mist/[0.12] bg-field/80 px-4 py-3 text-[14.5px] text-white outline-none transition placeholder:text-faint focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
+  'w-full rounded-2xl border border-mist/[0.12] bg-field/80 px-4 py-3 text-[14.5px] text-[var(--fg)] outline-none transition placeholder:text-faint focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
 
 function ProfileTab({ data }: { data: DashboardData }) {
   const router = useRouter();

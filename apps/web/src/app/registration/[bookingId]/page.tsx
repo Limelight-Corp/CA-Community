@@ -220,7 +220,7 @@ export default async function RegistrationPage({
           {view === 'confirmed' && (
             <div className="mt-6 flex flex-col gap-4 rounded-[24px] border border-gold/30 bg-gold/[0.06] p-5 print:hidden sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-grad-gold text-brand-950">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-grad-gold text-[#2A1A0E]">
                   <Award className="h-5 w-5" aria-hidden />
                 </span>
                 <div>
@@ -236,7 +236,7 @@ export default async function RegistrationPage({
                 <div className="flex flex-wrap gap-2">
                   <a
                     href={certificatePdfPath(reg.certificateId!, token)}
-                    className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950 hover:brightness-105"
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-[#2A1A0E] hover:brightness-105"
                   >
                     <Download className="h-4 w-4" aria-hidden /> Download PDF
                   </a>

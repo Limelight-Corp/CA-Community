@@ -28,7 +28,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           role="status"
           className={cn(
             'fixed left-1/2 -translate-x-1/2 bottom-[calc(84px+env(safe-area-inset-bottom,0px))]',
-            'bg-[var(--ink)] text-white border border-[var(--line)] py-3 px-5 rounded-[6px] text-[14px]',
+            'bg-[var(--fg)] text-[var(--bg)] border border-[var(--line)] py-3 px-5 rounded-[6px] text-[14px]',
             'shadow-xl z-[80] max-w-[90vw] animate-in fade-in slide-in-from-bottom-2 duration-150'
           )}
         >

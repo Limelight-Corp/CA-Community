@@ -178,7 +178,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             {contact.email && (
               <Reveal className="grain relative overflow-hidden rounded-[32px] border border-mist/[0.1] bg-grad-surface p-7 md:p-8">
                 <div aria-hidden className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gold/20 blur-[70px]" />
-                <span className="relative grid h-14 w-14 place-items-center rounded-2xl bg-grad-gold text-brand-950 shadow-[0_16px_40px_-16px_rgb(var(--gold-rgb)/0.8)]">
+                <span className="relative grid h-14 w-14 place-items-center rounded-2xl bg-grad-gold text-[#2A1A0E] shadow-[0_16px_40px_-16px_rgb(var(--gold-rgb)/0.8)]">
                   <Mail className="h-6 w-6" aria-hidden />
                 </span>
                 <p className="relative mt-8 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">Write to us</p>
@@ -359,7 +359,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                   </summary>
                   <div className="flex flex-col gap-4 px-6 pb-6 pl-[3.6rem]">
                     <p className="max-w-[62ch] text-[15px] leading-relaxed text-[var(--muted)]">{f.a}</p>
-                    <Link href={f.href} className="group/link inline-flex w-fit items-center gap-1.5 text-[14px] font-semibold text-brand-200 hover:text-white">
+                    <Link href={f.href} className="group/link inline-flex w-fit items-center gap-1.5 text-[14px] font-semibold text-brand-200 hover:text-[var(--fg)]">
                       {f.cta}
                       <ArrowUpRight className="h-4 w-4 transition group-hover/link:rotate-45" aria-hidden />
                     </Link>
@@ -374,12 +374,12 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       {/* ------------------------------------------------------------ PARTNER STRIP */}
       {partners && (
         <section className="relative px-5 pb-24 md:px-8 md:pb-32">
-          <Reveal className="grain relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] border border-gold/20 bg-gradient-to-br from-brand-900 via-brand-950 to-bg p-8 md:p-14">
+          <Reveal className="grain relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] border border-gold/20 bg-gradient-to-br from-brand-500/[0.08] via-[var(--panel)] to-gold/[0.08] p-8 md:p-14">
             <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-96 w-96 rounded-full bg-gold/20 blur-[110px]" />
             <div className="relative grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
               <div>
                 <Kicker tone="gold">{partners.name}</Kicker>
-                <h2 className="mt-5 font-display text-[clamp(36px,5vw,72px)] font-medium leading-[0.95] tracking-[-0.05em] text-white">
+                <h2 className="mt-5 font-display text-[clamp(36px,5vw,72px)] font-medium leading-[0.95] tracking-[-0.05em] text-[var(--fg)]">
                   Build it <AccentText tone="gold">with us.</AccentText>
                 </h2>
                 <p className="mt-5 max-w-[44ch] text-[16px] leading-relaxed text-[var(--muted)]">
@@ -388,7 +388,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                 <Link
                   href="/contact?topic=partner#contact-form"
                   scroll={false}
-                  className="group mt-8 inline-flex h-14 items-center gap-4 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-brand-950 transition hover:brightness-105"
+                  className="group mt-8 inline-flex h-14 items-center gap-4 rounded-full bg-grad-gold pl-6 pr-2 text-[15px] font-semibold text-[#2A1A0E] transition hover:brightness-105"
                 >
                   Start a partnership enquiry
                   <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-gold transition-transform duration-300 group-hover:rotate-45">

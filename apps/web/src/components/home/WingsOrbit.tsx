@@ -129,7 +129,7 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <span className="font-display text-[clamp(48px,14vw,112px)] font-semibold leading-[0.9] tracking-[-0.06em] text-white [text-shadow:0_0_40px_rgb(var(--gold-rgb)/0.55),0_0_2px_rgb(var(--white-rgb)/0.6)]">
+              <span className="font-display text-[clamp(48px,14vw,112px)] font-semibold leading-[0.9] tracking-[-0.06em] text-[var(--fg)]">
                 {n}
               </span>
               <span className="mt-1 font-display text-[14px] font-medium tracking-[-0.03em] text-[var(--fg)] sm:mt-2 sm:text-[20px]">
@@ -198,7 +198,7 @@ export function WingsOrbit({ wings }: { wings: OrbitWing[] }) {
                 aria-pressed={on}
                 className={cn(
                   'flex items-center gap-2 whitespace-nowrap rounded-full border py-1.5 pl-1.5 pr-3.5 text-[13px] font-medium transition',
-                  on ? 'border-transparent text-white' : 'border-mist/[0.14] text-[var(--fg)]'
+                  on ? 'border-transparent text-[var(--fg)]' : 'border-mist/[0.14] text-[var(--fg)]'
                 )}
                 style={
                   on ? { background: `color-mix(in srgb, ${w.color} 45%, transparent)` } : undefined

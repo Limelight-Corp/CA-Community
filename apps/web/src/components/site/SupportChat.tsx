@@ -205,7 +205,7 @@ export function SupportChat() {
           {open ? <X className="h-6 w-6" aria-hidden /> : <MessageCircle className="h-6 w-6" aria-hidden />}
         </span>
         {!open && messages.length === 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-gold text-brand-950" aria-hidden>
+          <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-gold text-[#2A1A0E]" aria-hidden>
             <Sparkles className="h-3 w-3" />
           </span>
         )}
@@ -513,7 +513,7 @@ function LeadForm({ page, onDone, onCancel }: { page: string; onDone: (name: str
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-grad-gold text-[13px] font-semibold text-brand-950 disabled:opacity-60"
+          className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-grad-gold text-[13px] font-semibold text-[#2A1A0E] disabled:opacity-60"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ArrowRight className="h-4 w-4" aria-hidden />} Send request
         </button>

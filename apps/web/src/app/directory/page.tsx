@@ -68,7 +68,7 @@ export default async function DirectoryPage() {
                   </Link>
                 ) : null}
                 {!application && (
-                  <Link href="/join" className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-brand-950">
+                  <Link href="/join" className="inline-flex h-11 items-center gap-2 rounded-full bg-grad-gold px-5 text-[14px] font-semibold text-[#2A1A0E]">
                     <Sparkles className="h-4 w-4" aria-hidden /> See membership plans
                   </Link>
                 )}

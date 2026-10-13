@@ -78,7 +78,7 @@ export function JobBoard({ jobs, types, modes }: { jobs: JobCard[]; types: strin
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search role, firm, city or skill…"
-            className="h-12 w-full rounded-full border border-mist/[0.14] bg-field/80 pl-11 pr-4 text-[14.5px] text-white outline-none placeholder:text-faint focus:border-brand-500"
+            className="h-12 w-full rounded-full border border-mist/[0.14] bg-field/80 pl-11 pr-4 text-[14.5px] text-[var(--fg)] outline-none placeholder:text-faint focus:border-brand-500"
           />
         </label>
         <div className="flex flex-wrap gap-2">
@@ -103,7 +103,7 @@ export function JobBoard({ jobs, types, modes }: { jobs: JobCard[]; types: strin
                 setCity('');
                 setMode('');
               }}
-              className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-[13px] text-[var(--muted)] hover:text-white"
+              className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-[13px] text-[var(--muted)] hover:text-[var(--fg)]"
             >
               <X className="h-4 w-4" aria-hidden /> Clear
             </button>
@@ -173,7 +173,7 @@ export function JobBoard({ jobs, types, modes }: { jobs: JobCard[]; types: strin
                     )}
                   </ul>
                 </div>
-                <span className="inline-flex shrink-0 items-center gap-1.5 self-start text-[13.5px] font-semibold text-brand-200 group-hover:text-white sm:self-center">
+                <span className="inline-flex shrink-0 items-center gap-1.5 self-start text-[13.5px] font-semibold text-brand-200 group-hover:text-[var(--fg)] sm:self-center">
                   View <ArrowUpRight className="h-4 w-4" aria-hidden />
                 </span>
               </Link>

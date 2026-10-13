@@ -32,6 +32,6 @@ export function AuthPanel({
 }
 
 export const authInputClass =
-  'w-full rounded-2xl border border-mist/[0.12] bg-field/80 px-4 py-4 text-[15px] text-white outline-none transition placeholder:text-faint focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
+  'w-full rounded-2xl border border-mist/[0.12] bg-field/80 px-4 py-4 text-[15px] text-[var(--fg)] outline-none transition placeholder:text-faint focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(var(--lime-rgb)/0.18)]';
 export const authButtonClass =
   'btn-shimmer flex h-14 w-full items-center justify-center gap-2 rounded-full bg-grad-primary px-6 text-[15px] font-semibold text-white shadow-[0_16px_40px_-16px_rgb(var(--lime-rgb)/0.95)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60';

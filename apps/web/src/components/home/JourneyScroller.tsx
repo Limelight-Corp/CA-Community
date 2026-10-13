@@ -175,7 +175,7 @@ export function JourneyScroller({
                 key={s.title}
                 className={cn(
                   'group/step relative flex w-[min(80vw,300px)] shrink-0 snap-start flex-col overflow-hidden rounded-[26px] border transition-[opacity,filter,transform,box-shadow] duration-500 lg:w-[320px]',
-                  last ? 'border-transparent bg-grad-gold text-brand-950' : 'border-mist/[0.1] bg-grad-surface',
+                  last ? 'border-transparent bg-grad-gold text-[#2A1A0E]' : 'border-mist/[0.1] bg-grad-surface',
                   pinned && !lit && 'jr-idle scale-[0.96] opacity-40 saturate-50',
                   pinned && i === active && !last && 'border-gold/40 shadow-[0_30px_70px_-35px_rgb(var(--gold-rgb)/0.6)]'
                 )}
@@ -203,7 +203,7 @@ export function JourneyScroller({
                   <span
                     className={cn(
                       'absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-xl transition-transform duration-700',
-                      last ? 'bg-gold text-brand-950' : 'bg-brand-500/20 text-brand-200',
+                      last ? 'bg-gold text-[#2A1A0E]' : 'bg-brand-500/20 text-brand-200',
                       lit && pinned && 'rotate-[-8deg] scale-110'
                     )}
                   >
@@ -216,18 +216,18 @@ export function JourneyScroller({
                   <h3
                     className={cn(
                       'font-display text-[23px] font-medium leading-[1.05] tracking-[-0.035em]',
-                      last ? 'text-brand-950' : 'text-[var(--fg)]'
+                      last ? 'text-[#2A1A0E]' : 'text-[var(--fg)]'
                     )}
                   >
                     {s.title}
                   </h3>
-                  <p className={cn('mt-1.5 text-[14px] leading-snug', last ? 'text-brand-950/75' : 'text-[var(--muted)]')}>{s.text}</p>
+                  <p className={cn('mt-1.5 text-[14px] leading-snug', last ? 'text-[#2A1A0E]/75' : 'text-[var(--muted)]')}>{s.text}</p>
                   {extra && (
                     <>
                       <ul className="mt-3.5 flex flex-col gap-1.5">
                         {extra.points.map((pt) => (
-                          <li key={pt} className={cn('flex items-start gap-2 text-[13px] leading-snug', last ? 'text-brand-950/85' : 'text-[var(--fg-soft)]')}>
-                            <Check className={cn('mt-[2px] h-3.5 w-3.5 shrink-0', last ? 'text-brand-950' : 'text-gold')} aria-hidden />
+                          <li key={pt} className={cn('flex items-start gap-2 text-[13px] leading-snug', last ? 'text-[#2A1A0E]/85' : 'text-[var(--fg-soft)]')}>
+                            <Check className={cn('mt-[2px] h-3.5 w-3.5 shrink-0', last ? 'text-[#2A1A0E]' : 'text-gold')} aria-hidden />
                             {pt}
                           </li>
                         ))}
@@ -236,7 +236,7 @@ export function JourneyScroller({
                         href={extra.href}
                         className={cn(
                           'mt-auto inline-flex items-center gap-1.5 self-start pt-4 text-[13.5px] font-semibold transition',
-                          last ? 'text-brand-950 hover:opacity-80' : 'text-brand-200 hover:text-[var(--fg)]'
+                          last ? 'text-[#2A1A0E] hover:opacity-80' : 'text-brand-200 hover:text-[var(--fg)]'
                         )}
                       >
                         {extra.cta}

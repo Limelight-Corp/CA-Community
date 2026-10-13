@@ -41,8 +41,14 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: title, template: `%s · ${settings.siteName}` },
     description: settings.tagline,
     manifest: '/manifest.json',
-    icons: { icon: '/icon.svg', apple: '/icon.svg' },
-    appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: settings.siteName },
+    icons: {
+      icon: [
+        { url: '/brand/favicon-48.png', sizes: '48x48', type: 'image/png' },
+        { url: '/brand/icon-192.png', sizes: '192x192', type: 'image/png' },
+      ],
+      apple: '/brand/apple-icon.png',
+    },
+    appleWebApp: { capable: true, statusBarStyle: 'default', title: settings.siteName },
     openGraph: { type: 'website', siteName: settings.siteName, title, description: settings.tagline },
     twitter: { card: 'summary_large_image', title, description: settings.tagline },
     // Google Search Console ownership check (HTML tag method).
@@ -62,7 +68,7 @@ function siteLd(settings: Awaited<ReturnType<typeof getSettings>>) {
         '@id': `${base}/#organization`,
         name: settings.siteName,
         url: base,
-        logo: `${base}/icon.svg`,
+        logo: `${base}/brand/egroup-logo.png`,
         ...(settings.contact?.email ? { email: settings.contact.email } : {}),
         ...(sameAs.length ? { sameAs } : {}),
       },

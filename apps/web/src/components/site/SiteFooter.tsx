@@ -74,7 +74,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
 
       <div className="relative mx-auto grid max-w-[1400px] gap-12 px-5 py-16 md:grid-cols-2 md:px-8 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr]">
         <div className="flex flex-col gap-5">
-          <Logo siteName={settings.siteName} />
+          <Logo siteName={settings.siteName} size="lg" />
           <p className="max-w-[36ch] text-[14.5px] leading-relaxed text-[var(--muted)]">{settings.tagline}</p>
           <p className="font-mono text-[12px] uppercase tracking-[0.1em] text-gold">Launch · {ORG_POSITIONING.launchLabel}</p>
         </div>

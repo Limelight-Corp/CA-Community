@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -51,27 +52,15 @@ function isActive(pathname: string, href: string) {
   return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Logo({ siteName, compact }: { siteName: string; compact?: boolean }) {
+export function Logo({ siteName, compact, size = 'md' }: { siteName: string; compact?: boolean; size?: 'md' | 'lg' }) {
   return (
-    <Link href="/" className="group flex items-center gap-2.5" aria-label={`${siteName} home`}>
-      <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-400 via-brand-500 to-brand-700 shadow-[0_8px_24px_-8px_rgb(var(--lime-rgb)/0.9)] transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-105">
-        <svg
-          viewBox="0 0 24 24"
-          className="h-5 w-5 text-white"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M3 19 L10 6 L14 13 L17 9 L21 19" />
-        </svg>
-        <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-gold shadow-[0_0_10px_var(--gold)]" />
-      </span>
+    <Link href="/" className="group flex items-center gap-3" aria-label={`${siteName} by E Group — home`}>
+      {/* E Group logo (public/brand/egroup-logo.png, 640×331) */}
+      <Image src="/brand/egroup-logo.png" alt="" width={640} height={331} priority className={cn('w-auto shrink-0', size === 'lg' ? 'h-20' : 'h-12')} />
       {!compact && (
-        <span className="font-display text-[17px] font-semibold tracking-[0.14em] text-[var(--fg)]">
-          {siteName}
+        <span className="flex flex-col leading-none">
+          <span className="font-display text-[17px] font-semibold tracking-[0.14em] text-[var(--fg)]">{siteName}</span>
+          <span className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.2em] text-brand-500">by E Group</span>
         </span>
       )}
     </Link>

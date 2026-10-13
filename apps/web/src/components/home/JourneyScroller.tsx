@@ -64,17 +64,10 @@ export function JourneyScroller({
 }) {
   const outer = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLOListElement>(null);
-  const [pinned, setPinned] = useState(false);
+  // Always the simple swipeable row: the pinned, scroll-driven horizontal ride was removed for a calmer site.
+  const pinned = false as boolean;
   const [distance, setDistance] = useState(0);
   const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: no-preference)');
-    const apply = () => setPinned(mq.matches);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
 
   useEffect(() => {
     if (!pinned) return;

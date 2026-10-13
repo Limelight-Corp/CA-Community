@@ -38,7 +38,7 @@ import {
 import { AccentText, Avatar, Container, Kicker, SectionHeading, cn } from '@ascend/ui';
 import { CountUp, Reveal } from '../../components/ui-client';
 import { FxCard } from '../../components/home/Interactive';
-import { FlipCard, InView, ScrollHighlight } from '../../components/about/AboutFx';
+import { InView, ScrollHighlight } from '../../components/about/AboutFx';
 import { getItems, getSettings } from '../../lib/community-store';
 import { jsonLd, siteUrl } from '../../lib/seo';
 import { safeUrl } from '../../lib/content';
@@ -369,69 +369,29 @@ export default async function AboutPage() {
                 Six things we <AccentText>show up for.</AccentText>
               </h2>
             </div>
-            <p className="max-w-[34ch] text-[14.5px] text-[var(--muted)]">
-              Hover — or tap on mobile — to flip a card.
-            </p>
           </div>
           <ol className="mt-12 grid gap-4 sm:grid-cols-2 md:mt-14 lg:grid-cols-3">
             {ORG_CORE_PURPOSES.map((p, i) => {
               const Icon = PURPOSE_ICONS[p.key] ?? Sparkles;
-              const gold = i === 0 || i === 4;
               return (
                 <Reveal as="li" key={p.key} delay={(i % 3) * 90}>
-                  <FlipCard
-                    label={p.title}
-                    className="h-[260px] rounded-[28px] md:h-[300px]"
-                    front={
-                      <span
-                        className={cn(
-                          'flex h-full flex-col justify-between rounded-[28px] border p-7',
-                          gold
-                            ? 'border-gold/30 bg-gold/[0.07]'
-                            : 'border-mist/[0.1] bg-grad-surface'
-                        )}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span className="font-mono text-[12px] tracking-[0.14em] text-[var(--muted)]">
-                            {String(i + 1).padStart(2, '0')} / 06
-                          </span>
-                          <span
-                            className={cn(
-                              'grid h-12 w-12 place-items-center rounded-2xl',
-                              gold
-                                ? 'bg-grad-gold text-[#2A1A0E]'
-                                : 'bg-brand-500/15 text-brand-200'
-                            )}
-                          >
-                            <Icon className="h-6 w-6" aria-hidden />
-                          </span>
-                        </span>
-                        <span className="block font-display text-[clamp(48px,5vw,72px)] font-medium leading-none tracking-[-0.05em] text-[var(--fg)]">
-                          {p.title}
-                          <span className="text-gold">.</span>
-                        </span>
+                  <div className="flex h-full flex-col gap-10 rounded-[28px] border border-mist/[0.08] bg-[var(--card)] p-7 shadow-[0_1px_2px_rgb(var(--mist-rgb)/0.04)]">
+                    <span className="flex items-center justify-between">
+                      <span className="font-mono text-[12px] tracking-[0.14em] text-[var(--muted)]">
+                        {String(i + 1).padStart(2, '00')} / 06
                       </span>
-                    }
-                    back={
-                      <span className="grain relative flex h-full flex-col justify-between overflow-hidden rounded-[28px] bg-grad-primary p-7">
-                        <span
-                          aria-hidden
-                          className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gold/35 blur-[70px]"
-                        />
-                        <span className="relative flex items-center gap-3">
-                          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/15 text-white">
-                            <Icon className="h-5 w-5" aria-hidden />
-                          </span>
-                          <span className="font-display text-[26px] font-medium tracking-[-0.03em] text-white">
-                            {p.title}
-                          </span>
-                        </span>
-                        <span className="relative block font-display text-[clamp(22px,2.2vw,30px)] font-medium leading-[1.15] tracking-[-0.03em] text-white">
-                          {p.text}
-                        </span>
+                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/10 text-brand-500">
+                        <Icon className="h-5 w-5" aria-hidden />
                       </span>
-                    }
-                  />
+                    </span>
+                    <span className="mt-auto flex flex-col gap-3">
+                      <span className="block font-display text-[clamp(30px,2.6vw,38px)] font-medium leading-none tracking-[-0.04em] text-[var(--fg)]">
+                        {p.title}
+                        <span className="text-gold">.</span>
+                      </span>
+                      <span className="block text-[15px] leading-relaxed text-[var(--muted)]">{p.text}</span>
+                    </span>
+                  </div>
                 </Reveal>
               );
             })}

@@ -2172,3 +2172,36 @@ footer .wrap {
 :root[data-theme="light"] .orbit-node {
   animation-play-state: paused;
 }
+
+/* E Group emblem with a static 3D look (home hero): the logo is tilted back slightly and
+   "extruded" by stacked 1px silhouette shadows in deepening bronze, with a soft contact
+   shadow on the ground. Pure CSS, no motion. */
+.emblem-3d {
+  position: relative;
+  perspective: 1100px;
+}
+.emblem-3d::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -6%;
+  height: 16%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(58 36 28 / 0.28), transparent);
+  filter: blur(6px);
+  z-index: -1;
+}
+.emblem-3d__img {
+  transform: rotateX(14deg);
+  transform-origin: 50% 80%;
+  filter:
+    drop-shadow(0 1px 0 #8a5a12)
+    drop-shadow(0 1px 0 #7b4f10)
+    drop-shadow(0 1px 0 #6c450e)
+    drop-shadow(0 1px 0 #5d3b0c)
+    drop-shadow(0 1px 0 #4f320a)
+    drop-shadow(0 1px 0 #422a08)
+    drop-shadow(0 2px 1px rgb(40 24 16 / 0.35))
+    drop-shadow(0 22px 28px rgb(58 36 28 / 0.22));
+}

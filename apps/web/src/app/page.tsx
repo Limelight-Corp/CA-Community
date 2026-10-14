@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import {
@@ -163,9 +164,19 @@ export default async function HomePage() {
               </Reveal>
             </div>
 
-            {/* Launch badge + countdown + next event */}
+            {/* E Group emblem (static 3D look) + countdown + next event */}
             <Reveal delay={200} className="relative min-w-0">
               <div className="relative mx-auto w-full max-w-[460px]">
+                <figure className="emblem-3d mx-auto mb-10 w-[min(420px,86%)] md:mb-12">
+                  <Image
+                    src="/brand/egroup-logo.png"
+                    alt="E Group emblem"
+                    width={640}
+                    height={331}
+                    priority
+                    className="emblem-3d__img h-auto w-full"
+                  />
+                </figure>
                 <TiltCard>
                   <div className="glass-panel rounded-[32px] p-6 md:p-7">
                     <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">

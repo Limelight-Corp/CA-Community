@@ -54,7 +54,7 @@ function isActive(pathname: string, href: string) {
 
 export function Logo({ siteName, compact, size = 'md' }: { siteName: string; compact?: boolean; size?: 'md' | 'lg' }) {
   return (
-    <Link href="/" className="group flex items-center gap-3" aria-label={`${siteName} by E Group — home`}>
+    <Link href="/" className="group flex shrink-0 items-center gap-3" aria-label={`${siteName} by E Group — home`}>
       {/* E Group logo (public/brand/egroup-logo.png, 640×331) */}
       <Image src="/brand/egroup-logo.png" alt="" width={640} height={331} priority className={cn('w-auto shrink-0', size === 'lg' ? 'h-20' : 'h-12')} />
       {!compact && (
@@ -131,7 +131,7 @@ export function SiteHeader({
         <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-6 px-5 md:px-8 xl:gap-4 2xl:gap-6">
           <Logo siteName={siteName} />
 
-          <nav aria-label="Main" className="ml-4 hidden flex-1 items-center gap-0.5 xl:ml-1 xl:flex 2xl:ml-4">
+          <nav aria-label="Main" className="ml-2 hidden min-w-0 flex-1 items-center gap-0.5 2xl:flex">
             {NAV_ITEMS.map((item) => {
               const active = isActive(pathname, item.href);
               return (
@@ -140,7 +140,7 @@ export function SiteHeader({
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'relative whitespace-nowrap rounded-full px-3 py-2 text-[13.5px] font-medium transition-colors xl:px-2.5 xl:text-[13px] 2xl:px-3 2xl:text-[13.5px]',
+                    'relative whitespace-nowrap rounded-full px-3 py-2 text-[13.5px] font-medium transition-colors 2xl:px-3 2xl:text-[13.5px]',
                     active ? 'text-[var(--fg)]' : 'text-[var(--muted)] hover:text-[var(--fg)]'
                   )}
                 >
@@ -202,7 +202,7 @@ export function SiteHeader({
               onClick={() => setOpen(true)}
               aria-label="Open menu"
               aria-expanded={open}
-              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] xl:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] 2xl:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -213,7 +213,7 @@ export function SiteHeader({
       {/* Mobile menu panel */}
       <div
         className={cn(
-          'fixed inset-0 z-[60] flex flex-col bg-bg/95 backdrop-blur-2xl transition-[opacity,visibility] duration-500 xl:hidden',
+          'fixed inset-0 z-[60] flex flex-col bg-bg/95 backdrop-blur-2xl transition-[opacity,visibility] duration-500 2xl:hidden',
           open ? 'visible opacity-100' : 'invisible opacity-0'
         )}
         role="dialog"

@@ -567,46 +567,32 @@ export default async function HomePage() {
             <div className="mt-14 grid gap-5 md:grid-cols-3">
               {news.map((n, i) => (
                 <Reveal key={n.id} delay={i * 80}>
-                  <FxCard className="h-full rounded-[28px]" max={5}>
-                    <Link
-                      href={`/news/${n.slug}`}
-                      className="shine group flex h-full flex-col overflow-hidden rounded-[28px] border border-mist/[0.08] bg-grad-surface"
-                    >
-                      <div className="relative aspect-[16/9] overflow-hidden">
-                        {n.coverImageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={n.coverImageUrl}
-                            alt=""
-                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div
-                            className="h-full w-full transition-transform duration-700 group-hover:scale-105"
-                            style={{
-                              background: `radial-gradient(80% 90% at ${20 + i * 30}% 10%, rgb(var(--lime-rgb) / 0.55), transparent 60%), radial-gradient(60% 70% at 100% 100%, rgb(var(--gold-rgb) / 0.3), transparent 60%), var(--surface-hi)`,
-                            }}
-                          />
-                        )}
-                        <span className="absolute left-4 top-4 rounded-full bg-bg/80 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.08em] text-gold backdrop-blur-md">
-                          {n.category}
-                        </span>
-                      </div>
-                      <div className="flex flex-1 flex-col gap-3 p-6">
-                        <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--muted)]">
-                          {n.date}
-                          {n.author ? ` · ${n.author}` : ''}
-                        </p>
-                        <h3 className="font-display text-[21px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-brand-500">
-                          {n.title}
-                        </h3>
-                        <p className="line-clamp-3 text-[14.5px] leading-relaxed text-[var(--muted)]">
-                          {n.summary}
-                        </p>
-                      </div>
-                    </Link>
-                  </FxCard>
+                  <Link
+                    href={`/news/${n.slug}`}
+                    className="group flex h-full flex-col rounded-[24px] border border-mist/[0.09] bg-[var(--card)] p-5 transition-[border-color,box-shadow] duration-300 hover:border-mist/[0.16] hover:shadow-[0_18px_40px_-28px_rgb(var(--mist-rgb)/0.35)] md:p-6"
+                  >
+                    {n.coverImageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={n.coverImageUrl}
+                        alt=""
+                        className="-mx-1 -mt-1 mb-5 aspect-[16/9] w-[calc(100%+0.5rem)] rounded-[18px] object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                    <p className="flex flex-wrap items-center gap-x-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">
+                      <span className="text-brand-500">{n.category}</span>
+                      <span aria-hidden>·</span>
+                      <span>{n.date}</span>
+                    </p>
+                    <h3 className="mt-4 font-display text-[21px] font-medium leading-[1.2] tracking-[-0.02em] text-[var(--fg)] group-hover:text-brand-500">
+                      {n.title}
+                    </h3>
+                    <p className="mt-2.5 line-clamp-3 text-[14.5px] leading-relaxed text-[var(--muted)]">{n.summary}</p>
+                    <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-[13.5px] font-semibold text-[var(--fg)]">
+                      Read <ArrowUpRight className="h-4 w-4 text-brand-500" aria-hidden />
+                    </span>
+                  </Link>
                 </Reveal>
               ))}
             </div>

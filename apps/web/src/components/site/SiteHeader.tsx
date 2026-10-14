@@ -20,7 +20,6 @@ import {
   Mic2,
   Newspaper,
   Search,
-  User,
   UserPlus,
   X,
   type LucideIcon,
@@ -29,11 +28,15 @@ import { cn, useToast } from '@ascend/ui';
 import { useAuth } from '../../context/AuthContext';
 import { UserMenu } from './UserMenu';
 
-/** Website Checklist §30 — recommended menu. */
-export const NAV_ITEMS: readonly { label: string; href: string; hint: string; icon: LucideIcon }[] =
+/**
+ * Website Checklist §30 — recommended menu (all items appear in the mobile menu).
+ * The desktop bar leaves out Home (the logo links home) and Join Us (the Join button), and uses
+ * `short` labels, so it stays on one calm line.
+ */
+export const NAV_ITEMS: readonly { label: string; short?: string; href: string; hint: string; icon: LucideIcon; desktop?: false }[] =
   [
-    { label: 'Home', href: '/', hint: 'Start here', icon: House },
-    { label: 'About Us', href: '/about', hint: 'Vision, leadership & wings', icon: Info },
+    { label: 'Home', href: '/', hint: 'Start here', icon: House, desktop: false },
+    { label: 'About Us', short: 'About', href: '/about', hint: 'Vision, leadership & wings', icon: Info },
     {
       label: 'Events',
       href: '/events',
@@ -42,9 +45,9 @@ export const NAV_ITEMS: readonly { label: string; href: string; hint: string; ic
     },
     { label: 'Speakers', href: '/speakers', hint: 'The people on stage', icon: Mic2 },
     { label: 'Resources', href: '/resources', hint: 'Guides, updates & downloads', icon: BookOpen },
-    { label: 'News & Updates', href: '/news', hint: 'Announcements & stories', icon: Newspaper },
+    { label: 'News & Updates', short: 'News', href: '/news', hint: 'Announcements & stories', icon: Newspaper },
     { label: 'Gallery', href: '/gallery', hint: 'Moments from our events', icon: Images },
-    { label: 'Join Us', href: '/join', hint: 'Membership plans', icon: UserPlus },
+    { label: 'Join Us', href: '/join', hint: 'Membership plans', icon: UserPlus, desktop: false },
     { label: 'Contact', href: '/contact', hint: 'Say hello', icon: Mail },
   ];
 
@@ -128,11 +131,12 @@ export function SiteHeader({
             : 'border-b border-transparent bg-transparent'
         )}
       >
-        <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-6 px-5 md:px-8 xl:gap-4 2xl:gap-6">
+        <div className="mx-auto flex h-[76px] max-w-[1400px] items-center gap-6 px-5 md:px-8">
           <Logo siteName={siteName} />
 
-          <nav aria-label="Main" className="ml-2 hidden min-w-0 flex-1 items-center gap-0.5 2xl:flex">
-            {NAV_ITEMS.map((item) => {
+          {/* Desktop menu: centred, only when there is room for it on one line */}
+          <nav aria-label="Main" className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1340px]:flex">
+            {NAV_ITEMS.filter((item) => item.desktop !== false).map((item) => {
               const active = isActive(pathname, item.href);
               return (
                 <Link
@@ -140,69 +144,59 @@ export function SiteHeader({
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'relative whitespace-nowrap rounded-full px-3 py-2 text-[13.5px] font-medium transition-colors 2xl:px-3 2xl:text-[13.5px]',
-                    active ? 'text-[var(--fg)]' : 'text-[var(--muted)] hover:text-[var(--fg)]'
+                    'relative whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors',
+                    active ? 'text-brand-500' : 'text-[var(--muted)] hover:text-[var(--fg)]'
                   )}
                 >
-                  {active && (
-                    <span
-                      aria-hidden
-                      className="absolute inset-0 -z-10 rounded-full bg-mist/[0.08] ring-1 ring-mist/[0.12]"
-                    />
-                  )}
-                  {item.label}
+                  {item.short ?? item.label}
+                  {active && <span aria-hidden className="absolute inset-x-3.5 -bottom-0.5 h-px bg-brand-500" />}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 min-[1340px]:ml-0">
             <Link
               href="/search"
               aria-label="Search"
-              className="grid h-10 w-10 place-items-center rounded-full text-[var(--muted)] transition hover:bg-mist/[0.08] hover:text-[var(--fg)]"
+              className="grid h-10 w-10 place-items-center rounded-full text-[var(--muted)] transition hover:bg-mist/[0.06] hover:text-[var(--fg)]"
             >
               <Search className="h-[18px] w-[18px]" />
             </Link>
             {authLoading ? (
               // Keeps the slot while the session is checked, so "Log in" doesn't flash for signed-in members.
-              <span className="hidden h-10 w-24 rounded-full bg-mist/[0.06] sm:block" aria-hidden />
+              <span className="hidden h-10 w-20 rounded-full bg-mist/[0.05] sm:block" aria-hidden />
             ) : user ? (
               <UserMenu user={user} onLogout={handleLogout} />
             ) : (
-              <Link
-                href="/login"
-                className="hidden h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-mist/[0.14] px-4 text-[13.5px] font-medium text-[var(--fg)] transition hover:border-mist/40 sm:flex"
-              >
-                <User className="h-4 w-4" aria-hidden />
-                Log in
-              </Link>
-            )}
-            {!user && !authLoading && (
-              <Link
-                href="/join"
-                className="hidden h-10 shrink-0 items-center rounded-full border border-gold/40 px-4 text-[13.5px] font-semibold text-gold transition hover:border-gold hover:bg-gold/10 lg:flex"
-              >
-                <span className="hidden whitespace-nowrap min-[1720px]:inline">Join the Community</span>
-                <span className="whitespace-nowrap min-[1720px]:hidden">Join</span>
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="hidden h-10 shrink-0 items-center whitespace-nowrap px-3 text-[14px] font-medium text-[var(--fg)] transition hover:text-brand-500 sm:flex"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/join"
+                  className="hidden h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-mist/[0.16] px-4 text-[14px] font-medium text-[var(--fg)] transition hover:border-mist/40 lg:flex"
+                >
+                  Join
+                </Link>
+              </>
             )}
             <Link
               href="/events"
-              className="group hidden h-10 shrink-0 items-center gap-2 rounded-full bg-grad-primary pl-4 pr-1.5 text-[13.5px] font-semibold text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] transition hover:brightness-110 md:flex"
+              className="hidden h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-500 px-4 text-[14px] font-semibold text-white transition hover:bg-brand-600 md:flex"
             >
-              <span className="hidden whitespace-nowrap min-[1720px]:inline">Register for an event</span>
-              <span className="whitespace-nowrap min-[1720px]:hidden">Register</span>
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 transition-transform duration-300 group-hover:rotate-45">
-                <ArrowUpRight className="h-4 w-4" aria-hidden />
-              </span>
+              Register
+              <ArrowUpRight className="h-4 w-4" aria-hidden />
             </Link>
             <button
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Open menu"
               aria-expanded={open}
-              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] 2xl:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] min-[1340px]:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -213,7 +207,7 @@ export function SiteHeader({
       {/* Mobile menu panel */}
       <div
         className={cn(
-          'fixed inset-0 z-[60] flex flex-col bg-bg/95 backdrop-blur-2xl transition-[opacity,visibility] duration-500 2xl:hidden',
+          'fixed inset-0 z-[60] flex flex-col bg-bg/95 backdrop-blur-2xl transition-[opacity,visibility] duration-500 min-[1340px]:hidden',
           open ? 'visible opacity-100' : 'invisible opacity-0'
         )}
         role="dialog"

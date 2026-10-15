@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -103,13 +104,18 @@ function isActive(pathname: string, href: string): boolean {
 
 function Brand() {
   return (
-    <Link href="/dashboard" className="flex items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-300">
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-grad-primary font-display text-[18px] font-semibold text-white shadow-[0_10px_30px_-10px_rgb(var(--lime-rgb)/0.9)]">
-        A
-      </span>
-      <span className="leading-tight">
-        <b className="block font-display text-[16px] font-semibold tracking-[0.14em] text-[var(--fg)]">ASCEND</b>
-        <span className="block font-mono text-[10px] uppercase tracking-[0.16em] text-gold">Admin console</span>
+    <Link href="/dashboard" className="flex items-center gap-2.5 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-300">
+      <Image
+        src="/brand/egroup-logo.png"
+        alt="E Group"
+        width={640}
+        height={331}
+        priority
+        className="h-9 w-auto shrink-0"
+      />
+      <span className="flex flex-col leading-none">
+        <span className="font-display text-[16px] font-semibold tracking-[0.14em] text-[var(--fg)]">ASCEND</span>
+        <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.2em] text-brand-500">Admin console</span>
       </span>
     </Link>
   );

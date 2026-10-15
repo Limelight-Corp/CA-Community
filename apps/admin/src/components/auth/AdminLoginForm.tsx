@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   Activity,
   ArrowRight,
@@ -72,12 +73,17 @@ function ConsoleRadar() {
         })}
       </div>
       {/* core */}
-      <span className="absolute left-1/2 top-1/2 grid h-[22%] w-[22%] -translate-x-1/2 -translate-y-1/2 place-items-center">
+      <span className="absolute left-1/2 top-1/2 grid h-[24%] w-[24%] -translate-x-1/2 -translate-y-1/2 place-items-center">
         <span className="ring-spin grid h-full w-full place-items-center rounded-full">
-          <span className="grid h-full w-full place-items-center rounded-full bg-panel">
-            <span className="font-display text-[clamp(22px,3vw,34px)] font-semibold bg-grad-gold bg-clip-text text-transparent">
-              A
-            </span>
+          <span className="grid h-full w-full place-items-center rounded-full bg-card p-2 shadow-sm border border-mist/[0.1]">
+            <Image
+              src="/brand/egroup-logo.png"
+              alt="E Group"
+              width={640}
+              height={331}
+              priority
+              className="h-auto w-full object-contain"
+            />
           </span>
         </span>
       </span>
@@ -213,14 +219,19 @@ export function AdminLoginForm({ next, configured }: { next: string; configured:
         {/* Left: console visual */}
         <section className="hidden min-w-0 flex-col gap-8 lg:flex">
           <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-grad-primary font-display text-[19px] font-semibold text-white shadow-[0_10px_30px_-10px_rgb(var(--lime-rgb)/0.9)]">
-              A
-            </span>
-            <span className="leading-tight">
-              <b className="block font-display text-[17px] font-semibold tracking-[0.14em] text-[var(--fg)]">
+            <Image
+              src="/brand/egroup-logo.png"
+              alt="E Group"
+              width={640}
+              height={331}
+              priority
+              className="h-11 w-auto shrink-0"
+            />
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-[17px] font-semibold tracking-[0.14em] text-[var(--fg)]">
                 ASCEND
-              </b>
-              <span className="block font-mono text-[10.5px] uppercase tracking-[0.16em] text-gold">
+              </span>
+              <span className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.2em] text-brand-500">
                 Admin console
               </span>
             </span>
@@ -245,14 +256,19 @@ export function AdminLoginForm({ next, configured }: { next: string; configured:
         <section className="flex min-w-0 flex-col items-center">
           {/* Compact brand on mobile */}
           <div className="mb-7 flex items-center gap-3 lg:hidden">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-grad-primary font-display text-[19px] font-semibold text-white">
-              A
-            </span>
-            <span className="leading-tight">
-              <b className="block font-display text-[17px] font-semibold tracking-[0.14em] text-[var(--fg)]">
+            <Image
+              src="/brand/egroup-logo.png"
+              alt="E Group"
+              width={640}
+              height={331}
+              priority
+              className="h-10 w-auto shrink-0"
+            />
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-[17px] font-semibold tracking-[0.14em] text-[var(--fg)]">
                 ASCEND
-              </b>
-              <span className="block font-mono text-[10.5px] uppercase tracking-[0.16em] text-gold">
+              </span>
+              <span className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.2em] text-brand-500">
                 Admin console
               </span>
             </span>

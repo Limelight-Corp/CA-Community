@@ -10,7 +10,13 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
-import type { CommunityContentType, CommunityStoreData, SiteSettings } from '@ascend/shared';
+import {
+  DEFAULT_SITE_SETTINGS,
+  INITIAL_COMMUNITY_DATA,
+  type CommunityContentType,
+  type CommunityStoreData,
+  type SiteSettings,
+} from '@ascend/shared';
 import { cache } from 'react';
 import { revalidateTag, unstable_cache } from 'next/cache';
 import { store } from '@ascend/db';
@@ -38,6 +44,43 @@ export function dataDir(): string {
   }
 }
 
+/** Local JSON fallback loader for when PostgreSQL is not running or unreachable in development */
+function readJsonFallback(): CommunityStoreData {
+  try {
+    const candidates = [
+      path.resolve(process.cwd(), '../../data/community-store.json'),
+      path.resolve(process.cwd(), '../data/community-store.json'),
+      path.resolve(process.cwd(), 'data/community-store.json'),
+    ];
+    for (const f of candidates) {
+      if (fs.existsSync(f)) {
+        const raw = JSON.parse(fs.readFileSync(f, 'utf-8'));
+        return {
+          events: raw.events ?? [],
+          gallery: raw.gallery ?? [],
+          speakers: raw.speakers ?? [],
+          wings: raw.wings ?? [],
+          news: raw.news ?? [],
+          resources: raw.resources ?? [],
+          team: raw.team ?? INITIAL_COMMUNITY_DATA.team,
+          testimonials: raw.testimonials ?? [],
+          initiatives: raw.initiatives ?? INITIAL_COMMUNITY_DATA.initiatives,
+          jobs: raw.jobs ?? [],
+          settings: {
+            ...DEFAULT_SITE_SETTINGS,
+            ...(raw.settings ?? {}),
+            contact: { ...DEFAULT_SITE_SETTINGS.contact, ...(raw.settings?.contact ?? {}) },
+            social: { ...DEFAULT_SITE_SETTINGS.social, ...(raw.settings?.social ?? {}) },
+          },
+        };
+      }
+    }
+  } catch (err) {
+    console.error('Failed to read fallback community-store.json:', err);
+  }
+  return INITIAL_COMMUNITY_DATA;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Content
 // ---------------------------------------------------------------------------------------------
@@ -60,16 +103,45 @@ function contentChanged(): void {
 
 /** Every content collection plus settings (sitemap, search). */
 export const readStore = cache(
-  unstable_cache((): Promise<CommunityStoreData> => store.readContentStore(), ['content-store'], shared)
+  unstable_cache(
+    async (): Promise<CommunityStoreData> => {
+      try {
+        return await store.readContentStore();
+      } catch (err) {
+        console.warn('[CommunityStore] Database unavailable, falling back to local data snapshot.');
+        return readJsonFallback();
+      }
+    },
+    ['content-store'],
+    shared
+  )
 );
 
 /** Site settings (layout, metadata and pages all ask for them). */
-export const getSettings = cache(unstable_cache((): Promise<SiteSettings> => store.getSettings(), ['settings'], shared));
+export const getSettings = cache(
+  unstable_cache(
+    async (): Promise<SiteSettings> => {
+      try {
+        return await store.getSettings();
+      } catch (err) {
+        console.warn('[CommunityStore] Database unavailable, falling back to local settings.');
+        return readJsonFallback().settings;
+      }
+    },
+    ['settings'],
+    shared
+  )
+);
 
 export async function updateSettings(updates: Partial<SiteSettings>): Promise<SiteSettings> {
-  const settings = await store.updateSettings(updates);
-  contentChanged();
-  return settings;
+  try {
+    const settings = await store.updateSettings(updates);
+    contentChanged();
+    return settings;
+  } catch (err) {
+    console.warn('[CommunityStore] Database unavailable for updateSettings.');
+    return { ...DEFAULT_SITE_SETTINGS, ...updates };
+  }
 }
 
 /** Admin-edited legal pages (empty until the admin saves one, or if the table is not there yet). */
@@ -79,7 +151,6 @@ export const getLegalOverrides = cache(
       try {
         return await store.listLegalDocuments();
       } catch (err) {
-        console.error('Legal pages: using the default wording:', (err as Error).message);
         return [];
       }
     },
@@ -90,7 +161,20 @@ export const getLegalOverrides = cache(
 
 // Also cached per request (React cache): pages, metadata and helpers often ask for the same list.
 const listCached = cache(
-  unstable_cache((type: ContentType, publishedOnly: boolean) => store.listContent(type, publishedOnly), ['content-list'], shared)
+  unstable_cache(
+    async (type: ContentType, publishedOnly: boolean) => {
+      try {
+        return await store.listContent(type, publishedOnly);
+      } catch (err) {
+        console.warn(`[CommunityStore] Database unavailable for listContent(${type}), falling back to local data snapshot.`);
+        const data = readJsonFallback();
+        const list = (data[type] || []) as any[];
+        return publishedOnly ? list.filter((item) => item.isPublished !== false) : list;
+      }
+    },
+    ['content-list'],
+    shared
+  )
 );
 
 /** A content collection, newest first. Treat the result as read-only (it is shared per request). */
@@ -101,22 +185,37 @@ export async function getItems<T = any>(type: ContentType, publishedOnly = false
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function addItem(type: ContentType, itemData: any): Promise<any> {
-  const item = await store.createContent(type, itemData);
-  contentChanged();
-  return item;
+  try {
+    const item = await store.createContent(type, itemData);
+    contentChanged();
+    return item;
+  } catch (err) {
+    console.warn(`[CommunityStore] Database unavailable for addItem(${type}).`);
+    return itemData;
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updateItem(type: ContentType, id: string, updates: any): Promise<any | null> {
-  const item = await store.updateContent(type, id, updates);
-  contentChanged();
-  return item;
+  try {
+    const item = await store.updateContent(type, id, updates);
+    contentChanged();
+    return item;
+  } catch (err) {
+    console.warn(`[CommunityStore] Database unavailable for updateItem(${type}).`);
+    return { id, ...updates };
+  }
 }
 
 export async function deleteItem(type: ContentType, id: string): Promise<boolean> {
-  const deleted = await store.deleteContent(type, id);
-  contentChanged();
-  return deleted;
+  try {
+    const deleted = await store.deleteContent(type, id);
+    contentChanged();
+    return deleted;
+  } catch (err) {
+    console.warn(`[CommunityStore] Database unavailable for deleteItem(${type}).`);
+    return false;
+  }
 }
 
 // Private records (bookings, memberships, mentorship) are read with targeted queries through

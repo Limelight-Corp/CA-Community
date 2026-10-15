@@ -6,7 +6,7 @@ import { LegalEditor, type LegalEditorDoc } from '../../../components/legal/Lega
 export const dynamic = 'force-dynamic';
 
 export default async function LegalPagesPage() {
-  const saved = await store.listLegalDocuments();
+  const saved = await store.listLegalDocuments().catch(() => []);
   const docs: LegalEditorDoc[] = LEGAL_DOCS.map((d) => {
     const s = saved.find((r) => r.slug === d.slug);
     const defaults = { title: d.title, summary: d.summary, content: legalSectionsToText(d.sections) };

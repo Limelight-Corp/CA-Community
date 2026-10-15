@@ -1,7 +1,5 @@
-import type { Metadata } from 'next';
-import { Inter, Inter_Tight } from 'next/font/google';
-import { generateThemeCssVariables } from '@ascend/ui';
-import { DEFAULT_DARK_TOKENS } from '@ascend/shared';
+import type { Metadata, Viewport } from 'next';
+import { Inter, Inter_Tight, Instrument_Serif } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({
@@ -16,9 +14,24 @@ const interTight = Inter_Tight({
   display: 'swap',
 });
 
+const instrumentSerif = Instrument_Serif({
+  weight: ['400'],
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-instrument-serif',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: { default: 'ASCEND Admin', template: '%s · ASCEND Admin' },
   description: 'Content, events, registrations and membership management for the ASCEND CA community website.',
+  icons: {
+    icon: [
+      { url: '/brand/favicon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/brand/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/brand/apple-icon.png',
+  },
   robots: {
     index: false,
     follow: false,
@@ -26,25 +39,26 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#FAF7F2',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function AdminRootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const themeCss = generateThemeCssVariables(DEFAULT_DARK_TOKENS);
-
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable}`}
-      data-theme="dark"
+      className={`${inter.variable} ${interTight.variable} ${instrumentSerif.variable}`}
+      data-theme="light"
     >
       <head>
         <meta name="robots" content="noindex, nofollow" />
-        <style
-          id="ascend-admin-theme"
-          dangerouslySetInnerHTML={{ __html: themeCss }}
-        />
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--fg)] font-sans antialiased selection:bg-[var(--lime)] selection:text-white">
         {children}

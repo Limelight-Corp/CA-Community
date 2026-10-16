@@ -33,7 +33,7 @@ export interface AssistantReply {
 
 const MODEL = 'claude-opus-5-5';
 
-const SYSTEM_PROMPT = `You are the support assistant on the ASCEND website — a professional community for Chartered Accountants, allied professionals and CA students.
+const SYSTEM_PROMPT = `You are the support assistant on the EAGLE 2.0 website — a professional community for Chartered Accountants, allied professionals and CA students.
 
 How to help:
 - Answer briefly and warmly (2–5 short sentences). Match the visitor's language: reply in Hindi, English or Hinglish as they write.
@@ -77,7 +77,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
     betaZodTool({
       name: 'search_events',
       description:
-        'Search ASCEND events. Returns upcoming events (title, date, time, location, mode, fee, seats left, links). All filters are optional; call with no filters to list what is coming up.',
+        'Search EAGLE 2.0 events. Returns upcoming events (title, date, time, location, mode, fee, seats left, links). All filters are optional; call with no filters to list what is coming up.',
       inputSchema: z.object({
         query: z.string().optional().describe('Keywords: topic, event name, speaker, category'),
         city: z.string().optional(),
@@ -106,7 +106,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
     betaZodTool({
       name: 'search_site',
       description:
-        'Search the ASCEND website (pages, membership, contact, policies, resources, news, speakers, wings). Returns titles, short descriptions and direct links.',
+        'Search the EAGLE 2.0 website (pages, membership, contact, policies, resources, news, speakers, wings). Returns titles, short descriptions and direct links.',
       inputSchema: z.object({ query: z.string().describe('What the visitor is looking for') }),
       run: async ({ query }) => {
         const cards = await searchSite(query);
@@ -117,7 +117,7 @@ async function aiReply(history: ChatTurn[], ctx: { ip: string; page?: string }):
     betaZodTool({
       name: 'create_lead',
       description:
-        "Save a follow-up request so the ASCEND team contacts the visitor. Only call after the visitor has given their name, email and request AND explicitly confirmed they want to be contacted.",
+        "Save a follow-up request so the EAGLE 2.0 team contacts the visitor. Only call after the visitor has given their name, email and request AND explicitly confirmed they want to be contacted.",
       inputSchema: z.object({
         name: z.string(),
         email: z.string(),

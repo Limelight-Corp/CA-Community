@@ -1,60 +1,65 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import {
-  Award,
-  BadgeCheck,
-  Building2,
-  Cpu,
-  Crown,
+  // Award,
+  // BadgeCheck,
+  // Building2,
+  // Cpu,
+  // Crown,
   Eye,
   GraduationCap,
-  HandHelping,
-  Handshake,
-  HeartPulse,
+  // HandHelping,
+  // Handshake,
+  // HeartPulse,
   Landmark,
-  Linkedin,
+  // Linkedin,
   Network,
-  Sparkles,
   Target,
-  TrendingUp,
   Users,
   type LucideIcon,
 } from 'lucide-react';
 import {
-  ORG_COMMUNITIES,
-  ORG_CORE_PURPOSES,
-  ORG_FOCUS_AREAS,
-  ORG_GUIDING_PRINCIPLES,
+  // ORG_COMMUNITIES,
+  // ORG_CORE_PURPOSES,
+  // ORG_FOCUS_AREAS,
+  // ORG_GUIDING_PRINCIPLES,
+  ORG_LEADERSHIP_FRAMEWORK,
   ORG_MISSION,
+  ORG_OBJECTIVES,
+  ORG_PHILOSOPHY,
   ORG_POSITIONING,
   ORG_STRUCTURE,
-  ORG_TAGLINE,
   ORG_VISION,
-  ORG_VISION_STATEMENT,
-  MEMBER_JOURNEY,
+  // ORG_VISION_STATEMENT,
+  // MEMBER_JOURNEY,
   type CommunityTeamMember,
-  type CommunityWing,
+  // type CommunityWing,
 } from '@ascend/shared';
 import { AccentText, Avatar, Container, Kicker, SectionHeading, cn } from '@ascend/ui';
-import { CountUp, Reveal } from '../../components/ui-client';
+import { /* CountUp, */ Reveal } from '../../components/ui-client';
 import { FxCard } from '../../components/home/Interactive';
-import { InView, ScrollHighlight } from '../../components/about/AboutFx';
+import { InView /* , ScrollHighlight */ } from '../../components/about/AboutFx';
 import { getItems, getSettings } from '../../lib/community-store';
 import { jsonLd, siteUrl } from '../../lib/seo';
 import { safeUrl } from '../../lib/content';
-import { CtaBand, PageHero, PillLink, Section } from '../../components/content/ui';
-import { WingsExplorer, type WingView } from '../../components/content/WingsExplorer';
-import { siteWings, wingCountWords } from '../../lib/taxonomy';
+import { /* CtaBand, */ PageHero, PillLink, Section } from '../../components/content/ui';
+// import { WingsExplorer, type WingView } from '../../components/content/WingsExplorer';
+// import { siteWings, wingCountWords } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = await getSettings();
+  const title = 'About EAGLE 2.0 | Vision, Mission & Leadership';
+  const description =
+    "Learn about EAGLE 2.0's vision, mission and leadership framework. Explore a community focused on professional learning, networking and collective growth.";
   return {
-    title: 'About Us',
-    description: `${siteName} is ${ORG_POSITIONING.title.toLowerCase()} ${ORG_POSITIONING.titleAccent.toLowerCase()} — vision, mission, leadership, organisation structure and the 10 professional wings.`,
+    title: { absolute: title },
+    description,
     alternates: { canonical: '/about' },
+    openGraph: { title, description, url: '/about' },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 
+/* Preserved for when team & wings sections are re-enabled:
 const TEAM_GROUPS: CommunityTeamMember['group'][] = [
   'Leadership',
   'Core Team',
@@ -85,13 +90,15 @@ const COMMUNITY_ICONS: LucideIcon[] = [
   Network,
   Handshake,
 ];
+*/
 
 export default async function AboutPage() {
   const settings = await getSettings();
   const team = [...(await getItems<CommunityTeamMember>('team', true))].sort((a, b) => a.order - b.order);
-  const storeWings = await getItems<CommunityWing>('wings', true);
+  // const storeWings = await getItems<CommunityWing>('wings', true);
 
-  const orgWings = await siteWings();
+  // const orgWings = await siteWings();
+  /*
   const wings: WingView[] = orgWings.map((w) => ({
     number: w.number,
     name: w.name,
@@ -104,6 +111,7 @@ export default async function AboutPage() {
     group: g,
     members: team.filter((m) => m.group === g),
   })).filter((g) => g.members.length > 0);
+  */
 
   // Named holders come from the documents first, then from published team profiles with the same designation.
   const holderFor = (role: string, docHolder?: string) =>
@@ -121,7 +129,7 @@ export default async function AboutPage() {
     };
   });
 
-  const youngWing = orgWings.find((w) => w.number === 6);
+  // const youngWing = orgWings.find((w) => w.number === 6);
   const sameAs = Object.values(settings.social)
     .map((u) => safeUrl(u))
     .filter((u): u is string => !!u && /^https?:/.test(u));
@@ -136,6 +144,7 @@ export default async function AboutPage() {
     ...(sameAs.length ? { sameAs } : {}),
   };
 
+  /*
   const stats = [
     { value: orgWings.length, label: 'Professional wings' },
     {
@@ -146,6 +155,7 @@ export default async function AboutPage() {
     { value: MEMBER_JOURNEY.length, label: 'Steps from member to leader' },
     { value: ORG_GUIDING_PRINCIPLES.length, label: 'Guiding principles' },
   ];
+  */
 
   return (
     <>
@@ -153,23 +163,34 @@ export default async function AboutPage() {
 
       {/* ---------------------------------------------------------------- Hero */}
       <PageHero
-        eyebrow={`About ${settings.siteName} · ${ORG_POSITIONING.launchLabel}`}
-        title={ORG_POSITIONING.title}
-        accent={ORG_POSITIONING.titleAccent}
-        lead={ORG_POSITIONING.idea}
-        ghost={settings.siteName}
+        eyebrow="About EAGLE 2.0 · नई सोच, नई उड़ान"
+        title="A Community for the"
+        accent="Next Generation of the Profession"
+        lead="EAGLE 2.0 is envisioned as a Pan-India professional community for Chartered Accountants, young professionals, CA students and allied professionals. It aims to create a space where knowledge is shared, relationships are strengthened, ideas are explored and opportunities for professional growth are encouraged."
+        ghost="EAGLE"
       >
-        <div className="flex flex-wrap gap-3 pt-2">
+        <div className="flex max-w-[46ch] flex-col gap-3 text-[15.5px] leading-relaxed text-[var(--muted)]">
+          <p>
+            The initiative is built around a simple principle: a stronger profession begins with a more connected professional community.
+          </p>
+          <p>
+            We believe that professional development is not limited to technical expertise. It also involves leadership, collaboration, adaptability, well-being and a willingness to contribute to the wider profession.
+          </p>
+          <p className="font-medium text-[var(--fg)]">
+            Through our professional wings, events, knowledge initiatives and community-led activities, EAGLE 2.0 aims to encourage participation across professional backgrounds, industries and cities.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3 pt-4">
           <PillLink href="/join" variant="gold">
-            Become a member
+            Join the Community
           </PillLink>
           <PillLink href="#structure" variant="ghost">
-            See the organisation
+            Explore Leadership Framework
           </PillLink>
         </div>
       </PageHero>
 
-      {/* ---------------------------------------------------------------- Stats strip */}
+      {/* ---------------------------------------------------------------- Stats strip (Preserved - Commented out as not in Word Doc Section 3)
       <section aria-label="At a glance" className="relative -mt-6 pb-10 md:-mt-10">
         <Container size="wide">
           <ul className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -213,11 +234,134 @@ export default async function AboutPage() {
           </ul>
         </Container>
       </section>
+      ---------------------------------------------------------------- */}
 
-      {/* ---------------------------------------------------------------- Vision & mission */}
+      {/* ---------------------------------------------------------------- Why EAGLE 2.0? (Step 2 in Docs Order) */}
+      <Section
+        className="relative overflow-hidden border-y border-[var(--line)] bg-grad-surface"
+        labelledBy="why-heading"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-32 top-10 h-[420px] w-[420px] rounded-full bg-brand-500/20 blur-[120px]"
+        />
+        <Container size="wide" className="relative grid gap-12 lg:grid-cols-12 lg:items-center">
+          <div className="flex flex-col gap-6 lg:col-span-6">
+            <Kicker tone="gold">Why EAGLE 2.0?</Kicker>
+            <h2
+              id="why-heading"
+              className="font-display text-[clamp(38px,5.5vw,76px)] font-medium leading-[0.94] tracking-[-0.045em] text-[var(--fg)]"
+            >
+              A stronger profession begins with a{' '}
+              <AccentText tone="hero">connected</AccentText> community.
+            </h2>
+            <div className="flex flex-col gap-4 text-[16.5px] leading-relaxed text-[var(--muted)]">
+              <p>
+                The professional landscape continues to evolve. Chartered Accountants today navigate changing regulations, emerging technologies, new business models and increasingly diverse career pathways.
+              </p>
+              <p>
+                Meeting these challenges requires more than individual effort. It calls for shared learning, meaningful professional relationships and opportunities to exchange perspectives.
+              </p>
+              <p className="font-medium text-[var(--fg)]">
+                EAGLE 2.0 seeks to bring these opportunities together through a structured, community-driven platform.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-1 lg:col-span-6">
+            {[
+              {
+                step: '01',
+                title: 'Evolving Landscape',
+                text: 'Chartered Accountants navigate shifting regulations, digital disruption, automation and diverse new career paths that demand fresh perspectives.',
+              },
+              {
+                step: '02',
+                title: 'Shared Learning & Relationships',
+                text: 'Meeting complex professional challenges requires collaborative learning, cross-industry networks and peer-to-peer exchanges beyond individual efforts.',
+              },
+              {
+                step: '03',
+                title: 'Structured Community Platform',
+                text: 'EAGLE 2.0 unites these growth opportunities into a structured, forward-thinking platform built to elevate professionals at every stage.',
+              },
+            ].map((card, i) => (
+              <Reveal key={card.step} delay={i * 90}>
+                <FxCard className="flex flex-col gap-3 rounded-[24px] border border-mist/[0.1] bg-bg/60 p-6 backdrop-blur">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[12px] font-semibold tracking-[0.14em] text-gold">
+                      {card.step}
+                    </span>
+                    <span className="font-display text-[19px] font-medium text-[var(--fg)]">
+                      {card.title}
+                    </span>
+                  </div>
+                  <p className="text-[14.5px] leading-relaxed text-[var(--muted)]">
+                    {card.text}
+                  </p>
+                </FxCard>
+              </Reveal>
+            ))}
+
+            {/* ---------------------------------------------------------------- Preserved - Young CA / Student cards not in Word Doc Section 3
+            <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+              {[
+                {
+                  icon: GraduationCap,
+                  k: `Wing ${String(youngWing?.number ?? 6).padStart(2, '0')}`,
+                  v: youngWing?.name ?? 'Young Professionals & Career',
+                  d: youngWing?.focus.join(' · '),
+                },
+                {
+                  icon: Users,
+                  k: 'Community',
+                  v: 'Young CA Leads',
+                  d: 'City-wise young CA representatives, mentorship & leadership initiatives',
+                },
+                {
+                  icon: BadgeCheck,
+                  k: 'Structure',
+                  v: 'Young Professional Coordinators',
+                  d: 'Built into the core executive structure',
+                },
+                {
+                  icon: Award,
+                  k: 'Membership',
+                  v: 'Student Member plan',
+                  d: 'Mentorship, career guidance and selected free webinars',
+                },
+              ].map((item, i) => (
+                <Reveal as="li" key={item.v} delay={i * 80}>
+                  <FxCard className="h-full overflow-hidden rounded-[24px] border border-mist/[0.1] bg-bg/60 p-6 backdrop-blur">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
+                        {item.k}
+                      </span>
+                      <span className="fx-icon grid h-10 w-10 place-items-center rounded-xl bg-brand-500/15 text-brand-200">
+                        <item.icon className="h-5 w-5" aria-hidden />
+                      </span>
+                    </div>
+                    <p className="mt-4 font-display text-[22px] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)]">
+                      {item.v}
+                    </p>
+                    {item.d && (
+                      <p className="mt-2 text-[13.5px] leading-relaxed text-[var(--muted)]">
+                        {item.d}
+                      </p>
+                    )}
+                  </FxCard>
+                </Reveal>
+              ))}
+            </ul>
+            ---------------------------------------------------------------- */}
+          </div>
+        </Container>
+      </Section>
+
+      {/* ---------------------------------------------------------------- Vision & Mission (Step 3 & 4 in Docs Order) */}
       <Section>
         <Container size="wide">
-          <SectionHeading eyebrow="Vision & mission" title="Why we" accent="exist." size="lg" />
+          <SectionHeading eyebrow="Vision & Mission" title="Why we" accent="exist." size="lg" />
           <div className="mt-12 grid gap-4 md:mt-14 md:gap-5 lg:grid-cols-12">
             <Reveal className="lg:col-span-7">
               <FxCard
@@ -257,147 +401,79 @@ export default async function AboutPage() {
               </FxCard>
             </Reveal>
           </div>
-
-          {/* Vision statement lights up word by word on scroll */}
-          <div className="mt-16 grid gap-6 md:mt-24 lg:grid-cols-[0.6fr_2fr]">
-            <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-gold">
-              Vision statement
-            </span>
-            <div>
-              <ScrollHighlight
-                text={ORG_VISION_STATEMENT}
-                highlight={['connected,', 'future-ready', 'thriving', 'opportunities']}
-                className="font-display text-[clamp(30px,4.6vw,68px)] font-medium leading-[1.04] tracking-[-0.045em] text-[var(--fg)]"
-              />
-              <p className="mt-8 font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">
-                {ORG_TAGLINE.split('.')[0]}.{' '}
-                <AccentText tone="gold">
-                  {ORG_TAGLINE.split('.').slice(1).join('.').trim()}
-                </AccentText>
-              </p>
-            </div>
-          </div>
         </Container>
       </Section>
 
-      {/* ---------------------------------------------------------------- Built for young CAs */}
-      <Section
-        className="relative overflow-hidden border-y border-[var(--line)] bg-grad-surface"
-        labelledBy="young-heading"
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-32 top-10 h-[420px] w-[420px] rounded-full bg-brand-500/20 blur-[120px]"
-        />
-        <Container size="wide" className="relative grid gap-12 lg:grid-cols-2 lg:items-center">
-          <div className="flex flex-col gap-6">
-            <Kicker tone="gold">Why it was created</Kicker>
+      {/* ---------------------------------------------------------------- Our Objectives (Step 5 in Docs Order) */}
+      <Section labelledBy="objectives-heading">
+        <Container size="wide">
+          <div className="flex max-w-4xl flex-col gap-5">
+            <Kicker tone="gold">Our Objectives</Kicker>
             <h2
-              id="young-heading"
-              className="font-display text-[clamp(38px,6vw,88px)] font-medium leading-[0.92] tracking-[-0.05em] text-[var(--fg)]"
+              id="objectives-heading"
+              className="max-w-[42ch] font-display text-[clamp(36px,5vw,76px)] font-medium leading-[1] tracking-[-0.045em] text-[var(--fg)]"
             >
-              Built for the <AccentText tone="hero">next generation</AccentText> of the profession.
+              Guiding principles for <AccentText tone="gold">collective impact.</AccentText>
             </h2>
-            <p className="max-w-[56ch] text-[17px] leading-relaxed text-[var(--muted)]">
-              {ORG_POSITIONING.summary} — with opportunities all year round, not once a year. Young
-              CAs and students aren’t an afterthought here: they have their own wing, their own city
-              leads, dedicated young professional coordinators and a student membership.
+            <p className="max-w-[44ch] text-[16px] leading-relaxed text-[var(--muted)]">
+              Eight core objectives that define EAGLE 2.0&apos;s direction, shaping every initiative, event and community interaction across India.
             </p>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-            {[
-              {
-                icon: GraduationCap,
-                k: `Wing ${String(youngWing?.number ?? 6).padStart(2, '0')}`,
-                v: youngWing?.name ?? 'Young Professionals & Career',
-                d: youngWing?.focus.join(' · '),
-              },
-              {
-                icon: Users,
-                k: 'Community',
-                v: 'Young CA Leads',
-                d: 'City-wise young CA representatives, mentorship & leadership initiatives',
-              },
-              {
-                icon: BadgeCheck,
-                k: 'Structure',
-                v: 'Young Professional Coordinators',
-                d: 'Built into the core executive structure',
-              },
-              {
-                icon: Award,
-                k: 'Membership',
-                v: 'Student Member plan',
-                d: 'Mentorship, career guidance and selected free webinars',
-              },
-            ].map((item, i) => (
-              <Reveal as="li" key={item.v} delay={i * 80}>
-                <FxCard className="h-full overflow-hidden rounded-[24px] border border-mist/[0.1] bg-bg/60 p-6 backdrop-blur">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
-                      {item.k}
+
+          {/* 8 Community Objectives from Blueprint Section 3 - extra numbers removed */}
+          <ol className="mt-12 grid gap-4 sm:grid-cols-2 md:mt-14 lg:grid-cols-4">
+            {ORG_OBJECTIVES.map((obj, i) => (
+              <Reveal as="li" key={obj} delay={(i % 4) * 70} className="flex h-full">
+                <FxCard className="flex h-full flex-col justify-between rounded-[26px] border border-mist/[0.1] bg-[var(--card)] p-6 shadow-[0_1px_2px_rgb(var(--mist-rgb)/0.04)]">
+                  <span className="flex items-center">
+                    <span className="font-mono text-[13px] font-semibold tracking-[0.14em] text-gold">
+                      {String(i + 1).padStart(2, '0')}
                     </span>
-                    <span className="fx-icon grid h-10 w-10 place-items-center rounded-xl bg-brand-500/15 text-brand-200">
-                      <item.icon className="h-5 w-5" aria-hidden />
-                    </span>
-                  </div>
-                  <p className="mt-4 font-display text-[22px] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)]">
-                    {item.v}
+                  </span>
+                  <p className="mt-5 text-[15px] font-medium leading-relaxed text-[var(--fg)]">
+                    {obj}
                   </p>
-                  {item.d && (
-                    <p className="mt-2 text-[13.5px] leading-relaxed text-[var(--muted)]">
-                      {item.d}
-                    </p>
-                  )}
                 </FxCard>
               </Reveal>
             ))}
-          </ul>
-        </Container>
-      </Section>
-
-      {/* ---------------------------------------------------------------- Objectives (flip cards) */}
-      <Section labelledBy="objectives-heading">
-        <Container size="wide">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <div className="flex flex-col gap-5">
-              <Kicker>Objectives</Kicker>
-              <h2
-                id="objectives-heading"
-                className="max-w-[16ch] font-display text-[clamp(40px,6vw,84px)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--fg)]"
-              >
-                Six things we <AccentText>show up for.</AccentText>
-              </h2>
-            </div>
-          </div>
-          <ol className="mt-12 grid gap-4 sm:grid-cols-2 md:mt-14 lg:grid-cols-3">
-            {ORG_CORE_PURPOSES.map((p, i) => {
-              const Icon = PURPOSE_ICONS[p.key] ?? Sparkles;
-              return (
-                <Reveal as="li" key={p.key} delay={(i % 3) * 90}>
-                  <div className="flex h-full flex-col gap-10 rounded-[28px] border border-mist/[0.08] bg-[var(--card)] p-7 shadow-[0_1px_2px_rgb(var(--mist-rgb)/0.04)]">
-                    <span className="flex items-center justify-between">
-                      <span className="font-mono text-[12px] tracking-[0.14em] text-[var(--muted)]">
-                        {String(i + 1).padStart(2, '00')} / 06
-                      </span>
-                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/10 text-brand-500">
-                        <Icon className="h-5 w-5" aria-hidden />
-                      </span>
-                    </span>
-                    <span className="mt-auto flex flex-col gap-3">
-                      <span className="block font-display text-[clamp(30px,2.6vw,38px)] font-medium leading-none tracking-[-0.04em] text-[var(--fg)]">
-                        {p.title}
-                        <span className="text-gold">.</span>
-                      </span>
-                      <span className="block text-[15px] leading-relaxed text-[var(--muted)]">{p.text}</span>
-                    </span>
-                  </div>
-                </Reveal>
-              );
-            })}
           </ol>
 
-          {/* Focus areas */}
+          {/* ---------------------------------------------------------------- Preserved - Six Core Pillars & Focus Areas (Not in Word Doc Section 3)
+          <div className="mt-20 border-t border-[var(--line)] pt-16">
+            <div className="flex flex-col gap-4">
+              <Kicker>Six Core Pillars</Kicker>
+              <h3 className="font-display text-[clamp(30px,4vw,52px)] font-medium leading-[1.02] tracking-[-0.04em] text-[var(--fg)]">
+                Pillars that guide our <AccentText>initiatives.</AccentText>
+              </h3>
+            </div>
+            <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {ORG_CORE_PURPOSES.map((p, i) => {
+                const Icon = PURPOSE_ICONS[p.key] ?? Sparkles;
+                return (
+                  <Reveal as="li" key={p.key} delay={(i % 3) * 90}>
+                    <div className="flex h-full flex-col gap-10 rounded-[28px] border border-mist/[0.08] bg-[var(--card)] p-7 shadow-[0_1px_2px_rgb(var(--mist-rgb)/0.04)]">
+                      <span className="flex items-center justify-between">
+                        <span className="font-mono text-[12px] tracking-[0.14em] text-[var(--muted)]">
+                          {String(i + 1).padStart(2, '00')} / 06
+                        </span>
+                        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/10 text-brand-500">
+                          <Icon className="h-5 w-5" aria-hidden />
+                        </span>
+                      </span>
+                      <span className="mt-auto flex flex-col gap-3">
+                        <span className="block font-display text-[clamp(30px,2.6vw,38px)] font-medium leading-none tracking-[-0.04em] text-[var(--fg)]">
+                          {p.title}
+                          <span className="text-gold">.</span>
+                        </span>
+                        <span className="block text-[15px] leading-relaxed text-[var(--muted)]">{p.text}</span>
+                      </span>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </ol>
+          </div>
+
           <div className="mt-20 grid gap-10 lg:grid-cols-[0.8fr_2fr]">
             <div className="flex flex-col gap-4">
               <h3 className="font-display text-[32px] font-medium leading-tight tracking-[-0.035em] text-[var(--fg)]">
@@ -432,10 +508,11 @@ export default async function AboutPage() {
               ))}
             </ul>
           </div>
+          ---------------------------------------------------------------- */}
         </Container>
       </Section>
 
-      {/* ---------------------------------------------------------------- Guiding principles */}
+      {/* ---------------------------------------------------------------- Preserved - Guiding Principles (Not in Word Doc Section 3)
       <section className="border-y border-[var(--line)] py-16 md:py-24" aria-labelledby="principles-heading">
         <Container size="wide" className="flex flex-col gap-10">
           <div className="flex flex-col gap-4">
@@ -457,18 +534,99 @@ export default async function AboutPage() {
           </ol>
         </Container>
       </section>
+      ---------------------------------------------------------------- */}
 
-      {/* ---------------------------------------------------------------- Leadership */}
-      <Section id="leadership" labelledBy="leadership-heading">
+      {/* ---------------------------------------------------------------- Our Philosophy (Step 6 in Docs Order) */}
+      <Section className="border-t border-[var(--line)] bg-grad-surface">
+        <Container size="wide">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_2fr] lg:items-center">
+            <div className="flex flex-col gap-4">
+              <Kicker tone="gold">Our Philosophy</Kicker>
+              <h2 className="font-display text-[clamp(32px,4.5vw,60px)] font-medium leading-[0.98] tracking-[-0.04em] text-[var(--fg)]">
+                नई सोच,{' '}
+                <AccentText tone="gold">नई उड़ान.</AccentText>
+              </h2>
+              <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-[var(--muted)]">
+                {ORG_PHILOSOPHY.taglineEnglish}
+              </p>
+            </div>
+            <FxCard className="rounded-[28px] border border-mist/[0.12] bg-bg/60 p-7 md:p-10 backdrop-blur">
+              <p className="font-display text-[clamp(22px,2.4vw,32px)] font-medium leading-relaxed tracking-[-0.025em] text-[var(--fg)]">
+                “{ORG_PHILOSOPHY.description}”
+              </p>
+            </FxCard>
+          </div>
+        </Container>
+      </Section>
+
+      {/* ---------------------------------------------------------------- Leadership That Enables Participation (Step 7 in Docs Order) */}
+      <Section
+        id="structure"
+        className="relative overflow-hidden border-t border-[var(--line)] bg-grad-surface"
+        labelledBy="leadership-heading"
+      >
+        <div className="grid-lines absolute inset-0 opacity-70" aria-hidden />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-gold/10 blur-[130px]"
+        />
+        <Container size="wide" className="relative">
+          <SectionHeading
+            eyebrow="Leadership Framework"
+            title="Leadership That Enables"
+            accent="Participation."
+            align="center"
+            className="mx-auto"
+            lead="EAGLE 2.0 is designed around a structured leadership framework that encourages accountability, collaboration and participation."
+          />
+          <div className="mx-auto mt-6 max-w-[80ch] text-center text-[15.5px] leading-relaxed text-[var(--muted)]">
+            <p>
+              The proposed structure brings together core leadership, executive coordination, professional wing leadership, community coordinators and members. Each level has a role in supporting the community&apos;s objectives and translating ideas into actionable initiatives.
+            </p>
+          </div>
+
+          {/* Blueprint proposed structure table */}
+          <div className="mx-auto mt-10 max-w-[900px] overflow-hidden rounded-[24px] border border-mist/[0.12] bg-bg/60 backdrop-blur">
+            <div className="border-b border-mist/[0.1] bg-mist/[0.03] px-6 py-4 font-mono text-[11.5px] uppercase tracking-[0.14em] text-gold">
+              Proposed Structure (Subject to Final Confirmation)
+            </div>
+            <div className="divide-y divide-mist/[0.08]">
+              {ORG_LEADERSHIP_FRAMEWORK.levels.map((lvl) => (
+                <div key={lvl.level} className="grid gap-2 px-6 py-4 sm:grid-cols-[1.2fr_2fr] sm:items-center">
+                  <span className="font-display text-[16.5px] font-medium text-[var(--fg)]">
+                    {lvl.level}
+                  </span>
+                  <span className="text-[14px] text-[var(--muted)]">
+                    {lvl.designation}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Blueprint profile guidelines note */}
+          <p className="mx-auto mt-6 max-w-[850px] text-center text-[13.5px] leading-relaxed text-[var(--muted)] italic">
+            {ORG_LEADERSHIP_FRAMEWORK.profilesNote}
+          </p>
+
+          <OrgTree nodes={orgNodes} />
+        </Container>
+      </Section>
+
+      {/* ---------------------------------------------------------------- Preserved - Individual Team Member Cards (Not in Word Doc Section 3)
+      <Section id="leadership" labelledBy="leadership-cards-heading">
         <Container size="wide">
           <div className="flex flex-col gap-5">
             <Kicker>Leadership & team</Kicker>
             <h2
-              id="leadership-heading"
+              id="leadership-cards-heading"
               className="max-w-[18ch] font-display text-[clamp(40px,6vw,84px)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--fg)]"
             >
               The people <AccentText tone="gold">behind it.</AccentText>
             </h2>
+            <p className="max-w-[72ch] text-[15px] leading-relaxed text-[var(--muted)]">
+              {ORG_LEADERSHIP_FRAMEWORK.profilesNote}
+            </p>
           </div>
 
           {groups.length === 0 ? (
@@ -501,31 +659,9 @@ export default async function AboutPage() {
           )}
         </Container>
       </Section>
+      ---------------------------------------------------------------- */}
 
-      {/* ---------------------------------------------------------------- Organisation tree */}
-      <Section
-        id="structure"
-        className="relative overflow-hidden border-y border-[var(--line)] bg-grad-surface"
-      >
-        <div className="grid-lines absolute inset-0 opacity-70" aria-hidden />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-gold/10 blur-[130px]"
-        />
-        <Container size="wide" className="relative">
-          <SectionHeading
-            eyebrow="Organisation structure"
-            title="How the community"
-            accent="is organised."
-            align="center"
-            className="mx-auto"
-            lead="Core leadership and executive structure, from the office bearers to every member of the forum."
-          />
-          <OrgTree nodes={orgNodes} />
-        </Container>
-      </Section>
-
-      {/* ---------------------------------------------------------------- Wings */}
+      {/* ---------------------------------------------------------------- Preserved - Wings Explorer (Belongs to Page 4: Our Wings)
       <Section id="wings" labelledBy="wings-heading">
         <Container size="wide">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
@@ -549,8 +685,9 @@ export default async function AboutPage() {
           </div>
         </Container>
       </Section>
+      ---------------------------------------------------------------- */}
 
-      {/* ---------------------------------------------------------------- Parallel communities */}
+      {/* ---------------------------------------------------------------- Preserved - Parallel Communities (Not in Word Doc Section 3)
       <Section className="border-t border-[var(--line)]">
         <Container size="wide">
           <SectionHeading
@@ -612,18 +749,22 @@ export default async function AboutPage() {
           </ul>
         </Container>
       </Section>
+      ---------------------------------------------------------------- */}
 
+      {/* ---------------------------------------------------------------- Preserved - Closing CTA Band (Not in Word Doc Section 3)
       <CtaBand
-        title="Your seat is"
-        accent="waiting."
-        lead="Join as a founding member ahead of the Pan-India launch, or start with an event."
-        primary={{ href: '/join', label: 'Join the community' }}
-        secondary={{ href: '/events', label: 'See upcoming events' }}
+        title="Your Profession. Your People. Your Next Chapter."
+        accent="नई सोच, नई उड़ान"
+        lead="The future of the profession is shaped by people who learn together, build together and move forward together. Join EAGLE 2.0 and be part of a community committed to collective progress."
+        primary={{ href: '/join', label: 'Join the EAGLE 2.0 Community' }}
+        secondary={{ href: '#structure', label: 'Explore Leadership Framework' }}
       />
+      ---------------------------------------------------------------- */}
     </>
   );
 }
 
+/* Preserved for when team profiles are published:
 function TeamCard({ member, large }: { member: CommunityTeamMember; large?: boolean }) {
   const linkedin = safeUrl(member.linkedinUrl);
   const photo = safeUrl(member.photoUrl);
@@ -650,7 +791,6 @@ function TeamCard({ member, large }: { member: CommunityTeamMember; large?: bool
       </span>
       <div className="relative flex min-w-0 flex-1 flex-col gap-2">
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
-          <Crown className="h-3.5 w-3.5" aria-hidden />
           {member.designation}
         </span>
         <h4
@@ -671,7 +811,6 @@ function TeamCard({ member, large }: { member: CommunityTeamMember; large?: bool
             rel="noopener noreferrer"
             className="mt-2 inline-flex w-fit items-center gap-2 rounded-full border border-mist/[0.14] px-3.5 py-1.5 text-[13px] text-[var(--fg)] transition hover:border-gold/60 hover:text-gold"
           >
-            <Linkedin className="h-4 w-4" aria-hidden />
             LinkedIn<span className="sr-only"> profile of {member.name}</span>
           </a>
         )}
@@ -679,6 +818,7 @@ function TeamCard({ member, large }: { member: CommunityTeamMember; large?: bool
     </FxCard>
   );
 }
+*/
 
 interface OrgNode {
   role: string;

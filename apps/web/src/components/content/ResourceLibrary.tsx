@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, Download, ExternalLink, FileSpreadsheet, FileText, Lock, PlayCircle, Search, X } from 'lucide-react';
 import { EmptyState, Pagination, cn, fieldInputClass, usePagination } from '@ascend/ui';
@@ -24,19 +24,55 @@ export function ResourceLibrary({ items, categories }: { items: ResourceCardData
   const [active, setActive] = useState('All');
   const [query, setQuery] = useState('');
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      const cat = sp.get('category');
+      if (cat) {
+        const found = categories.find(
+          (c) => c.toLowerCase() === cat.toLowerCase() || cat.toLowerCase().includes(c.toLowerCase())
+        );
+        if (found) setActive(found);
+      }
+    }
+
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail) {
+        const targetCat = customEvent.detail;
+        const found = categories.find(
+          (c) =>
+            c.toLowerCase() === targetCat.toLowerCase() ||
+            targetCat.toLowerCase().includes(c.toLowerCase()) ||
+            c.toLowerCase().includes(targetCat.toLowerCase())
+        );
+        setActive(found || targetCat);
+      }
+    };
+
+    window.addEventListener('ascend:select-resource-category', handler);
+    return () => window.removeEventListener('ascend:select-resource-category', handler);
+  }, [categories]);
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return items.filter(
-      (r) =>
-        (active === 'All' || r.category.toLowerCase() === active.toLowerCase()) &&
-        (!q || `${r.title} ${r.category} ${r.format}`.toLowerCase().includes(q))
-    );
+    const activeNorm = active.trim().toLowerCase();
+    return items.filter((r) => {
+      const rCatNorm = r.category.trim().toLowerCase();
+      const matchesCategory =
+        active === 'All' ||
+        rCatNorm === activeNorm ||
+        activeNorm.includes(rCatNorm) ||
+        rCatNorm.includes(activeNorm);
+      const matchesQuery = !q || `${r.title} ${r.category} ${r.format}`.toLowerCase().includes(q);
+      return matchesCategory && matchesQuery;
+    });
   }, [items, active, query]);
   const pager = usePagination(visible, 12, [active, query]);
   const listTop = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={listTop} className="flex flex-col gap-8">
+    <div id="resource-library" ref={listTop} className="flex scroll-mt-28 flex-col gap-8">
       <div className="flex flex-col gap-5">
         <div className="relative max-w-[560px]">
           <label htmlFor="resource-search" className="sr-only">
@@ -138,12 +174,14 @@ function ResourceCard({ r, index, wide }: { r: ResourceCardData; index: number; 
             animationDelay: `${-index * 3}s`,
           }}
         />
+        {/* Ghost index number commented out as per rule:
         <span
           aria-hidden
           className="fx-ghost text-outline pointer-events-none absolute -bottom-5 right-3 select-none font-display text-[110px] font-semibold leading-none tracking-[-0.06em] opacity-70"
         >
           {String(index + 1).padStart(2, '0')}
         </span>
+        */}
         <span className="fx-icon absolute left-5 top-5 grid h-11 w-11 place-items-center rounded-2xl bg-white/10 text-white backdrop-blur-md">
           <Icon className="h-5 w-5" aria-hidden />
         </span>

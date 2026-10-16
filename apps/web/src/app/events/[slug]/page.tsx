@@ -131,7 +131,7 @@ export default async function EventDetailPage({ params }: { params: Params }) {
       className="group inline-flex h-14 w-full items-center justify-between gap-2 rounded-full bg-grad-primary pl-6 pr-2 text-[15.5px] font-semibold text-white shadow-[0_14px_36px_-12px_rgb(var(--lime-rgb)/0.95)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
       <span className="inline-flex items-center gap-2">
-        <Ticket className="h-5 w-5" aria-hidden /> Register now
+        <Ticket className="h-5 w-5" aria-hidden /> Register for This Event
       </span>
       <span className="grid h-10 w-10 place-items-center rounded-full bg-white/15 transition-transform duration-300 group-hover:rotate-45">
         <ArrowUpRight className="h-5 w-5" aria-hidden />
@@ -241,10 +241,10 @@ export default async function EventDetailPage({ params }: { params: Params }) {
       {/* Body */}
       <Container size="wide" className="grid gap-12 pb-32 pt-12 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-16 lg:pb-24">
         <div className="flex min-w-0 flex-col gap-14">
-          {/* About */}
+          {/* Overview */}
           <Reveal as="section" aria-labelledby="about-h">
             <h2 id="about-h" className="font-mono text-[12px] uppercase tracking-[0.14em] text-gold">
-              About the event
+              Overview
             </h2>
             {event.description ? (
               <div className="mt-5 flex flex-col gap-4 text-[clamp(16px,1.35vw,18.5px)] leading-[1.7] text-[var(--fg-soft)]">
@@ -352,10 +352,10 @@ export default async function EventDetailPage({ params }: { params: Params }) {
             )}
           </Reveal>
 
-          {/* Terms */}
+          {/* Policies */}
           <Reveal as="section" aria-labelledby="terms-h">
             <h2 id="terms-h" className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.14em] text-gold">
-              <ScrollText className="h-4 w-4" aria-hidden /> Terms &amp; conditions
+              <ScrollText className="h-4 w-4" aria-hidden /> Policies &amp; Terms
             </h2>
             {event.terms ? (
               <p className="mt-4 whitespace-pre-line text-[14.5px] leading-relaxed text-[var(--muted)]">{event.terms}</p>

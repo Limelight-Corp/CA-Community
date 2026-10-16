@@ -98,9 +98,9 @@ export async function basicReply(history: ChatTurn[]): Promise<AssistantReply> {
 
   // ---- Launch / about
   if (/launch|when.*(start|begin)|kab.*(start|shuru)/.test(q)) {
-    return reply({ reply: `ASCEND launches on **${ORG_POSITIONING.launchLabel}**. Founding member registrations are open now.`, events: [], links: [page('/join'), page('/about')], suggestions: ['Membership plans', 'Show upcoming events'] });
+    return reply({ reply: `EAGLE 2.0 launches on **${ORG_POSITIONING.launchLabel}**. Founding member registrations are open now.`, events: [], links: [page('/join'), page('/about')], suggestions: ['Membership plans', 'Show upcoming events'] });
   }
-  if (/what is ascend|about ascend|who are you|ascend kya|about (us|the community)|vision|mission/.test(q)) {
+  if (/what is eagle|about eagle|what is ascend|about ascend|who are you|eagle kya|ascend kya|about (us|the community)|vision|mission/.test(q)) {
     return reply({ reply: `${ORG_POSITIONING.idea} ${ORG_POSITIONING.pillarsLine}`, events: [], links: [page('/about'), page('/wings')], suggestions: ['Membership plans', 'Show upcoming events'] });
   }
 

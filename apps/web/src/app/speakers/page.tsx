@@ -3,21 +3,26 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight, Linkedin, Mic2 } from 'lucide-react';
 import type { CommunityEvent, CommunitySpeaker } from '@ascend/shared';
+import { SPEAKERS_PAGE_CONTENT } from '@ascend/shared';
 import { Avatar, Container, EmptyState, cn } from '@ascend/ui';
 import { Reveal } from '../../components/ui-client';
 import { FxCard } from '../../components/home/Interactive';
-import { getItems, getSettings } from '../../lib/community-store';
+import { getItems } from '../../lib/community-store';
 import { isUpcoming } from '../../lib/events';
 import { generatedGradient, safeUrl } from '../../lib/content';
 import { CtaBand, PageHero, Section } from '../../components/content/ui';
 import { PagedList } from '../../components/content/PagedList';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = await getSettings();
+  const title = SPEAKERS_PAGE_CONTENT.seoTitle;
+  const description =
+    'Discover speakers, Chartered Accountants and industry experts sharing knowledge and perspectives through EAGLE 2.0 professional events.';
   return {
-    title: 'Speakers',
-    description: `Meet the Chartered Accountants, leaders and experts speaking at ${siteName} events across tax, audit, practice, technology, leadership and more.`,
+    title: { absolute: title },
+    description,
     alternates: { canonical: '/speakers' },
+    openGraph: { title, description, url: '/speakers' },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 
@@ -29,15 +34,22 @@ export default async function SpeakersPage() {
   return (
     <>
       <PageHero
-        eyebrow={`${speakers.length} voices · and counting`}
-        eyebrowTone="blue"
-        title="People worth"
-        accent="listening to."
-        lead="Practitioners, CFOs, partners and specialists who share what actually works — on stage, in clinics and in the room after."
-        ghost="MIC"
+        eyebrow={SPEAKERS_PAGE_CONTENT.hero.eyebrow}
+        eyebrowTone="gold"
+        title="Meet the Voices Shaping"
+        accent="Professional Conversations."
+        className="pb-10 md:pb-14"
+        lead={
+          <div className="space-y-3 text-pretty">
+            {SPEAKERS_PAGE_CONTENT.hero.paragraphs.map((p, idx) => (
+              <p key={idx}>{p}</p>
+            ))}
+          </div>
+        }
+        ghost="SPEAKERS"
       />
 
-      <Section className="pt-12 md:pt-16">
+      <Section className="pt-6 pb-10 md:pt-8 md:pb-14">
         <Container size="wide">
           {speakers.length === 0 ? (
             <EmptyState icon={<Mic2 />} title="Speakers coming soon" description="Speaker profiles will be published as the event calendar is announced." />
@@ -54,11 +66,17 @@ export default async function SpeakersPage() {
       </Section>
 
       <CtaBand
-        title="Got something"
-        accent="to share?"
-        lead="We’re always looking for practitioners to lead sessions across our professional wings."
-        primary={{ href: '/contact', label: 'Propose a session' }}
-        secondary={{ href: '/events', label: 'See upcoming events' }}
+        align="center"
+        title={SPEAKERS_PAGE_CONTENT.banner.heading}
+        accent={SPEAKERS_PAGE_CONTENT.banner.accent}
+        lead={
+          <div className="space-y-3">
+            {SPEAKERS_PAGE_CONTENT.banner.paragraphs.map((p, idx) => (
+              <p key={idx}>{p}</p>
+            ))}
+          </div>
+        }
+        primary={{ href: SPEAKERS_PAGE_CONTENT.banner.ctaUrl, label: SPEAKERS_PAGE_CONTENT.banner.ctaLabel }}
       />
     </>
   );

@@ -92,9 +92,11 @@ export function GalleryGrid({ items, categories }: { items: GalleryCardData[]; c
                       className="absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-100"
                       style={{ background: `radial-gradient(55% 65% at ${i % 2 ? '25%' : '78%'} 22%, rgb(var(--${i % 3 === 1 ? 'gold' : 'lime'}-rgb) / 0.45), transparent 70%)` }}
                     />
+                    {/* Ghost index number commented out as per rule:
                     <span className="fx-ghost text-outline pointer-events-none absolute -right-2 -top-6 select-none font-display text-[clamp(110px,12vw,180px)] font-semibold leading-none tracking-[-0.06em] opacity-50">
                       {String(i + 1).padStart(2, '0')}
                     </span>
+                    */}
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-900/90 via-brand-900/20 to-transparent" aria-hidden />

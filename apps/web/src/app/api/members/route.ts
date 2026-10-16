@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         mobile: input.mobile,
         city: input.city,
         plan: input.plan,
+        professionalCategory: input.professionalCategory,
         membershipNo: input.membershipNo,
         qualificationYear: input.qualificationYear,
         areaOfPractice: input.areaOfPractice,

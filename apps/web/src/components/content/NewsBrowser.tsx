@@ -20,11 +20,13 @@ export interface NewsCardData {
 
 export function NewsBrowser({ items, categories }: { items: NewsCardData[]; categories: string[] }) {
   const [active, setActive] = useState<string>('All');
+  /*
   const counts = useMemo(() => {
     const m = new Map<string, number>();
     for (const n of items) m.set(n.category.toLowerCase(), (m.get(n.category.toLowerCase()) ?? 0) + 1);
     return m;
   }, [items]);
+  */
   const visible = useMemo(() => (active === 'All' ? items : items.filter((n) => n.category.toLowerCase() === active.toLowerCase())), [items, active]);
   // 9 per page: the feature card fills a 2×2 block, so each page closes on a full row.
   const pager = usePagination(visible, 9, active);
@@ -35,10 +37,15 @@ export function NewsBrowser({ items, categories }: { items: NewsCardData[]; cate
       <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:px-0" role="group" aria-label="Filter news by category">
         <div className="flex w-max gap-2 md:w-auto md:flex-wrap">
           {['All', ...categories].map((c) => {
+            /* Count commented out as per rule:
             const count = c === 'All' ? items.length : counts.get(c.toLowerCase()) ?? 0;
+            */
             return (
               <button key={c} type="button" aria-pressed={active === c} onClick={() => setActive(c)} className={chipClass(active === c)}>
-                {c} <span className="ml-1 font-mono text-[11px] opacity-60">{count}</span>
+                {c}
+                {/* Count badge commented out as per rule:
+                <span className="ml-1 font-mono text-[11px] opacity-60">{count}</span>
+                */}
               </button>
             );
           })}

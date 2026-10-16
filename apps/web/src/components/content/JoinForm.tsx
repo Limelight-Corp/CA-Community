@@ -19,16 +19,60 @@ export interface JoinFormProps {
 
 type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'done'; duplicate: boolean; message?: string } | { kind: 'error'; message: string };
 
+export const PROFESSIONAL_CATEGORIES = [
+  'Chartered Accountant / Practitioner',
+  'Young & Early-Career Professional',
+  'CA Student',
+  'Allied Professional',
+  'Corporate / Industry Professional',
+  'Academician / Other',
+] as const;
+
 const TEXT_FIELDS = [
   { name: 'name', label: 'Full name', required: true, autoComplete: 'name', type: 'text', span: true },
-  { name: 'email', label: 'Email', required: true, autoComplete: 'email', type: 'email' },
+  { name: 'email', label: 'Email address', required: true, autoComplete: 'email', type: 'email' },
   { name: 'mobile', label: 'Mobile number', required: true, autoComplete: 'tel', type: 'tel', inputMode: 'tel' as const },
   { name: 'city', label: 'City', required: true, autoComplete: 'address-level2', type: 'text' },
-  { name: 'membershipNo', label: 'CA membership number', hint: 'ICAI membership / registration number, if applicable', type: 'text' },
-  { name: 'qualificationYear', label: 'Year of qualification', type: 'text', inputMode: 'numeric' as const, placeholder: 'e.g. 2021' },
-  { name: 'areaOfPractice', label: 'Area of practice', type: 'text', placeholder: 'e.g. Direct tax, audit, advisory' },
-  { name: 'organisation', label: 'Firm / company', autoComplete: 'organization', type: 'text' },
-  { name: 'linkedinUrl', label: 'LinkedIn profile', type: 'url', placeholder: 'https://linkedin.com/in/…' },
+  {
+    name: 'professionalCategory',
+    label: 'Professional category',
+    type: 'select',
+    options: PROFESSIONAL_CATEGORIES,
+    hint: 'Select the category that best describes your profile',
+  },
+  {
+    name: 'membershipNo',
+    label: 'CA membership or student registration number',
+    hint: 'Where applicable (ICAI membership / student SRN)',
+    type: 'text',
+  },
+  {
+    name: 'qualificationYear',
+    label: 'Year of qualification or expected qualification',
+    type: 'text',
+    inputMode: 'numeric' as const,
+    placeholder: 'e.g. 2021 (or expected year for students)',
+  },
+  {
+    name: 'organisation',
+    label: 'Firm or organisation',
+    autoComplete: 'organization',
+    type: 'text',
+    placeholder: 'Firm, company or institution',
+  },
+  {
+    name: 'areaOfPractice',
+    label: 'Area of practice or professional interest',
+    type: 'text',
+    placeholder: 'e.g. Direct tax, audit, advisory, finance',
+  },
+  {
+    name: 'linkedinUrl',
+    label: 'LinkedIn profile (optional)',
+    type: 'url',
+    placeholder: 'https://linkedin.com/in/…',
+    span: true,
+  },
 ] as const;
 
 export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormProps) {
@@ -53,6 +97,7 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
       email: String(fd.get('email') ?? ''),
       mobile: String(fd.get('mobile') ?? ''),
       city: String(fd.get('city') ?? ''),
+      professionalCategory: String(fd.get('professionalCategory') ?? ''),
       plan,
       membershipNo: String(fd.get('membershipNo') ?? ''),
       qualificationYear: String(fd.get('qualificationYear') ?? ''),
@@ -200,22 +245,41 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
               key={f.name}
               id={`join-${f.name}`}
               label={f.label}
-              required={'required' in f && f.required}
+              required={'required' in f && Boolean(f.required)}
               hint={'hint' in f ? f.hint : undefined}
               error={errors[f.name]}
               className={'span' in f && f.span ? 'md:col-span-2' : undefined}
             >
-              {(control) => (
-                <input
-                  {...control}
-                  name={f.name}
-                  type={f.type}
-                  autoComplete={'autoComplete' in f ? f.autoComplete : undefined}
-                  inputMode={'inputMode' in f ? f.inputMode : undefined}
-                  placeholder={'placeholder' in f ? f.placeholder : undefined}
-                  className={fieldInputClass}
-                />
-              )}
+              {(control) =>
+                f.type === 'select' ? (
+                  <select
+                    {...control}
+                    name={f.name}
+                    defaultValue=""
+                    className={cn(fieldInputClass, 'cursor-pointer')}
+                  >
+                    <option value="" disabled>
+                      Select your professional category
+                    </option>
+                    {'options' in f &&
+                      f.options.map((opt) => (
+                        <option key={opt} value={opt} className="bg-bg text-[var(--fg)]">
+                          {opt}
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <input
+                    {...control}
+                    name={f.name}
+                    type={f.type}
+                    autoComplete={'autoComplete' in f ? f.autoComplete : undefined}
+                    inputMode={'inputMode' in f ? f.inputMode : undefined}
+                    placeholder={'placeholder' in f ? f.placeholder : undefined}
+                    className={fieldInputClass}
+                  />
+                )
+              }
             </FormField>
           ))}
           <div className="flex items-start gap-3 rounded-2xl border border-dashed border-mist/[0.14] p-4 text-[13.5px] text-[var(--muted)] md:col-span-2">
@@ -231,10 +295,14 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
         </div>
       </fieldset>
 
-      {/* Interests */}
+      {/* Preferred professional wings */}
       <fieldset className="flex flex-col">
-        <legend className="mb-2 font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">3. Your interests</legend>
-        <p className="mb-5 text-[13.5px] text-[var(--muted)]">Pick the wings you’d like to be part of — choose as many as you like.</p>
+        <legend className="mb-2 font-display text-[22px] font-medium tracking-[-0.03em] text-[var(--fg)]">
+          3. Preferred professional wings
+        </legend>
+        <p className="mb-5 text-[13.5px] text-[var(--muted)]">
+          Select the professional wings you would like to be part of — choose as many as match your interests.
+        </p>
         <div className="flex flex-wrap gap-2.5">
           {wings.map((w) => {
             const on = interests.includes(w.number);
@@ -276,11 +344,16 @@ export function JoinForm({ plans, wings, initialPlan, initialWings }: JoinFormPr
             className="mt-1 h-5 w-5 shrink-0 accent-[var(--lime)]"
           />
           <span>
-            I agree that the community may store and use these details to process my membership application, as described in the{' '}
+            I consent to the{' '}
             <Link href="/legal/privacy" className="text-brand-200 underline underline-offset-4 hover:text-[var(--fg)]">
               Privacy Policy
-            </Link>
-            .<span className="text-gold" aria-hidden> *</span>
+            </Link>{' '}
+            and applicable{' '}
+            <Link href="/legal/membership-terms" className="text-brand-200 underline underline-offset-4 hover:text-[var(--fg)]">
+              Membership Terms
+            </Link>{' '}
+            for processing my membership application.
+            <span className="text-gold" aria-hidden> *</span>
           </span>
         </label>
         {errors.consent && (

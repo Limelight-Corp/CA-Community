@@ -11,7 +11,7 @@ export interface LegalSection {
 }
 
 export interface LegalDoc {
-  slug: 'privacy' | 'terms' | 'event-terms' | 'refund' | 'payment' | 'cookies';
+  slug: 'privacy' | 'terms' | 'membership-terms' | 'event-terms' | 'refund' | 'payment' | 'cookies';
   title: string;
   short: string;
   summary: string;
@@ -242,6 +242,38 @@ export const LEGAL_DOCS: LegalDoc[] = [
         heading: 'Failed or duplicate payments',
         body: [
           'If a payment fails but your account is debited, the amount is usually reversed automatically by your bank or the payment provider. If it is not, or if you are charged twice, please contact us with the transaction details.',
+        ],
+      },
+      {
+        heading: 'Contact',
+        body: [CONTACT_LINE],
+      },
+    ],
+  },
+  {
+    slug: 'membership-terms',
+    title: 'Membership Terms',
+    short: 'Membership',
+    summary: 'Terms and eligibility rules that govern EAGLE 2.0 community membership, benefits and participation.',
+    sections: [
+      {
+        heading: 'Eligibility and approval',
+        body: [
+          'Membership categories (such as Core Member, Associate Member and Student Member) are subject to verification of professional credentials and adherence to the community’s professional standards.',
+          'Submitting an application does not guarantee membership. The community reserves the right to accept or decline applications following due review.',
+        ],
+      },
+      {
+        heading: 'Member benefits and participation',
+        body: [
+          'Member benefits may include preferential event access, exclusive resource downloads, wing community discussions and directory participation.',
+          'Benefits are non-transferable and remain active during the valid period of membership.',
+        ],
+      },
+      {
+        heading: 'Code of conduct',
+        body: [
+          'All members are expected to maintain the highest levels of professional integrity, collegiality and ethical conduct in all community forums, events and interactions.',
         ],
       },
       {

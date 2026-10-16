@@ -36,7 +36,7 @@ export const SITE_PAGES: (LinkCard & { keywords: string })[] = [
   { title: 'Careers & Articleship', href: '/careers', description: 'Articleship, jobs and internships shared with the community', keywords: 'career careers job jobs articleship articled assistant internship industrial training opening vacancy hiring naukri' },
   { title: 'Events', href: '/events', description: 'All upcoming and past events with filters', keywords: 'events calendar summit masterclass workshop seminar webinar meetup register' },
   { title: 'Wings', href: '/wings', description: 'The professional wings and what each one does', keywords: 'wings verticals groups tax audit technology wellness' },
-  { title: 'Speakers', href: '/speakers', description: 'Speakers at ASCEND events', keywords: 'speakers experts faculty' },
+  { title: 'Speakers', href: '/speakers', description: 'Speakers at EAGLE 2.0 events', keywords: 'speakers experts faculty' },
   { title: 'Resources', href: '/resources', description: 'Guides, tax updates, webinars and downloads', keywords: 'resources knowledge library guides pdf downloads tax updates webinars videos' },
   { title: 'News & Updates', href: '/news', description: 'Announcements and community updates', keywords: 'news updates announcements' },
   { title: 'Gallery', href: '/gallery', description: 'Photos and videos from events', keywords: 'gallery photos videos pictures' },

@@ -11,26 +11,31 @@ import {
   Megaphone,
   Mic2,
   Phone,
-  Plus,
+  /* Plus, */
   UserPlus,
 } from 'lucide-react';
 import type { CommunityEvent, CommunityWing } from '@ascend/shared';
-import { ORG_COMMUNITIES } from '@ascend/shared';
+/* import { ORG_COMMUNITIES } from '@ascend/shared'; */
 import { AccentText, Container, Kicker, cn } from '@ascend/ui';
 import { Reveal } from '../../components/ui-client';
 import { getItems, getSettings } from '../../lib/community-store';
 import { googleMapsEmbedUrl, safeUrl } from '../../lib/content';
 import { PageHero } from '../../components/content/ui';
 import { ContactForm } from '../../components/content/ContactForm';
+import { CONTACT_PAGE_CONTENT } from '@ascend/shared';
 import { CopyButton } from '../../components/content/CopyButton';
 import { SOCIAL_LABELS, SocialIcon, type SocialKey } from '../../components/site/SocialIcon';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = await getSettings();
+  const title = CONTACT_PAGE_CONTENT.seoTitle;
+  const description =
+    'Contact EAGLE 2.0 for membership enquiries, event information, speaker opportunities and professional collaborations.';
   return {
-    title: 'Contact Us',
-    description: `Get in touch with ${siteName} — questions about membership, events, partnerships or speaking. Send us a message and our team will respond.`,
+    title: { absolute: title },
+    description,
     alternates: { canonical: '/contact' },
+    openGraph: { title, description, url: '/contact' },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 
@@ -44,6 +49,7 @@ const TOPICS = [
   { key: 'media', icon: Megaphone, title: 'Media & general', text: 'Press, collaborations or anything else.', subject: 'General enquiry' },
 ] as const;
 
+/* ------------------------------------------------------------ Preserved - FAQS
 const FAQS = [
   {
     q: 'How do I register for an event?',
@@ -76,6 +82,7 @@ const FAQS = [
     cta: 'Ask about a booking',
   },
 ];
+------------------------------------------------------------ */
 
 /** Deterministic angle/radius for a city on the radar, from its name. */
 function radarPoint(name: string, i: number) {
@@ -102,16 +109,22 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   const events = await getItems<CommunityEvent>('events', true);
   const cities = [...new Set(events.filter((e) => e.mode === 'Offline' && e.city).map((e) => e.city.trim()))].slice(0, 8);
   const wingCount = (await getItems<CommunityWing>('wings', true)).length;
-  const partners = ORG_COMMUNITIES.find((c) => c.name.startsWith('Partners'));
+  /* const partners = ORG_COMMUNITIES.find((c) => c.name.startsWith('Partners')); */
 
   return (
     <>
       <PageHero
-        eyebrow="Contact"
-        title="Say"
-        accent="hello."
-        lead="Questions about membership, events, partnerships or speaking at a wing session? Drop us a line — a real person will reply."
-        ghost="HELLO"
+        eyebrow={CONTACT_PAGE_CONTENT.hero.eyebrow}
+        title={CONTACT_PAGE_CONTENT.hero.title}
+        accent={CONTACT_PAGE_CONTENT.hero.accent}
+        lead={
+          <div className="space-y-3 text-pretty">
+            {CONTACT_PAGE_CONTENT.hero.paragraphs.map((p, idx) => (
+              <p key={idx}>{p}</p>
+            ))}
+          </div>
+        }
+        ghost="CONNECT"
       />
 
       {/* ------------------------------------------------------------ TOPIC PICKER */}
@@ -157,9 +170,11 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                       className={cn('h-5 w-5 shrink-0 transition-transform duration-300 group-hover:rotate-45', active ? 'text-white' : 'text-[var(--muted)] group-hover:text-gold')}
                       aria-hidden
                     />
+                    {/* Extra ghost number commented out as per rule:
                     <span aria-hidden className="pointer-events-none absolute -bottom-6 -right-1 font-display text-[96px] font-semibold leading-none tracking-[-0.06em] text-mist/[0.035]">
                       0{i + 1}
                     </span>
+                    */}
                   </Link>
                 </Reveal>
               );
@@ -284,6 +299,9 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             {socials.length > 0 && (
               <div className="flex flex-col gap-3">
                 <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Follow along</h2>
+                <p className="text-[13px] leading-relaxed text-[var(--muted)]">
+                  {CONTACT_PAGE_CONTENT.contactDetails.socialMediaNote}
+                </p>
                 <ul className="flex flex-wrap gap-2">
                   {socials.map(([key, url]) => (
                     <li key={key}>
@@ -301,6 +319,12 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                 </ul>
               </div>
             )}
+
+            {/* ------------------------------------------------------------ Preserved - Notice commented out per user request
+            <div className="rounded-[22px] border border-gold/30 bg-gold/[0.04] p-4 text-[13px] leading-relaxed text-gold-soft">
+              <span className="font-semibold uppercase tracking-wider">Notice:</span> {CONTACT_PAGE_CONTENT.contactDetails.previewNote}
+            </div>
+            ------------------------------------------------------------ */}
           </div>
 
           {/* Right: form */}
@@ -324,10 +348,13 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
               </div>
               <h2
                 id="contact-form-heading"
-                className="relative mb-8 mt-5 font-display text-[clamp(34px,4.4vw,64px)] font-medium leading-[0.95] tracking-[-0.05em] text-[var(--fg)]"
+                className="relative mb-3 mt-5 font-display text-[clamp(34px,4.4vw,64px)] font-medium leading-[0.95] tracking-[-0.05em] text-[var(--fg)]"
               >
-                How can we <AccentText>help?</AccentText>
+                {CONTACT_PAGE_CONTENT.messageSection.title}
               </h2>
+              <p className="relative mb-8 text-[15px] leading-relaxed text-[var(--muted)]">
+                {CONTACT_PAGE_CONTENT.messageSection.lead}
+              </p>
               <div className="relative">
                 <ContactForm key={activeTopic?.key ?? 'none'} defaultSubject={activeTopic?.subject ?? ''} />
               </div>
@@ -336,7 +363,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         </Container>
       </section>
 
-      {/* ------------------------------------------------------------ FAQ */}
+      {/* ------------------------------------------------------------ Preserved - FAQ section commented out per user request
       <section className="relative py-24 md:py-32" aria-labelledby="faq-heading">
         <Container size="wide" className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <Reveal className="lg:sticky lg:top-28 lg:self-start">
@@ -370,8 +397,9 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
           </ul>
         </Container>
       </section>
+      ------------------------------------------------------------ */}
 
-      {/* ------------------------------------------------------------ PARTNER STRIP */}
+      {/* ------------------------------------------------------------ Preserved - Partners section commented out per user request
       {partners && (
         <section className="relative px-5 pb-24 md:px-8 md:pb-32">
           <Reveal className="grain relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] border border-gold/20 bg-gradient-to-br from-brand-500/[0.08] via-[var(--panel)] to-gold/[0.08] p-8 md:p-14">
@@ -414,6 +442,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
           </Reveal>
         </section>
       )}
+      ------------------------------------------------------------ */}
     </>
   );
 }

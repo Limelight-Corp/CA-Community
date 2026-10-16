@@ -108,7 +108,7 @@ export const PwaBanner: React.FC = () => {
       {/* Prototype-Fidelity PWA Install Banner */}
       {showBanner && deferredPrompt && (
         <aside
-          aria-label="Install ASCEND CA App"
+          aria-label="Install EAGLE 2.0 CA App"
           className="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:max-w-[420px] z-40 p-4 md:p-5 rounded-[16px] bg-[rgb(var(--panel-rgb)/0.92)] backdrop-blur-[16px] border border-line-solid-2 shadow-[0_12px_36px_rgb(var(--black-rgb)/0.18)] text-[var(--fg)] flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-6 duration-300"
         >
           <div className="flex items-start justify-between gap-3">
@@ -120,7 +120,7 @@ export const PwaBanner: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-[15px] font-semibold tracking-tight text-[var(--fg)] leading-tight">
-                  Install ASCEND CA
+                  Install EAGLE 2.0 CA
                 </h3>
                 <p className="text-[12px] text-[var(--muted)] leading-tight mt-0.5">
                   Offline venue check-in & quick QR passes

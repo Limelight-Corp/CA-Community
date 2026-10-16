@@ -72,7 +72,7 @@ export function buildIcs(input: IcsInput): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ASCEND//Events//EN',
+    'PRODID:-//EAGLE 2.0//Events//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

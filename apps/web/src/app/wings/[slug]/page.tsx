@@ -11,6 +11,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  Info,
   Layers,
   Linkedin,
   Lock,
@@ -19,7 +20,7 @@ import {
   Target,
   UserPlus,
 } from 'lucide-react';
-import type { CommunityResource, CommunitySpeaker, CommunityTeamMember, CommunityWing } from '@ascend/shared';
+import { BLUEPRINT_WINGS, type CommunityResource, type CommunitySpeaker, type CommunityTeamMember, type CommunityWing } from '@ascend/shared';
 import { AccentText, Avatar, Container, Kicker } from '@ascend/ui';
 import { Countdown, Reveal } from '../../../components/ui-client';
 import { FxCard } from '../../../components/home/Interactive';
@@ -40,10 +41,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const wing = await findWingHub(slug);
   if (!wing) return { title: 'Wing not found' };
+  const bpWing = BLUEPRINT_WINGS.find((b) => b.number === wing.number);
   const { siteName } = await getSettings();
   return {
-    title: `${wing.name} Wing`,
-    description: `${wing.name} — a professional wing of ${siteName}: ${wing.focus.join(', ')}. Convener, events and resources.`,
+    title: `${String(wing.number).padStart(2, '0')}. ${wing.name} | ${siteName}`,
+    description: bpWing
+      ? `${bpWing.tagline}. ${bpWing.description}`
+      : `${wing.name} — a professional wing of ${siteName}.`,
     alternates: { canonical: `/wings/${wing.slug}` },
   };
 }
@@ -128,6 +132,7 @@ export default async function WingHubPage({ params }: { params: Params }) {
   const num = String(wing.number).padStart(2, '0');
   const nextEvent = upcoming[0];
   const words = wing.name.split(' ');
+  const bpWing = BLUEPRINT_WINGS.find((b) => b.number === wing.number);
 
   const stats = [
     { v: upcoming.length, l: upcoming.length === 1 ? 'Upcoming event' : 'Upcoming events', icon: CalendarDays },
@@ -169,6 +174,26 @@ export default async function WingHubPage({ params }: { params: Params }) {
                   <AccentText tone="hero">{wing.name}</AccentText>
                 )}
               </h1>
+
+              {bpWing && (
+                <div className="flex flex-col gap-2.5">
+                  <p className="font-display text-[clamp(18px,2vw,22px)] font-medium text-gold">
+                    {bpWing.tagline}
+                  </p>
+                  <p className="max-w-[62ch] text-[15.5px] leading-relaxed text-[var(--muted)]">
+                    {bpWing.description}
+                  </p>
+                  <div className="mt-1 rounded-2xl border border-mist/[0.1] bg-bg/50 p-4 backdrop-blur">
+                    <span className="block font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
+                      Proposed activities
+                    </span>
+                    <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--fg)]">
+                      {bpWing.proposedActivities}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <ul className="flex flex-wrap gap-2" aria-label="Focus areas">
                 {wing.focus.map((f) => (
                   <li key={f} className="glass-panel rounded-full px-3.5 py-1.5 text-[13.5px] text-[var(--fg)]">
@@ -243,6 +268,13 @@ export default async function WingHubPage({ params }: { params: Params }) {
             <h2 id="people-heading" className="font-display text-[clamp(32px,4.6vw,60px)] font-medium leading-[0.98] tracking-[-0.045em] text-[var(--fg)]">
               Convener &amp; <AccentText tone="gold">committee.</AccentText>
             </h2>
+          </div>
+
+          <div className="mt-6 flex items-center gap-3 rounded-[20px] border border-mist/[0.14] bg-bg/50 px-5 py-3.5 text-[13.5px] text-[var(--muted)] backdrop-blur">
+            <Info className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+            <p>
+              <strong className="font-semibold text-[var(--fg)]">Operational note:</strong> Publish each wing&apos;s convener, committee, calendar and confirmed activities only when those details have been approved.
+            </p>
           </div>
           {conveners.length + committee.length === 0 ? (
             <ul className="mt-10 grid gap-4 md:grid-cols-[1fr_1.2fr]">

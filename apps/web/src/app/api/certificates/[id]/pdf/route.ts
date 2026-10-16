@@ -22,7 +22,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   return new NextResponse(Buffer.from(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="ASCEND-certificate-${record.reg.certificateId}.pdf"`,
+      'Content-Disposition': `attachment; filename="EAGLE2-certificate-${record.reg.certificateId}.pdf"`,
       'Cache-Control': 'private, no-store',
       'X-Robots-Tag': 'noindex',
     },

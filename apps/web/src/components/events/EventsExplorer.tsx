@@ -30,14 +30,30 @@ const monthLabel = (key: string) => {
 /** Filterable event listing (Website Checklist §19). */
 export function EventsExplorer({ events, wings, speakers, categories, initialCategory, initialQuery }: EventsExplorerProps) {
   const [query, setQuery] = useState(initialQuery ?? '');
-  const [category, setCategory] = useState<string>(
-    initialCategory && categories.includes(initialCategory) ? initialCategory : 'All'
-  );
+  const [category, setCategory] = useState<string>(initialCategory || 'All');
   const [when, setWhen] = useState<When>('any');
   const [city, setCity] = useState('all');
   const [mode, setMode] = useState<Mode>('all');
   const [price, setPrice] = useState<Price>('all');
   const [panelOpen, setPanelOpen] = useState(false);
+
+  // Listen for category selection events from the CategoryCards section
+  useEffect(() => {
+    const handleCategorySelect = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail) {
+        setCategory(customEvent.detail);
+      }
+    };
+    window.addEventListener('ascend:select-event-category', handleCategorySelect);
+    return () => window.removeEventListener('ascend:select-event-category', handleCategorySelect);
+  }, []);
+
+  useEffect(() => {
+    if (initialCategory) {
+      setCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   // Keep the URL shareable without triggering navigation.
   useEffect(() => {
@@ -65,7 +81,17 @@ export function EventsExplorer({ events, wings, speakers, categories, initialCat
     return events.filter((e) => {
       if (category !== 'All') {
         const isOnlineChip = category === 'Online';
-        if (isOnlineChip ? e.mode !== 'Online' && e.category !== 'Online' : e.category !== category) return false;
+        if (isOnlineChip) {
+          if (e.mode !== 'Online' && e.category !== 'Online') return false;
+        } else {
+          const catNorm = category.toLowerCase();
+          const eCatNorm = (e.category || '').toLowerCase();
+          const matchesCategory =
+            eCatNorm === catNorm ||
+            catNorm.includes(eCatNorm) ||
+            eCatNorm.includes(catNorm);
+          if (!matchesCategory) return false;
+        }
       }
       if (mode !== 'all' && e.mode !== mode) return false;
       if (price === 'free' && e.fee > 0) return false;
@@ -178,11 +204,18 @@ export function EventsExplorer({ events, wings, speakers, categories, initialCat
 
         {/* Category chips */}
         <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]" role="group" aria-label="Event type">
-          {['All', ...categories].map((c) => (
-            <button key={c} type="button" aria-pressed={category === c} onClick={() => setCategory(c)} className={chip(category === c)}>
-              {c}
-            </button>
-          ))}
+          {['All', ...categories].map((c) => {
+            const isChipActive =
+              category === c ||
+              (c !== 'All' &&
+                category !== 'All' &&
+                (category.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(category.toLowerCase())));
+            return (
+              <button key={c} type="button" aria-pressed={isChipActive} onClick={() => setCategory(c)} className={chip(isChipActive)}>
+                {c}
+              </button>
+            );
+          })}
         </div>
 
         <div id="event-filters" className={cn(panelOpen ? 'grid' : 'hidden lg:grid', 'gap-3 border-t border-mist/[0.08] pt-4 sm:grid-cols-2 lg:grid-cols-4')}>

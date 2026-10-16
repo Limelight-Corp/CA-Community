@@ -11,7 +11,6 @@ import { certificatePdfPath, isCertificateValid } from '../../../lib/certificate
 import { checkinPayload, checkinQrSvg, ensureCheckinCode } from '../../../lib/checkin';
 import { findEventById, findRegistrationWithToken, razorpayConfig } from '../../api/registrations/_lib/server';
 import { mapsLink } from '../../../components/events/event-time';
-import { mailConfigured } from '../../../lib/mailer';
 import { receiptKind, receiptPdfPath } from '../../../lib/receipts';
 import {
   AddToCalendarButton,
@@ -100,7 +99,6 @@ export default async function RegistrationPage({
   // Entry QR only for confirmed bookings (pending / cancelled bookings are not valid for entry).
   const qrSvg = view === 'confirmed' ? await checkinQrSvg(checkinPayload(reg, await ensureCheckinCode(reg))) : null;
   const gatewayOn = !!razorpayConfig();
-  const emailOn = mailConfigured();
   const feeLabel = priceLabel(reg.fee);
   const d = event ? dateParts(event) : null;
   const maps = event ? mapsLink(event) : null;
@@ -166,12 +164,21 @@ export default async function RegistrationPage({
 
           <div className="mt-8 max-w-[62ch] text-[16px] leading-relaxed text-[var(--fg-soft)]">
             {view === 'confirmed' && (
-              <p>
-                Your seat for <strong className="text-[var(--fg)]">{reg.eventTitle}</strong> is confirmed.{' '}
-                {emailOn
-                  ? `A confirmation email will be sent to ${reg.email}.`
-                  : 'Save this page or note your booking ID — email confirmations will be enabled soon.'}
-              </p>
+              <div className="flex flex-col gap-3">
+                <p className="font-display text-[20px] font-medium text-[var(--fg)]">
+                  Thank you for registering for an EAGLE 2.0 event.
+                </p>
+                <p>
+                  Your registration details and event information will be shared through the contact details provided during registration. Please retain your registration confirmation for reference.
+                </p>
+                <p className="font-medium text-[var(--fg)]">
+                  We look forward to welcoming you.
+                </p>
+                <p className="whitespace-pre-line font-display text-[14px] font-medium text-gold">
+                  EAGLE 2.0{'\n'}Nayi Soch, Nayi Udaan
+                </p>
+                {/* System note: trigger this confirmation only after the registration system records the relevant status. Send payment confirmation only after the payment gateway confirms successful payment. */}
+              </div>
             )}
             {view === 'pending' &&
               (gatewayOn ? (

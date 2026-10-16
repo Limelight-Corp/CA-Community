@@ -110,7 +110,7 @@ export function JourneyScroller({
   return (
     <div
       ref={outer}
-      className={cn('relative', !pinned && 'py-24 md:py-32')}
+      className={cn('relative', !pinned && 'py-14 md:py-20')}
       // Pinned: one viewport plus the horizontal overflow, so 1px of vertical scroll ≈ 1px sideways.
       style={pinned && distance ? { height: `calc(100svh + ${distance}px)` } : undefined}
     >

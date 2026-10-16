@@ -135,7 +135,7 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
           disabled={submitting}
           className="group inline-flex h-13 min-h-[52px] items-center justify-between gap-6 rounded-full bg-grad-primary pl-6 pr-1.5 text-[15px] font-semibold text-white shadow-[0_10px_28px_-12px_rgb(var(--lime-rgb)/0.9)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60"
         >
-          Send message
+          Submit Enquiry
           <span className="grid h-10 w-10 place-items-center rounded-full bg-white/15 transition-transform duration-300 group-hover:rotate-45">
             {submitting ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : <ArrowUpRight className="h-5 w-5" aria-hidden />}
           </span>

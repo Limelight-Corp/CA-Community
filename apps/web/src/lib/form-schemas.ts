@@ -21,15 +21,16 @@ export const memberApplicationSchema = z.object({
   email: z.string().trim().toLowerCase().email('Enter a valid email address').max(160),
   mobile,
   city: trimmed(80).min(2, 'Please enter your city'),
+  professionalCategory: optionalText(120),
   plan: z.enum(['core', 'associate', 'student'], { errorMap: () => ({ message: 'Choose a membership plan' }) }),
-  membershipNo: optionalText(40),
+  membershipNo: optionalText(60),
   qualificationYear: z
     .string()
     .trim()
     .optional()
     .transform((v) => (v ? v : undefined))
-    .refine((v) => !v || (/^\d{4}$/.test(v) && Number(v) >= 1950 && Number(v) <= new Date().getFullYear() + 1), 'Enter a 4-digit year'),
-  areaOfPractice: optionalText(120),
+    .refine((v) => !v || (/^\d{4}$/.test(v) && Number(v) >= 1950 && Number(v) <= new Date().getFullYear() + 8), 'Enter a 4-digit year'),
+  areaOfPractice: optionalText(160),
   organisation: optionalText(160),
   linkedinUrl: z
     .string()
@@ -38,7 +39,7 @@ export const memberApplicationSchema = z.object({
     .transform((v) => (v ? v : undefined))
     .refine((v) => !v || /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+/i.test(v), 'Enter a full LinkedIn URL (https://linkedin.com/in/…)'),
   interests: z.array(z.number().int().min(1).max(99)).max(30).optional().default([]),
-  consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the privacy policy to continue' }) }),
+  consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the privacy policy and membership terms to continue' }) }),
 });
 
 export type MemberApplicationInput = z.input<typeof memberApplicationSchema>;

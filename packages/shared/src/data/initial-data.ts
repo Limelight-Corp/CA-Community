@@ -5,7 +5,7 @@ import {
   PROTOTYPE_NEWS,
   PROTOTYPE_RESOURCES,
 } from '../constants/prototype-data';
-import { ORG_POSITIONING, ORG_WINGS } from '../constants/organisation';
+import { ORG_WINGS } from '../constants/organisation';
 
 /** One of the event categories managed in admin (defaults: EVENT_CATEGORIES). */
 export type CommunityEventCategory = string;
@@ -347,6 +347,7 @@ export interface CommunityMemberApplication {
   mobile: string;
   city: string;
   plan: 'core' | 'associate' | 'student';
+  professionalCategory?: string;
   membershipNo?: string;
   qualificationYear?: string;
   areaOfPractice?: string;
@@ -468,15 +469,16 @@ export const INITIAL_PRIVATE_DATA: PrivateStoreData = {
 };
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  siteName: 'ASCEND',
-  tagline: `${ORG_POSITIONING.title} ${ORG_POSITIONING.titleAccent}`,
-  heroEyebrow: 'Pan-India CA Community · Launching 1 January 2027',
-  heroHeadline: 'Where young CAs',
-  heroHeadlineAccent: 'rise together.',
-  heroIntro: `${ORG_POSITIONING.summary} — ${ORG_POSITIONING.pillarsLine}`,
-  announcement: 'Founding member registrations are open ahead of the 1 January 2027 launch.',
+  siteName: 'EAGLE 2.0',
+  tagline: 'नई सोच, नई उड़ान | Nayi Soch, Nayi Udaan',
+  heroEyebrow: 'EAGLE 2.0  A New Era of Professional Community',
+  heroHeadline: 'EAGLE 2.0  A New Era of',
+  heroHeadlineAccent: 'Professional Community',
+  heroIntro:
+    'A Pan-India professional community bringing together Chartered Accountants, CA students and allied professionals to learn, connect, grow, transform, thrive and contribute.',
+  announcement: 'Join the movement. Shape the future. Grow together.',
   contact: {
-    email: 'hello@ascend-ca.in',
+    email: 'hello@eagle2.in',
   },
   social: {},
 };
@@ -491,39 +493,105 @@ export const SEED_TEAM: CommunityTeamMember[] = [
 
 export const SEED_INITIATIVES: CommunityInitiative[] = [
   {
-    id: 'ini-1',
-    title: 'Founding Member Registration',
-    description: 'Founding member registration opens, with wing leaders, Young CA leads, Women CA leads and city leads onboarded.',
-    tag: 'November 2026',
-    ctaLabel: 'Join the community',
+    id: 'init-1',
+    title: 'Technical Knowledge Series',
+    tag: 'Knowledge & Regulatory',
+    description: 'Technical seminars, masterclasses, case-law clinics and regulatory updates covering Income Tax, GST, International Tax, Corporate Law and Audit Standards.',
+    ctaLabel: 'Explore technical updates',
+    ctaUrl: '/wings',
+    isPublished: true,
+  },
+  {
+    id: 'init-2',
+    title: 'Career and Leadership Conversations',
+    tag: 'Leadership & Careers',
+    description: 'Interactive dialogues and sessions with industry CFOs, seasoned partners, entrepreneurs and practice leaders on career progression and leadership development.',
+    ctaLabel: 'Leadership dialogues',
+    ctaUrl: '/about',
+    isPublished: true,
+  },
+  {
+    id: 'init-3',
+    title: 'AI and Future-Ready CA',
+    tag: 'Technology & AI',
+    description: 'Hands-on awareness sessions, practical labs and frameworks exploring artificial intelligence, workflow automation and emerging digital tools transforming accounting.',
+    ctaLabel: 'Explore AI sessions',
+    ctaUrl: '/events',
+    isPublished: true,
+  },
+  {
+    id: 'init-4',
+    title: 'Mentorship and Peer Learning',
+    tag: 'Mentorship',
+    description: 'Structured programmes connecting seasoned practitioners and senior leaders with young Chartered Accountants and CA students for continuous guidance.',
+    ctaLabel: 'Join mentorship',
     ctaUrl: '/join',
     isPublished: true,
   },
   {
-    id: 'ini-2',
-    title: '10 Wings Operational',
-    description: 'Ten professional wings, each with a convener and committee, running year-round formats and an annual summit.',
-    tag: 'Launch readiness',
-    ctaLabel: 'Explore the wings',
-    ctaUrl: '/about#wings',
+    id: 'init-5',
+    title: "Women Professionals' Network",
+    tag: 'Women CA Network',
+    description: 'Dedicated initiatives, leadership circles, networking meetups and professional development forums for women Chartered Accountants across cities.',
+    ctaLabel: 'Connect with network',
+    ctaUrl: '/wings',
     isPublished: true,
   },
   {
-    id: 'ini-3',
-    title: 'Q1 2027 Event Calendar',
-    description: 'The January–March 2027 event calendar locked, with speakers and venues confirmed.',
-    tag: 'December 2026',
-    ctaLabel: 'Explore events',
+    id: 'init-6',
+    title: 'Community and Social Impact',
+    tag: 'Social Impact',
+    description: 'Financial literacy programmes, student support, pro bono advisory and social initiatives creating positive, lasting value for the profession and society.',
+    ctaLabel: 'View impact projects',
+    ctaUrl: '/about',
+    isPublished: true,
+  },
+  {
+    id: 'init-7',
+    title: 'Sports and Wellness Activities',
+    tag: 'Sports & Wellness',
+    description: 'Annual cricket leagues, badminton tournaments, fitness challenges, mental health awareness and work-life balance sessions for professionals.',
+    ctaLabel: 'Explore wellness events',
     ctaUrl: '/events',
     isPublished: true,
   },
   {
-    id: 'ini-4',
-    title: 'Community Launch',
-    description: 'A new beginning for a stronger community — Pan-India launch on 1 January 2027.',
-    tag: '1 January 2027',
-    ctaLabel: 'Register for an event',
-    ctaUrl: '/events',
+    id: 'init-8',
+    title: 'Global Connections and Industry Dialogues',
+    tag: 'Global Perspective',
+    description: 'Cross-border professional networking, international reporting, study tours and dialogues connecting Indian CAs with global opportunities.',
+    ctaLabel: 'Explore global wing',
+    ctaUrl: '/wings',
+    isPublished: true,
+  },
+  /* Pre-launch roadmap initiatives preserved:
+  { id: 'ini-1', title: 'Founding Member Registration', description: '...', tag: 'November 2026', ctaUrl: '/join', isPublished: true },
+  { id: 'ini-2', title: '10 Wings Operational', description: '...', tag: 'Launch readiness', ctaUrl: '/about#wings', isPublished: true },
+  { id: 'ini-3', title: 'Q1 2027 Event Calendar', description: '...', tag: 'December 2026', ctaUrl: '/events', isPublished: true },
+  { id: 'ini-4', title: 'Community Launch', description: '...', tag: '1 January 2027', ctaUrl: '/events', isPublished: true },
+  */
+];
+
+export const SEED_TESTIMONIALS: CommunityTestimonial[] = [
+  {
+    id: 'test-1',
+    name: 'CA Rajesh Sharma',
+    designation: 'Senior Partner, Direct Tax & Corporate Advisory · New Delhi',
+    quote: 'EAGLE 2.0 brings together the best minds in the profession. The focused wing structure and technical masterclasses provide practical, real-world clarity on complex regulatory shifts that every practicing CA needs.',
+    isPublished: true,
+  },
+  {
+    id: 'test-2',
+    name: 'CA Sneha Patel',
+    designation: 'Managing Partner · Women CA Network Lead · Mumbai',
+    quote: 'Being part of this community has unlocked incredible peer collaborations and leadership opportunities. The focus on mentorship, women professionals and wellness makes EAGLE 2.0 truly forward-looking.',
+    isPublished: true,
+  },
+  {
+    id: 'test-3',
+    name: 'CA Amit Verma',
+    designation: 'Founder, AI & Financial Automation Practice · Bengaluru',
+    quote: 'The emphasis on AI, emerging technology and continuous learning is what sets EAGLE 2.0 apart. It is an indispensable platform for any professional aiming to build a future-ready practice.',
     isPublished: true,
   },
 ];
@@ -640,7 +708,7 @@ export const INITIAL_COMMUNITY_DATA: CommunityStoreData = {
   })),
 
   team: SEED_TEAM.map((t) => ({ ...t, createdAt: now() })),
-  testimonials: [],
+  testimonials: SEED_TESTIMONIALS.map((t) => ({ ...t, createdAt: now() })),
   initiatives: SEED_INITIATIVES.map((i) => ({ ...i, createdAt: now() })),
   jobs: [],
   settings: DEFAULT_SITE_SETTINGS,

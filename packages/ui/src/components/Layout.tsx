@@ -80,15 +80,15 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
       className
     )}
   >
-    <div className={cn('flex flex-col gap-5', align === 'center' && 'items-center')}>
+    <div className={cn('flex flex-col gap-5', align === 'center' ? 'items-center' : 'max-w-4xl')}>
       {eyebrow && <Kicker>{eyebrow}</Kicker>}
       <Tag
         className={cn(
-          'font-display font-medium text-[var(--fg)] text-balance',
-          size === 'md' && 'text-[clamp(32px,4.4vw,56px)] leading-[1.04] tracking-[-0.04em]',
-          size === 'lg' && 'text-[clamp(40px,6vw,84px)] leading-[0.98] tracking-[-0.045em]',
-          size === 'xl' && 'text-[clamp(48px,8.5vw,128px)] leading-[0.92] tracking-[-0.055em]',
-          align === 'center' ? 'max-w-[18ch]' : 'max-w-[20ch]'
+          'font-display font-medium text-[var(--fg)]',
+          size === 'md' && 'text-[clamp(30px,4vw,52px)] leading-[1.04] tracking-[-0.04em]',
+          size === 'lg' && 'text-[clamp(36px,5vw,76px)] leading-[1] tracking-[-0.045em]',
+          size === 'xl' && 'text-[clamp(44px,7vw,104px)] leading-[0.94] tracking-[-0.05em]',
+          align === 'center' ? 'max-w-[28ch]' : 'max-w-[42ch]'
         )}
       >
         {title}
@@ -102,7 +102,8 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
       {lead && (
         <p
           className={cn(
-            'text-[clamp(16px,1.4vw,19px)] leading-relaxed text-[var(--muted)] max-w-[58ch] text-pretty'
+            'text-[clamp(16px,1.35vw,19px)] leading-relaxed text-[var(--muted)]',
+            align === 'center' ? 'max-w-[64ch]' : 'max-w-[44ch]'
           )}
         >
           {lead}

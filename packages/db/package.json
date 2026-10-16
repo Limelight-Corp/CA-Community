@@ -14,8 +14,8 @@
     "import": "node scripts/import-json.mjs"
   },
   "dependencies": {
-    "@prisma/client": "^5.21.1",
     "@ascend/shared": "*",
+    "@prisma/client": "^5.22.0",
     "prisma": "^5.21.1"
   },
   "main": "./dist/index.js",

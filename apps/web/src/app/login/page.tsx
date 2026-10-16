@@ -461,7 +461,7 @@ function MemberPass({ identity, mode }: { identity: string; mode: 'otp' | 'email
                   </svg>
                 </span>
                 <span className="font-display text-[14px] font-semibold tracking-[0.16em] text-white">
-                  ASCEND
+                  EAGLE 2.0
                 </span>
               </span>
               <span className="rounded-full border border-gold/50 bg-gold/15 px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-[#F2C46B]">

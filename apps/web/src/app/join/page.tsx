@@ -1,34 +1,38 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { Briefcase, Check, ChevronDown, GraduationCap, Handshake, Lightbulb, Rocket, Users } from 'lucide-react';
+import { Briefcase, Check, ChevronDown, GraduationCap, Sparkles, Users } from 'lucide-react';
 import {
+  JOIN_PAGE_CONTENT,
   MEMBERSHIP_PLANS,
   membershipFeeFor,
-  MEMBER_IDENTITIES,
   MEMBER_JOURNEY,
   ORG_POSITIONING,
   wingSlug,
-  WHY_JOIN,
   type CommunityWing,
   type MembershipPlan,
 } from '@ascend/shared';
-import { AccentText, Container, Kicker, cn } from '@ascend/ui';
+import { Container, Kicker, cn } from '@ascend/ui';
 import { Reveal } from '../../components/ui-client';
 import { getItems, getSettings } from '../../lib/community-store';
 import { PageHero, PillLink, Section } from '../../components/content/ui';
 import { JoinForm } from '../../components/content/JoinForm';
 import { FxCard } from '../../components/home/Interactive';
-import { siteWings, wingCountWords } from '../../lib/taxonomy';
+import { siteWings } from '../../lib/taxonomy';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName } = await getSettings();
+  const title = JOIN_PAGE_CONTENT.seoTitle;
+  const description =
+    "Join EAGLE 2.0's professional community for Chartered Accountants, CA students and allied professionals. Discover membership and participation opportunities.";
   return {
-    title: 'Join Us — Membership',
-    description: `Become a member of ${siteName}: membership plans for CAs, allied professionals and CA students, benefits, the member journey and online registration.`,
+    title: { absolute: title },
+    description,
     alternates: { canonical: '/join' },
+    openGraph: { title, description, url: '/join' },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 
+/*
 const WHY_ICONS = {
   networking: Users,
   knowledge: Lightbulb,
@@ -36,7 +40,9 @@ const WHY_ICONS = {
   career: Briefcase,
   mentorship: Handshake,
   growth: GraduationCap,
+  wellness: Heart,
 } as const;
+*/
 
 function priceLabel(p: MembershipPlan) {
   return `₹${p.price.toLocaleString('en-IN')} / ${p.period}`;
@@ -64,37 +70,149 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   return (
     <>
       <PageHero
-        eyebrow={`Founding membership · ${ORG_POSITIONING.launchLabel}`}
-        title="Join the"
-        accent="movement."
+        eyebrow={`Founding Membership · ${ORG_POSITIONING.taglineHindi}`}
+        title="Be Part of"
+        accent="EAGLE 2.0."
         accentTone="hero"
-        lead={`One membership. ${wingCountWords(orgWings.length)}, a Pan-India city network and a year-round calendar to help you learn, connect, grow and lead.`}
+        lead={
+          <div className="space-y-3 text-pretty">
+            {JOIN_PAGE_CONTENT.hero.paragraphs.map((p, idx) => (
+              <p key={idx}>{p}</p>
+            ))}
+          </div>
+        }
         ghost="JOIN"
       >
         <div className="flex flex-wrap gap-3 pt-2">
-          <PillLink href="#register" variant="gold">
-            Apply now
+          <PillLink href="#plans" variant="gold">
+            {JOIN_PAGE_CONTENT.hero.ctaPrimary.label}
           </PillLink>
-          <PillLink href="#plans" variant="ghost">
-            Compare plans
+          <PillLink href="#register" variant="ghost">
+            {JOIN_PAGE_CONTENT.hero.ctaSecondary.label}
           </PillLink>
         </div>
       </PageHero>
 
-      {/* ---------------------------------------------------------------- Plans */}
+      {/* ---------------------------------------------------------------- Blueprint §10.3: Who Can Join? */}
+      <Section className="border-b border-[var(--line)] py-16 md:py-24" labelledBy="who-can-join-heading">
+        <Container size="wide">
+          <div className="flex flex-col gap-4">
+            <Kicker tone="gold">Eligibility & Community</Kicker>
+            <h2 id="who-can-join-heading" className="font-display text-[clamp(36px,5vw,72px)] font-medium leading-[0.96] tracking-[-0.04em] text-[var(--fg)]">
+              {JOIN_PAGE_CONTENT.whoCanJoin.title}
+            </h2>
+            <p className="max-w-[60ch] text-[16px] leading-relaxed text-[var(--muted)]">
+              {JOIN_PAGE_CONTENT.whoCanJoin.lead}
+            </p>
+          </div>
+          <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {JOIN_PAGE_CONTENT.whoCanJoin.groups.map((group, idx) => {
+              const icons = [Briefcase, Sparkles, GraduationCap, Users];
+              const Icon = icons[idx] || Briefcase;
+              return (
+                <Reveal as="li" key={group.id} delay={idx * 80} className="h-full">
+                  <FxCard
+                    as="article"
+                    max={6}
+                    className="group flex h-full flex-col justify-between gap-6 rounded-[24px] border border-mist/[0.1] bg-grad-surface p-6 transition duration-300 hover:border-brand-300/40"
+                  >
+                    <div>
+                      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-500/15 text-brand-200 transition group-hover:bg-brand-500/25 group-hover:text-gold">
+                        <Icon className="h-6 w-6" aria-hidden />
+                      </span>
+                      <h3 className="mt-5 font-display text-[20px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-gold">
+                        {group.title}
+                      </h3>
+                      <p className="mt-2.5 text-[14px] leading-relaxed text-[var(--muted)]">
+                        {group.description}
+                      </p>
+                    </div>
+                  </FxCard>
+                </Reveal>
+              );
+            })}
+          </ul>
+        </Container>
+      </Section>
+
+      {/* ---------------------------------------------------------------- Blueprint §10.4: Your Journey Starts Here */}
+      <Section className="grain overflow-hidden border-b border-[var(--line)]" labelledBy="journey-heading">
+        <div className="aurora opacity-40" aria-hidden>
+          <i />
+        </div>
+        <Container size="wide" className="relative z-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-col gap-4">
+              <Kicker tone="gold">The member journey</Kicker>
+              <h2 id="journey-heading" className="max-w-[16ch] font-display text-[clamp(40px,6.5vw,96px)] font-medium leading-[0.92] tracking-[-0.05em] text-[var(--fg)]">
+                {JOIN_PAGE_CONTENT.journey.title}
+              </h2>
+              <p className="max-w-[62ch] text-[16px] leading-relaxed text-[var(--muted)]">
+                {JOIN_PAGE_CONTENT.journey.lead}
+              </p>
+            </div>
+            <p className="font-display text-[18px] font-medium tracking-tight text-gold-soft">
+              {JOIN_PAGE_CONTENT.journey.tagline}
+            </p>
+          </div>
+
+          <ol className="relative mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {MEMBER_JOURNEY.map((step, i) => {
+              const last = i === MEMBER_JOURNEY.length - 1;
+              return (
+                <Reveal as="li" key={step.title} delay={(i % 3) * 90} className="h-full">
+                  <FxCard
+                    max={6}
+                    className={cn(
+                      'group flex h-full gap-4 overflow-hidden rounded-[24px] border p-5',
+                      last ? 'border-gold/50 bg-gold/[0.08]' : 'border-mist/[0.1] bg-bg/70 backdrop-blur'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'fx-icon grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-display text-[20px] font-semibold',
+                        last ? 'bg-grad-gold text-[#2A1A0E]' : 'bg-brand-500/15 text-brand-200'
+                      )}
+                    >
+                      {i + 1}
+                    </span>
+                    <div className="relative min-w-0">
+                      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold">Step {i + 1}</span>
+                      <h3 className="mt-1 font-display text-[22px] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)]">{step.title}</h3>
+                      <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--muted)]">{step.text}</p>
+                    </div>
+                  </FxCard>
+                </Reveal>
+              );
+            })}
+          </ol>
+        </Container>
+      </Section>
+
+      {/* ---------------------------------------------------------------- Blueprint §10.5: Membership Options */}
       <Section id="plans" labelledBy="plans-heading">
         <Container size="wide">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               <Kicker tone="gold">Membership plans</Kicker>
               <h2 id="plans-heading" className="max-w-[14ch] font-display text-[clamp(40px,6.4vw,92px)] font-medium leading-[0.94] tracking-[-0.05em] text-[var(--fg)]">
-                Pick your <AccentText tone="gold">lane.</AccentText>
+                {JOIN_PAGE_CONTENT.membershipOptions.title}
               </h2>
             </div>
             <p className="font-mono text-[11.5px] uppercase tracking-[0.12em] text-[var(--muted)]">Annual fees · pay after your application is approved · valid 12 months</p>
           </div>
 
-          <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {/* Blueprint Notice */}
+          <div className="mt-8 rounded-[24px] border border-gold/30 bg-gold/[0.05] p-5 md:p-6">
+            <p className="text-[14px] leading-relaxed text-gold-soft">
+              <span className="font-semibold uppercase tracking-wider">Notice:</span> {JOIN_PAGE_CONTENT.membershipOptions.disclaimer}
+            </p>
+            <p className="mt-2 text-[13.5px] text-[var(--muted)]">
+              {JOIN_PAGE_CONTENT.membershipOptions.potentialBenefits}
+            </p>
+          </div>
+
+          <ul className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {plans.map((plan, i) => {
               const top = plan.benefits.slice(0, 4);
               const more = plan.benefits.slice(4);
@@ -133,12 +251,14 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                           animationDelay: `${-i * 4}s`,
                         }}
                       />
+                      {/* Ghost letter commented out per rule:
                       <span
                         aria-hidden
                         className="fx-ghost text-outline pointer-events-none absolute -bottom-8 right-2 select-none font-display text-[150px] font-semibold leading-none tracking-[-0.06em] opacity-60"
                       >
                         {plan.name.slice(0, 1)}
                       </span>
+                      */}
                       <div className="relative flex items-start justify-between gap-3">
                         <span aria-hidden className="h-7 w-10 rounded-md bg-grad-gold opacity-90 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.25)]" />
                         {plan.featured ? (
@@ -146,7 +266,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                             Most popular
                           </span>
                         ) : (
-                          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">ASCEND</span>
+                          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">EAGLE 2.0</span>
                         )}
                       </div>
                       <div className="relative">
@@ -222,12 +342,13 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
         </Container>
       </Section>
 
-      {/* ---------------------------------------------------------------- Benefits */}
+      {/* ---------------------------------------------------------------- Extra sections commented out per Blueprint §10 */}
+      {/*
       <Section className="border-y border-[var(--line)] bg-grad-surface" labelledBy="benefits-heading">
         <Container size="wide">
           <div className="flex flex-col gap-5">
             <Kicker>Why join</Kicker>
-            <h2 id="benefits-heading" className="max-w-[16ch] font-display text-[clamp(40px,6vw,84px)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--fg)]">
+            <h2 id="benefits-heading" className="max-w-[16ch] font-display text-[clamp(40px,6vw,84px)] font-medium leading-[0.96] tracking-[-0.04em] text-[var(--fg)]">
               More than a <AccentText>membership card.</AccentText>
             </h2>
           </div>
@@ -244,12 +365,6 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
                       big ? 'border-gold/25 bg-gold/[0.06]' : 'border-mist/[0.1] bg-bg/60'
                     )}
                   >
-                    <span
-                      aria-hidden
-                      className="fx-ghost text-outline pointer-events-none absolute -right-1 -top-5 select-none font-display text-[96px] font-semibold leading-none tracking-[-0.06em] opacity-40"
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
                     <span className="fx-icon relative grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/15 text-brand-200">
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
@@ -265,7 +380,6 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
         </Container>
       </Section>
 
-      {/* ---------------------------------------------------------------- Identities */}
       <section aria-labelledby="identities-heading" className="py-[clamp(64px,8vw,112px)]">
         <Container size="wide" className="flex flex-col gap-10">
           <div className="flex flex-col gap-4">
@@ -294,66 +408,21 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           </div>
         </Container>
       </section>
+      */}
 
-      {/* ---------------------------------------------------------------- Journey */}
-      <Section className="grain overflow-hidden border-y border-[var(--line)]" labelledBy="journey-heading">
-        <div className="aurora opacity-40" aria-hidden>
-          <i />
-        </div>
-        <Container size="wide" className="relative z-10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-col gap-5">
-              <Kicker>The member journey</Kicker>
-              <h2 id="journey-heading" className="max-w-[14ch] font-display text-[clamp(44px,7.5vw,112px)] font-medium leading-[0.9] tracking-[-0.055em] text-[var(--fg)]">
-                From hello to <AccentText tone="hero">leader.</AccentText>
-              </h2>
-            </div>
-            <p className="max-w-[40ch] text-[16px] leading-relaxed text-[var(--muted)]">Nine steps. Most people take the first three in a week — the rest is where it gets interesting.</p>
-          </div>
-
-          <ol className="relative mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {MEMBER_JOURNEY.map((step, i) => {
-              const last = i === MEMBER_JOURNEY.length - 1;
-              return (
-                <Reveal as="li" key={step.title} delay={(i % 3) * 90} className="h-full">
-                  <FxCard
-                    max={6}
-                    className={cn(
-                      'group flex h-full gap-4 overflow-hidden rounded-[24px] border p-5',
-                      last ? 'border-gold/50 bg-gold/[0.08]' : 'border-mist/[0.1] bg-bg/70 backdrop-blur'
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'fx-icon grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-display text-[20px] font-semibold',
-                        last ? 'bg-grad-gold text-[#2A1A0E]' : 'bg-brand-500/15 text-brand-200'
-                      )}
-                    >
-                      {i + 1}
-                    </span>
-                    <div className="relative min-w-0">
-                      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold">Step {String(i + 1).padStart(2, '0')}</span>
-                      <h3 className="mt-1 font-display text-[22px] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)]">{step.title}</h3>
-                      <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--muted)]">{step.text}</p>
-                    </div>
-                  </FxCard>
-                </Reveal>
-              );
-            })}
-          </ol>
-        </Container>
-      </Section>
-
-      {/* ---------------------------------------------------------------- Registration form */}
+      {/* ---------------------------------------------------------------- Blueprint §10.6: Registration Form */}
       <Section id="register" labelledBy="register-heading">
         <Container size="wide" className="grid gap-12 lg:grid-cols-[0.8fr_1.6fr]">
           <div className="flex flex-col gap-6 lg:sticky lg:top-28 lg:self-start">
             <Kicker tone="gold">Member registration</Kicker>
             <h2 id="register-heading" className="font-display text-[clamp(40px,5.6vw,80px)] font-medium leading-[0.94] tracking-[-0.05em] text-[var(--fg)]">
-              Let’s get you <AccentText tone="gold">in.</AccentText>
+              {JOIN_PAGE_CONTENT.registrationForm.title}
             </h2>
             <p className="text-[16px] leading-relaxed text-[var(--muted)]">
-              Tell us a little about yourself. Our membership team reviews every application and gets back to you with your plan and payment details.
+              {JOIN_PAGE_CONTENT.registrationForm.lead}
+            </p>
+            <p className="font-mono text-[12px] uppercase tracking-[0.08em] text-brand-300">
+              {JOIN_PAGE_CONTENT.registrationForm.guideline}
             </p>
             <ul className="flex flex-col gap-3 text-[14px] text-[var(--muted)]">
               {['Takes about two minutes', 'No payment is taken on this form', 'Your details stay private'].map((x) => (

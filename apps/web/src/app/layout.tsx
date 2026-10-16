@@ -8,6 +8,7 @@ import { Providers } from '../components/site/Providers';
 import { SupportChat } from '../components/site/SupportChat';
 import { jsonLd, siteUrl } from '../lib/seo';
 import { whatsappEnabled } from '../lib/whatsapp';
+import { KEYWORD_STRATEGY } from '@ascend/shared';
 import './globals.css';
 
 const inter = Inter({
@@ -40,6 +41,11 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(siteUrl()),
     title: { default: title, template: `%s · ${settings.siteName}` },
     description: settings.tagline,
+    keywords: [
+      ...KEYWORD_STRATEGY.primary,
+      ...KEYWORD_STRATEGY.eventsAndLearning.slice(0, 3),
+      ...KEYWORD_STRATEGY.careerAndCommunity.slice(0, 3),
+    ],
     manifest: '/manifest.json',
     icons: {
       icon: [
@@ -67,6 +73,8 @@ function siteLd(settings: Awaited<ReturnType<typeof getSettings>>) {
         '@type': 'Organization',
         '@id': `${base}/#organization`,
         name: settings.siteName,
+        alternateName: 'EAGLE 2.0 | नई सोच, नई उड़ान',
+        description: 'A professional community for Chartered Accountants, CA students and allied professionals in India.',
         url: base,
         logo: `${base}/brand/egroup-logo.png`,
         ...(settings.contact?.email ? { email: settings.contact.email } : {}),

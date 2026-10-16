@@ -3,10 +3,10 @@ import { DEFAULT_DARK_TOKENS } from '@ascend/shared';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ASCEND CA Community',
-    short_name: 'ASCEND CA',
+    name: 'EAGLE 2.0 CA Community',
+    short_name: 'EAGLE 2.0',
     description:
-      'A Pan-India community for Chartered Accountants, corporate finance leaders and students. Professional wings, masterclasses, and digital passes.',
+      'A professional community for Chartered Accountants, CA students and allied professionals. Learn, connect, grow and contribute.',
     start_url: '/',
     display: 'standalone',
     background_color: DEFAULT_DARK_TOKENS.bg,

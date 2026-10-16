@@ -25,9 +25,9 @@
     {
       "id": "evt-1",
       "slug": "launch",
-      "title": "ASCEND Launch Summit 2027",
+      "title": "EAGLE 2.0 Launch Summit 2027",
       "wingNumber": 4,
-      "category": "Conference",
+      "category": "Conferences and summits",
       "date": "2027-01-01",
       "time": "10:00 AM",
       "venue": "Bharat Mandapam, New Delhi",
@@ -50,7 +50,7 @@
       "slug": "ai-ca",
       "title": "AI for the Modern CA",
       "wingNumber": 5,
-      "category": "Workshop",
+      "category": "AI, technology and automation",
       "date": "2027-01-09",
       "time": "4:00 PM",
       "venue": "Online",
@@ -71,7 +71,7 @@
       "slug": "gst",
       "title": "GST Clinic: Notices & Appeals",
       "wingNumber": 1,
-      "category": "Seminar",
+      "category": "Seminars and technical updates",
       "date": "2027-01-16",
       "time": "10:30 AM",
       "venue": "The Orchid, Mumbai",
@@ -93,7 +93,7 @@
       "slug": "speed",
       "title": "Young CA Speed Networking",
       "wingNumber": 6,
-      "category": "Networking",
+      "category": "Networking and community meetups",
       "date": "2027-01-23",
       "time": "6:00 PM",
       "venue": "Koramangala, Bengaluru",
@@ -112,9 +112,9 @@
     {
       "id": "evt-5",
       "slug": "tax-mc",
-      "title": "Budget 2027 Decoded",
+      "title": "Budget 2027 Decoded Masterclass",
       "wingNumber": 1,
-      "category": "Training",
+      "category": "Workshops and masterclasses",
       "date": "2027-02-03",
       "time": "7:00 PM",
       "venue": "Online",
@@ -134,9 +134,9 @@
     {
       "id": "evt-6",
       "slug": "cfo",
-      "title": "Inside the CFO Office",
+      "title": "Inside the CFO Office: Leadership Dialogues",
       "wingNumber": 4,
-      "category": "Career",
+      "category": "Industry and leadership conversations",
       "date": "2027-02-06",
       "time": "5:00 PM",
       "venue": "Hyatt Regency, Gurugram",
@@ -150,6 +150,47 @@
         "nk"
       ],
       "description": "Three CFOs walk through a month-end, a board review and a fundraise, and explain what they look for when hiring CAs.",
+      "isPublished": true
+    },
+    {
+      "id": "evt-7",
+      "slug": "mentor-circle",
+      "title": "CA Career Compass & Mentorship Forum",
+      "wingNumber": 6,
+      "category": "Career development and mentorship",
+      "date": "2027-02-14",
+      "time": "5:30 PM",
+      "venue": "Online",
+      "city": "Online",
+      "mode": "Online",
+      "fee": 0,
+      "memberFee": 0,
+      "seatsTotal": 500,
+      "seatsTaken": 210,
+      "speakerSlugs": [
+        "sb",
+        "ps"
+      ],
+      "description": "One-on-one and small group mentorship circles connecting experienced partners and CFOs with newly qualified CAs and students.",
+      "isPublished": true
+    },
+    {
+      "id": "evt-8",
+      "slug": "sports-league",
+      "title": "CA Premier Sports Meet & Wellness Day",
+      "wingNumber": 8,
+      "category": "Sports, wellness and social impact",
+      "date": "2027-02-21",
+      "time": "8:00 AM",
+      "venue": "Gymkhana Grounds, Mumbai",
+      "city": "Mumbai",
+      "mode": "Offline",
+      "fee": 499,
+      "memberFee": 299,
+      "seatsTotal": 250,
+      "seatsTaken": 115,
+      "speakerSlugs": [],
+      "description": "Annual sports festival, cricket tournament, and mindfulness sessions for Chartered Accountants and their families.",
       "isPublished": true
     }
   ],
@@ -491,18 +532,18 @@
     {
       "id": "news-1",
       "slug": "founding-member-registrations-open",
-      "title": "Founding member registrations open",
-      "category": "Announcement",
+      "title": "Founding Member Registrations Open for EAGLE 2.0 Community",
+      "category": "Community announcements",
       "date": "03 Nov 2026",
-      "summary": "Founding member registrations are open ahead of the 1 January 2027 Pan-India launch.",
+      "summary": "Founding member registrations are open ahead of the Pan-India community launch.",
       "content": "Founding member registrations are now open. Fill in your details and choose a plan on the Join Us page. The team reviews every application and follows up with plan and payment details. The community launches Pan-India on 1 January 2027.",
       "isPublished": true
     },
     {
       "id": "news-2",
       "slug": "ten-wings-and-their-conveners-announced",
-      "title": "Ten wings and their conveners announced",
-      "category": "Community",
+      "title": "Professional Wings & Specialized Initiative Framework Announced",
+      "category": "Wing activities and initiatives",
       "date": "28 Oct 2026",
       "summary": "Each wing will run a monthly format and one annual summit.",
       "content": "The Executive Council has ratified conveners across all ten specializations. Each wing operates with autonomy while contributing to the unified national calendar.",
@@ -510,20 +551,30 @@
     },
     {
       "id": "news-3",
-      "slug": "city-leads-confirmed-for-four-cities",
-      "title": "City Leads confirmed for four cities",
-      "category": "Chapters",
+      "slug": "upcoming-national-conclave-registration",
+      "title": "Upcoming National Conclave & Registration Notices Announced",
+      "category": "Upcoming events and registration notices",
       "date": "20 Oct 2026",
-      "summary": "Delhi, Mumbai, Bengaluru and Pune go first.",
+      "summary": "Delhi, Mumbai, Bengaluru and Pune regional calendars announced.",
       "content": "City chapters will coordinate localized mixers, speed networking evenings, and direct engagements with regional ICAI branches.",
+      "isPublished": true
+    },
+    {
+      "id": "news-4",
+      "slug": "regulatory-tech-updates-digital-tools",
+      "title": "Professional & Regulatory Update: Digital Tools and AI in Practice",
+      "category": "Professional and industry updates",
+      "date": "15 Oct 2026",
+      "summary": "Insights and practical takeaways on digital reporting and modern advisory tools.",
+      "content": "Subject-matter experts share analysis on emerging technology trends, compliance automation and digital transformation for CA firms.",
       "isPublished": true
     }
   ],
   "resources": [
     {
       "id": "res-1",
-      "title": "Budget 2027: first-look summary",
-      "category": "Tax updates",
+      "title": "Union Budget Professional Summary & Tax Updates",
+      "category": "Tax and Regulatory Updates",
       "format": "PDF · 18 pages",
       "isMembersOnly": false,
       "downloads": 140,
@@ -531,17 +582,17 @@
     },
     {
       "id": "res-2",
-      "title": "Prompt library for tax research",
-      "category": "Guides",
-      "format": "PDF · 42 prompts",
+      "title": "Ind AS 116 in Practice & Audit Reporting Notes",
+      "category": "Audit, Assurance and Finance",
+      "format": "PDF · 24 pages",
       "isMembersOnly": false,
       "downloads": 227,
       "isPublished": true
     },
     {
       "id": "res-3",
-      "title": "Practice pricing calculator",
-      "category": "Practice",
+      "title": "Practice Pricing & Capacity Calculator",
+      "category": "Practice and Entrepreneurship",
       "format": "XLSX",
       "isMembersOnly": true,
       "downloads": 314,
@@ -549,20 +600,29 @@
     },
     {
       "id": "res-4",
-      "title": "First 100 days as a CA",
-      "category": "Career",
-      "format": "PDF · 6 pages",
+      "title": "First 100 Days as a CA: Career Planning Guide",
+      "category": "Career and Leadership",
+      "format": "PDF · 12 pages",
       "isMembersOnly": true,
       "downloads": 401,
       "isPublished": true
     },
     {
       "id": "res-5",
-      "title": "Ind AS 116 in practice",
-      "category": "Webinars",
-      "format": "Video · 74 min",
+      "title": "Prompt Library & Automation Checklist for CA Firms",
+      "category": "Technology, AI and Automation",
+      "format": "PDF · 42 prompts",
       "isMembersOnly": true,
       "downloads": 488,
+      "isPublished": true
+    },
+    {
+      "id": "res-6",
+      "title": "Modern Audit Tools & Practice Management Session",
+      "category": "Webinars, Videos and Downloads",
+      "format": "Video · 74 min",
+      "isMembersOnly": true,
+      "downloads": 560,
       "isPublished": true
     }
   ],
@@ -586,59 +646,124 @@
       "createdAt": "2026-10-09T08:09:33.491Z"
     }
   ],
-  "testimonials": [],
+  "testimonials": [
+    {
+      "id": "test-1",
+      "name": "CA Rajesh Sharma",
+      "designation": "Senior Partner, Direct Tax & Corporate Advisory · New Delhi",
+      "quote": "EAGLE 2.0 brings together the best minds in the profession. The focused wing structure and technical masterclasses provide practical, real-world clarity on complex regulatory shifts that every practicing CA needs.",
+      "isPublished": true,
+      "createdAt": "2026-10-16T08:09:31.578Z"
+    },
+    {
+      "id": "test-2",
+      "name": "CA Sneha Patel",
+      "designation": "Managing Partner · Women CA Network Lead · Mumbai",
+      "quote": "Being part of this community has unlocked incredible peer collaborations and leadership opportunities. The focus on mentorship, women professionals and wellness makes EAGLE 2.0 truly forward-looking.",
+      "isPublished": true,
+      "createdAt": "2026-10-16T08:09:31.579Z"
+    },
+    {
+      "id": "test-3",
+      "name": "CA Amit Verma",
+      "designation": "Founder, AI & Financial Automation Practice · Bengaluru",
+      "quote": "The emphasis on AI, emerging technology and continuous learning is what sets EAGLE 2.0 apart. It is an indispensable platform for any professional aiming to build a future-ready practice.",
+      "isPublished": true,
+      "createdAt": "2026-10-16T08:09:31.579Z"
+    }
+  ],
   "initiatives": [
     {
-      "id": "ini-1",
-      "title": "Founding Member Registration",
-      "description": "Founding member registration opens, with wing leaders, Young CA leads, Women CA leads and city leads onboarded.",
-      "tag": "November 2026",
-      "ctaLabel": "Join the community",
+      "id": "init-1",
+      "title": "Technical Knowledge Series",
+      "tag": "Knowledge & Regulatory",
+      "description": "Technical seminars, masterclasses, case-law clinics and regulatory updates covering Income Tax, GST, International Tax, Corporate Law and Audit Standards.",
+      "ctaLabel": "Explore technical updates",
+      "ctaUrl": "/wings",
+      "isPublished": true,
+      "createdAt": "2026-10-16T07:49:58.532Z"
+    },
+    {
+      "id": "init-2",
+      "title": "Career and Leadership Conversations",
+      "tag": "Leadership & Careers",
+      "description": "Interactive dialogues and sessions with industry CFOs, seasoned partners, entrepreneurs and practice leaders on career progression and leadership development.",
+      "ctaLabel": "Leadership dialogues",
+      "ctaUrl": "/about",
+      "isPublished": true,
+      "createdAt": "2026-10-16T07:49:58.533Z"
+    },
+    {
+      "id": "init-3",
+      "title": "AI and Future-Ready CA",
+      "tag": "Technology & AI",
+      "description": "Hands-on awareness sessions, practical labs and frameworks exploring artificial intelligence, workflow automation and emerging digital tools transforming accounting.",
+      "ctaLabel": "Explore AI sessions",
+      "ctaUrl": "/events",
+      "isPublished": true,
+      "createdAt": "2026-10-16T07:49:58.533Z"
+    },
+    {
+      "id": "init-4",
+      "title": "Mentorship and Peer Learning",
+      "tag": "Mentorship",
+      "description": "Structured programmes connecting seasoned practitioners and senior leaders with young Chartered Accountants and CA students for continuous guidance.",
+      "ctaLabel": "Join mentorship",
       "ctaUrl": "/join",
       "isPublished": true,
-      "createdAt": "2026-10-09T08:09:33.491Z"
+      "createdAt": "2026-10-16T07:49:58.533Z"
     },
     {
-      "id": "ini-2",
-      "title": "10 Wings Operational",
-      "description": "Ten professional wings, each with a convener and committee, running year-round formats and an annual summit.",
-      "tag": "Launch readiness",
-      "ctaLabel": "Explore the wings",
-      "ctaUrl": "/about#wings",
+      "id": "init-5",
+      "title": "Women Professionals' Network",
+      "tag": "Women CA Network",
+      "description": "Dedicated initiatives, leadership circles, networking meetups and professional development forums for women Chartered Accountants across cities.",
+      "ctaLabel": "Connect with network",
+      "ctaUrl": "/wings",
       "isPublished": true,
-      "createdAt": "2026-10-09T08:09:33.491Z"
+      "createdAt": "2026-10-16T07:49:58.533Z"
     },
     {
-      "id": "ini-3",
-      "title": "Q1 2027 Event Calendar",
-      "description": "The January–March 2027 event calendar locked, with speakers and venues confirmed.",
-      "tag": "December 2026",
-      "ctaLabel": "Explore events",
+      "id": "init-6",
+      "title": "Community and Social Impact",
+      "tag": "Social Impact",
+      "description": "Financial literacy programmes, student support, pro bono advisory and social initiatives creating positive, lasting value for the profession and society.",
+      "ctaLabel": "View impact projects",
+      "ctaUrl": "/about",
+      "isPublished": true,
+      "createdAt": "2026-10-16T07:49:58.533Z"
+    },
+    {
+      "id": "init-7",
+      "title": "Sports and Wellness Activities",
+      "tag": "Sports & Wellness",
+      "description": "Annual cricket leagues, badminton tournaments, fitness challenges, mental health awareness and work-life balance sessions for professionals.",
+      "ctaLabel": "Explore wellness events",
       "ctaUrl": "/events",
       "isPublished": true,
-      "createdAt": "2026-10-09T08:09:33.491Z"
+      "createdAt": "2026-10-16T07:49:58.533Z"
     },
     {
-      "id": "ini-4",
-      "title": "Community Launch",
-      "description": "A new beginning for a stronger community — Pan-India launch on 1 January 2027.",
-      "tag": "1 January 2027",
-      "ctaLabel": "Register for an event",
-      "ctaUrl": "/events",
+      "id": "init-8",
+      "title": "Global Connections and Industry Dialogues",
+      "tag": "Global Perspective",
+      "description": "Cross-border professional networking, international reporting, study tours and dialogues connecting Indian CAs with global opportunities.",
+      "ctaLabel": "Explore global wing",
+      "ctaUrl": "/wings",
       "isPublished": true,
-      "createdAt": "2026-10-09T08:09:33.491Z"
+      "createdAt": "2026-10-16T07:49:58.533Z"
     }
   ],
   "settings": {
-    "siteName": "ASCEND",
-    "tagline": "A Professional Community for Chartered Accountants & Beyond",
-    "heroEyebrow": "Pan-India CA Community · Launching 1 January 2027",
-    "heroHeadline": "Where young CAs",
-    "heroHeadlineAccent": "rise together.",
-    "heroIntro": "A Pan-India network built to help professionals — Learn. Connect. Grow. Transform. Thrive. Contribute.",
-    "announcement": "Founding member registrations are open ahead of the 1 January 2027 launch.",
+    "siteName": "EAGLE 2.0",
+    "tagline": "नई सोच, नई उड़ान | Nayi Soch, Nayi Udaan",
+    "heroEyebrow": "EAGLE 2.0 · A New Era of Professional Community",
+    "heroHeadline": "EAGLE 2.0",
+    "heroHeadlineAccent": "A New Era of Professional Community",
+    "heroIntro": "A Pan-India professional community bringing together Chartered Accountants, CA students and allied professionals to learn, connect, grow, transform, thrive and contribute.",
+    "announcement": "Join the movement. Shape the future. Grow together.",
     "contact": {
-      "email": "hello@ascend-ca.in"
+      "email": "hello@eagle2.in"
     },
     "social": {}
   }

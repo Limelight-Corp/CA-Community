@@ -74,7 +74,7 @@ export default async function SpeakerPage({ params }: { params: Params }) {
       ? speaker.stats
       : [
           { value: String(upcoming.length), label: upcoming.length === 1 ? 'Upcoming session' : 'Upcoming sessions' },
-          { value: String(theirs.length), label: theirs.length === 1 ? 'Session at ASCEND' : 'Sessions at ASCEND' },
+          { value: String(theirs.length), label: theirs.length === 1 ? 'Session with EAGLE 2.0' : 'Sessions with EAGLE 2.0' },
           { value: String(speaker.expertise.length), label: 'Areas of expertise' },
         ].filter((s) => Number(s.value) > 0);
   const related = allSpeakers

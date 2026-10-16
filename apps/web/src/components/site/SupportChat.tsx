@@ -195,7 +195,7 @@ export function SupportChat() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls="support-chat"
-        aria-label={open ? 'Close chat' : 'Chat with ASCEND Assistant'}
+        aria-label={open ? 'Close chat' : 'Chat with EAGLE 2.0 Assistant'}
         className={cn(
           'ring-spin fixed right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-grad-primary text-white shadow-[0_18px_40px_-12px_rgb(var(--lime-rgb)/0.9)] transition-transform duration-300 hover:scale-105 print:hidden sm:right-6',
           onEventPage ? 'bottom-[92px] lg:bottom-6' : 'bottom-5 sm:bottom-6'
@@ -215,7 +215,7 @@ export function SupportChat() {
       <section
         id="support-chat"
         role="dialog"
-        aria-label="ASCEND Assistant"
+        aria-label="EAGLE 2.0 Assistant"
         aria-hidden={!open}
         className={cn(
           'glass-panel fixed z-[60] flex flex-col overflow-hidden rounded-[26px] shadow-[0_40px_100px_-30px_rgb(var(--black-rgb)/0.95)] transition-all duration-300 print:hidden',
@@ -232,7 +232,7 @@ export function SupportChat() {
             <Sparkles className="h-5 w-5" aria-hidden />
           </span>
           <div className="min-w-0 flex-1 leading-tight">
-            <p className="font-display text-[16px] font-semibold text-[var(--fg)]">ASCEND Assistant</p>
+            <p className="font-display text-[16px] font-semibold text-[var(--fg)]">EAGLE 2.0 Assistant</p>
             <p className="flex items-center gap-1.5 text-[12px] text-[var(--muted)]">
               <span className="live-dot" aria-hidden />{' '}
               {lastAssistant?.mode === 'basic' ? 'Quick-help mode' : 'Events, membership & help'}
@@ -506,7 +506,7 @@ function LeadForm({ page, onDone, onCancel }: { page: string; onDone: (name: str
       {err.message && <span className="text-[11.5px] text-bad">{err.message}</span>}
       <label className="flex items-start gap-2 text-[12px] leading-snug text-[var(--muted)]">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--brand-500)]" />
-        I agree to be contacted by the ASCEND team about this request.
+        I agree to be contacted by the EAGLE 2.0 team about this request.
       </label>
       {formError && <span className="text-[12px] text-bad">{formError}</span>}
       <div className="flex gap-2">

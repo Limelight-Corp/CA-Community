@@ -9,6 +9,7 @@ import {
   BookOpen,
   CalendarDays,
   ChevronRight,
+  Compass,
   House,
   Images,
   Info,
@@ -33,21 +34,21 @@ import { UserMenu } from './UserMenu';
  * The desktop bar leaves out Home (the logo links home) and Join Us (the Join button), and uses
  * `short` labels, so it stays on one calm line.
  */
-export const NAV_ITEMS: readonly { label: string; short?: string; href: string; hint: string; icon: LucideIcon; desktop?: false }[] =
+export const NAV_ITEMS: readonly { label: string; href: string; hint: string; icon: LucideIcon }[] =
   [
-    { label: 'Home', href: '/', hint: 'Start here', icon: House, desktop: false },
-    { label: 'About Us', short: 'About', href: '/about', hint: 'Vision, leadership & wings', icon: Info },
+    { label: 'Home', href: '/', hint: 'Start here', icon: House },
+    { label: 'About Us', href: '/about', hint: 'Vision, mission & leadership', icon: Info },
+    { label: 'Our Wings', href: '/wings', hint: 'Ten professional wings', icon: Compass },
     {
       label: 'Events',
       href: '/events',
-      hint: 'Summits, masterclasses & meetups',
+      hint: 'Seminars, workshops & summits',
       icon: CalendarDays,
     },
-    { label: 'Speakers', href: '/speakers', hint: 'The people on stage', icon: Mic2 },
-    { label: 'Resources', href: '/resources', hint: 'Guides, updates & downloads', icon: BookOpen },
-    { label: 'News & Updates', short: 'News', href: '/news', hint: 'Announcements & stories', icon: Newspaper },
+    { label: 'Speakers', href: '/speakers', hint: 'Experts & industry leaders', icon: Mic2 },
+    { label: 'Resources', href: '/resources', hint: 'Guides, tax updates & learning', icon: BookOpen },
+    { label: 'News & Updates', href: '/news', hint: 'Announcements & updates', icon: Newspaper },
     { label: 'Gallery', href: '/gallery', hint: 'Moments from our events', icon: Images },
-    { label: 'Join Us', href: '/join', hint: 'Membership plans', icon: UserPlus, desktop: false },
     { label: 'Contact', href: '/contact', hint: 'Say hello', icon: Mail },
   ];
 
@@ -131,12 +132,14 @@ export function SiteHeader({
             : 'border-b border-transparent bg-transparent'
         )}
       >
-        <div className="mx-auto flex h-[76px] max-w-[1400px] items-center gap-6 px-5 md:px-8">
-          <Logo siteName={siteName} />
+        <div className="mx-auto flex h-[76px] max-w-[1536px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="shrink-0">
+            <Logo siteName={siteName} />
+          </div>
 
-          {/* Desktop menu: centred, only when there is room for it on one line */}
-          <nav aria-label="Main" className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1340px]:flex">
-            {NAV_ITEMS.filter((item) => item.desktop !== false).map((item) => {
+          {/* Desktop menu: centred, with all exact items from Content Blueprint Section 1 */}
+          <nav aria-label="Main" className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 px-2 xl:flex">
+            {NAV_ITEMS.map((item) => {
               const active = isActive(pathname, item.href);
               return (
                 <Link
@@ -144,18 +147,18 @@ export function SiteHeader({
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'relative whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors',
-                    active ? 'text-brand-500' : 'text-[var(--muted)] hover:text-[var(--fg)]'
+                    'relative whitespace-nowrap rounded-full px-2 py-1.5 text-[12px] font-medium transition-colors min-[1340px]:px-2.5 min-[1340px]:text-[12.5px] min-[1440px]:px-3 min-[1440px]:text-[13px]',
+                    active ? 'text-brand-500 font-semibold' : 'text-[var(--muted)] hover:text-[var(--fg)]'
                   )}
                 >
-                  {item.short ?? item.label}
-                  {active && <span aria-hidden className="absolute inset-x-3.5 -bottom-0.5 h-px bg-brand-500" />}
+                  {item.label}
+                  {active && <span aria-hidden className="absolute inset-x-2 -bottom-0.5 h-px bg-brand-500 min-[1340px]:inset-x-2.5" />}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="ml-auto flex shrink-0 items-center gap-1.5 min-[1340px]:ml-0">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 xl:ml-0">
             <Link
               href="/search"
               aria-label="Search"
@@ -172,23 +175,23 @@ export function SiteHeader({
               <>
                 <Link
                   href="/login"
-                  className="hidden h-10 shrink-0 items-center whitespace-nowrap px-3 text-[14px] font-medium text-[var(--fg)] transition hover:text-brand-500 sm:flex"
+                  className="hidden h-10 shrink-0 items-center whitespace-nowrap px-2.5 text-[13px] font-medium text-[var(--fg)] transition hover:text-brand-500 sm:flex"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/join"
-                  className="hidden h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-mist/[0.16] px-4 text-[14px] font-medium text-[var(--fg)] transition hover:border-mist/40 lg:flex"
+                  className="hidden h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-mist/[0.16] px-3.5 text-[13px] font-medium text-[var(--fg)] transition hover:border-mist/40 min-[1420px]:flex"
                 >
-                  Join
+                  Join the Community
                 </Link>
               </>
             )}
             <Link
               href="/events"
-              className="hidden h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-500 px-4 text-[14px] font-semibold text-white transition hover:bg-brand-600 md:flex"
+              className="hidden h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-500 px-3.5 text-[13px] font-semibold text-white transition hover:bg-brand-600 md:flex"
             >
-              Register
+              Explore Events
               <ArrowUpRight className="h-4 w-4" aria-hidden />
             </Link>
             <button
@@ -196,7 +199,7 @@ export function SiteHeader({
               onClick={() => setOpen(true)}
               aria-label="Open menu"
               aria-expanded={open}
-              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] min-[1340px]:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full border border-mist/[0.14] text-[var(--fg)] xl:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -207,7 +210,7 @@ export function SiteHeader({
       {/* Mobile menu panel */}
       <div
         className={cn(
-          'fixed inset-0 z-[60] flex flex-col bg-bg/95 backdrop-blur-2xl transition-[opacity,visibility] duration-500 min-[1340px]:hidden',
+          'fixed inset-0 z-[60] flex flex-col bg-bg/95 backdrop-blur-2xl transition-[opacity,visibility] duration-500 xl:hidden',
           open ? 'visible opacity-100' : 'invisible opacity-0'
         )}
         role="dialog"
@@ -260,6 +263,7 @@ export function SiteHeader({
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setOpen(false)}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
                     'group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2 transition-all duration-500',
@@ -315,15 +319,17 @@ export function SiteHeader({
             <div className="grid grid-cols-2 gap-2.5">
               <Link
                 href="/events"
-                className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-grad-primary px-3 text-[13.5px] font-semibold text-white"
+                onClick={() => setOpen(false)}
+                className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-grad-primary px-3 text-[13px] font-semibold text-white"
               >
-                <CalendarDays className="h-4 w-4" aria-hidden /> Register
+                <CalendarDays className="h-4 w-4" aria-hidden /> Explore Events
               </Link>
               <Link
                 href="/join"
-                className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-grad-gold px-3 text-[13.5px] font-semibold text-[#2A1A0E]"
+                onClick={() => setOpen(false)}
+                className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-grad-gold px-3 text-[13px] font-semibold text-[#2A1A0E]"
               >
-                <UserPlus className="h-4 w-4" aria-hidden /> Join us
+                <UserPlus className="h-4 w-4" aria-hidden /> Join the Community
               </Link>
             </div>
             {user ? (

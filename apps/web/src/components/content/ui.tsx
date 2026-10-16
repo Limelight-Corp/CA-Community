@@ -36,9 +36,9 @@ export function PageHero({ eyebrow, eyebrowTone = 'gold', title, accent, accentT
         </span>
       )}
       <Container size="wide" className="relative z-10">
-        <div className="flex max-w-[1100px] flex-col gap-7">
+        <div className="flex max-w-4xl flex-col gap-6">
           <Kicker tone={eyebrowTone}>{eyebrow}</Kicker>
-          <h1 className="text-balance font-display text-[clamp(46px,9vw,124px)] font-medium leading-[0.9] tracking-[-0.055em] text-[var(--fg)]">
+          <h1 className="font-display text-[clamp(38px,5.4vw,84px)] font-medium leading-[0.98] tracking-[-0.045em] text-[var(--fg)]">
             {title}
             {accent && (
               <>
@@ -47,8 +47,12 @@ export function PageHero({ eyebrow, eyebrowTone = 'gold', title, accent, accentT
               </>
             )}
           </h1>
-          {lead && <p className="max-w-[60ch] text-pretty text-[clamp(16px,1.5vw,20px)] leading-relaxed text-[var(--muted)]">{lead}</p>}
-          {children}
+          {lead && (
+            <div className="max-w-[46ch] text-[clamp(16px,1.35vw,19px)] leading-relaxed text-[var(--muted)]">
+              {typeof lead === 'string' ? <p>{lead}</p> : lead}
+            </div>
+          )}
+          {children && <div className="max-w-[46ch] flex flex-col gap-4">{children}</div>}
         </div>
       </Container>
     </section>
@@ -132,22 +136,65 @@ export const chipClass = (active: boolean) =>
   );
 
 /** Final call-to-action band reused at the bottom of content pages. */
-export function CtaBand({ title, accent, lead, primary, secondary }: { title: string; accent?: string; lead?: string; primary: { href: string; label: string }; secondary?: { href: string; label: string } }) {
+export function CtaBand({
+  title,
+  accent,
+  lead,
+  primary,
+  secondary,
+  align = 'start',
+  className,
+}: {
+  title: string;
+  accent?: string;
+  lead?: React.ReactNode;
+  primary: { href: string; label: string };
+  secondary?: { href: string; label: string };
+  align?: 'start' | 'center';
+  className?: string;
+}) {
+  const isCentered = align === 'center';
   return (
-    <section className="relative py-[clamp(64px,9vw,120px)]">
+    <section className={cn('relative py-[clamp(36px,5vw,68px)]', className)}>
       <Container size="wide">
-        <div className="grain relative overflow-hidden rounded-[36px] border border-gold/20 bg-grad-surface px-6 py-14 md:px-14 md:py-20">
+        <div className="grain relative overflow-hidden rounded-[36px] border border-gold/20 bg-grad-surface px-6 pt-10 pb-12 md:px-14 md:pt-12 md:pb-14">
           <div className="aurora opacity-70" aria-hidden>
             <i />
           </div>
-          <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex max-w-[22ch] flex-col gap-5">
-              <h2 className="font-display text-[clamp(38px,6vw,84px)] font-medium leading-[0.95] tracking-[-0.05em] text-[var(--fg)]">
+          <div
+            className={cn(
+              'relative z-10 flex flex-col gap-8',
+              isCentered
+                ? 'mx-auto max-w-[940px] items-center text-center'
+                : 'lg:flex-row lg:items-end lg:justify-between'
+            )}
+          >
+            <div
+              className={cn(
+                'flex flex-col gap-5',
+                isCentered ? 'items-center max-w-[880px]' : 'max-w-[28ch]'
+              )}
+            >
+              <h2 className="font-display text-[clamp(44px,7.5vw,96px)] font-medium leading-[0.93] tracking-[-0.05em] text-[var(--fg)] text-balance">
                 {title} {accent && <AccentText tone="gold">{accent}</AccentText>}
               </h2>
-              {lead && <p className="max-w-[48ch] text-[16px] leading-relaxed text-[var(--muted)]">{lead}</p>}
+              {lead && (
+                <div
+                  className={cn(
+                    'text-[clamp(16px,1.2vw,18.5px)] leading-relaxed text-[var(--muted)]',
+                    isCentered ? 'max-w-[70ch] mx-auto text-pretty' : 'max-w-[56ch]'
+                  )}
+                >
+                  {lead}
+                </div>
+              )}
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div
+              className={cn(
+                'flex flex-col gap-3 sm:flex-row',
+                isCentered && 'justify-center pt-1'
+              )}
+            >
               <PillLink href={primary.href} variant="gold">
                 {primary.label}
               </PillLink>

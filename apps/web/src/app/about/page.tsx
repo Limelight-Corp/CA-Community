@@ -575,11 +575,10 @@ export default async function AboutPage() {
             eyebrow="Leadership Framework"
             title="Leadership That Enables"
             accent="Participation."
-            align="center"
-            className="mx-auto"
+            size="lg"
             lead="EAGLE 2.0 is designed around a structured leadership framework that encourages accountability, collaboration and participation."
           />
-          <div className="mx-auto mt-6 max-w-[80ch] text-center text-[15.5px] leading-relaxed text-[var(--muted)]">
+          <div className="mt-4 max-w-[76ch] text-[15.5px] leading-relaxed text-[var(--muted)]">
             <p>
               The proposed structure brings together core leadership, executive coordination, professional wing leadership, community coordinators and members. Each level has a role in supporting the community&apos;s objectives and translating ideas into actionable initiatives.
             </p>

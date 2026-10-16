@@ -529,8 +529,6 @@ export default async function HomePage() {
               accent="A community that moves you forward."
               accentTone="gold"
               size="lg"
-              align="center"
-              className="mx-auto"
             />
           </Reveal>
           <div className="mt-12 grid grid-cols-2 auto-rows-[minmax(170px,auto)] gap-3 md:mt-16 md:auto-rows-[minmax(210px,auto)] md:grid-cols-4 md:gap-4">
@@ -638,16 +636,14 @@ export default async function HomePage() {
               title="Ten Wings."
               accent="One Community."
               size="lg"
-              align="center"
-              className="mx-auto"
               lead="Every professional journey is different. EAGLE 2.0 brings together diverse interests through dedicated wings that encourage focused learning, collaboration and year-round engagement."
             />
-            <div className="mx-auto mt-4 max-w-[80ch] text-center text-[15.5px] leading-relaxed text-[var(--muted)]">
+            <div className="mt-4 max-w-[76ch] text-[15.5px] leading-relaxed text-[var(--muted)]">
               <p>
                 Whether your interests lie in taxation, audit, entrepreneurship, technology, career development, wellness or social impact, our wing-based approach is designed to help you connect with the right people and participate in relevant initiatives.
               </p>
             </div>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-6 flex justify-start">
               <Link
                 href="/wings"
                 className="group inline-flex h-12 items-center gap-3 rounded-full border border-mist/[0.18] px-6 text-[14px] font-semibold text-[var(--fg)] transition hover:border-gold/50 hover:bg-gold/[0.04]"
@@ -937,22 +933,19 @@ export default async function HomePage() {
             aria-hidden
             className="pointer-events-none absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-brand-300/50 blur-[110px]"
           />
-          <p className="relative font-mono text-[12px] uppercase tracking-[0.16em] text-[#F2C46B]">
-            EAGLE 2.0 · {ORG_POSITIONING.launchLabel}
+          <p className="relative font-display text-[clamp(16px,2vw,24px)] font-medium tracking-normal text-[#FDE047]">
+            Your Profession. Your People.{' '}
+            <em className="font-serif font-normal italic inline-block">
+              Your Next Chapter.
+            </em>
           </p>
-          <h2 className="relative mx-auto mt-5 max-w-[22ch] pt-3 font-display text-[clamp(36px,6.5vw,84px)] font-medium leading-[1.35] tracking-normal text-white">
+          <h2 className="relative mx-auto mt-4 max-w-[22ch] font-display text-[clamp(42px,7vw,92px)] font-medium leading-[1.1] tracking-normal text-white">
             नई सोच,{' '}
             <span className="font-display font-medium text-[#FDE047] drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)]">
               नई उड़ान
             </span>
           </h2>
-          <p className="relative mx-auto mt-4 max-w-[26ch] pb-1 font-display text-[clamp(20px,3.2vw,38px)] font-medium leading-[1.25] tracking-normal text-white/95">
-            Your Profession. Your People.{' '}
-            <em className="font-serif font-normal italic text-[#FDE047] inline-block drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
-              Your Next Chapter.
-            </em>
-          </p>
-          <p className="relative mx-auto mt-5 max-w-[56ch] text-[clamp(15px,1.3vw,17px)] leading-relaxed text-white/90">
+          <p className="relative mx-auto mt-5 max-w-[58ch] text-[clamp(15px,1.3vw,17px)] leading-relaxed text-white/90">
             The future of the profession is shaped by people who learn together, build together and move forward together. Join EAGLE 2.0 and be part of a community committed to collective progress.
           </p>
           <div className="relative mt-10 flex flex-wrap justify-center gap-3">

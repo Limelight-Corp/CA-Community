@@ -115,7 +115,7 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
 );
 
 /* ------------------------------------------------------------------------------------------ */
-/* Kicker — small mono label with a glowing dot                                               */
+/* Kicker — editorial section label: a short rule, then small spaced capitals                 */
 /* ------------------------------------------------------------------------------------------ */
 
 export interface KickerProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -125,20 +125,13 @@ export interface KickerProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const Kicker: React.FC<KickerProps> = ({ tone = 'blue', className, children, ...props }) => (
   <span
     className={cn(
-      'inline-flex w-fit items-center gap-2 rounded-full py-1.5 pl-2.5 pr-3 font-mono text-[11.5px] font-medium uppercase leading-none tracking-[0.08em] border',
-      tone === 'blue' && 'text-brand-100 bg-brand-500/10 border-brand-300/30',
-      tone === 'gold' && 'text-gold-soft bg-gold/10 border-gold/30',
+      'inline-flex w-fit items-center gap-3 font-mono text-[11px] font-medium uppercase leading-none tracking-[0.18em]',
+      tone === 'blue' ? 'text-brand-500' : 'text-gold',
       className
     )}
     {...props}
   >
-    <span
-      aria-hidden
-      className={cn(
-        'h-1.5 w-1.5 rounded-full',
-        tone === 'blue' ? 'bg-brand-300 shadow-[0_0_8px_var(--brand-300)]' : 'bg-gold shadow-[0_0_8px_var(--gold)]'
-      )}
-    />
+    <span aria-hidden className="h-px w-7 shrink-0 bg-current opacity-60" />
     {children}
   </span>
 );

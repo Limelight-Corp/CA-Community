@@ -265,7 +265,7 @@
   --grad-tile: linear-gradient(160deg, #F6EEE4, #EFE5D8);
   --grad-avatar: linear-gradient(135deg, #A8272B, #6E171A);
   --grad-accent-text: linear-gradient(95deg, #A8272B 10%, #D9932A 90%);
-  --grad-gold: linear-gradient(100deg, #E2A13E 0%, #C98419 55%, #A86E14 100%);
+  --grad-gold: linear-gradient(180deg, #D9A247 0%, #C68E2E 100%);
   --grad-hero-text: linear-gradient(100deg, #1C1513 0%, #A8272B 55%, #C98419 100%);
 
   color-scheme: light;
@@ -2204,4 +2204,11 @@ footer .wrap {
     drop-shadow(0 1px 0 #422a08)
     drop-shadow(0 2px 1px rgb(40 24 16 / 0.35))
     drop-shadow(0 22px 28px rgb(58 36 28 / 0.22));
+}
+
+/* Premium finish (light): filled buttons and brand blocks sit on a quiet shadow instead of a
+   coloured glow. Applies to the crimson and gold fills used across the site. */
+:root[data-theme="light"] .bg-grad-gold,
+:root[data-theme="light"] .bg-grad-primary {
+  box-shadow: 0 1px 2px rgb(var(--mist-rgb) / 0.08), 0 10px 24px -18px rgb(var(--mist-rgb) / 0.4) !important;
 }

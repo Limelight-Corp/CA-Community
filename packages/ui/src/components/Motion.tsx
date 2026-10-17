@@ -90,9 +90,11 @@ export interface CountdownProps {
   /** ISO date, e.g. "2027-01-01T00:00:00+05:30". */
   to: string;
   className?: string;
+  /** "boxes" (default): one tile per unit. "inline": large numbers in a row, no tiles. */
+  variant?: 'boxes' | 'inline';
 }
 
-export const Countdown: React.FC<CountdownProps> = ({ to, className }) => {
+export const Countdown: React.FC<CountdownProps> = ({ to, className, variant = 'boxes' }) => {
   const target = new Date(to).getTime();
   const [parts, setParts] = useState<ReturnType<typeof diff> | null>(null);
 
@@ -108,6 +110,21 @@ export const Countdown: React.FC<CountdownProps> = ({ to, className }) => {
     ['minutes', 'Min'],
     ['seconds', 'Sec'],
   ];
+
+  if (variant === 'inline') {
+    return (
+      <div className={cn('flex items-baseline gap-5 sm:gap-7', className)} role="timer" aria-live="off">
+        {units.map(([key, label]) => (
+          <span key={key} className="flex items-baseline gap-1.5">
+            <span className="font-display text-[clamp(28px,3vw,40px)] font-medium leading-none tracking-[-0.03em] tabular-nums text-[var(--fg)]">
+              {parts ? String(parts[key]).padStart(2, '0') : '--'}
+            </span>
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">{label}</span>
+          </span>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className={cn('flex items-stretch gap-2', className)} role="timer" aria-live="off">

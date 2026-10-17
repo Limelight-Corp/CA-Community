@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import {
@@ -211,31 +210,29 @@ export default async function HomePage() {
         </div>
         <div className="grid-lines absolute inset-0" aria-hidden />
 
-        <Container size="wide" className="relative z-10 pb-16 pt-14 md:pb-24 md:pt-20">
-          <div className="grid items-center gap-14 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
+        <Container size="wide" className="relative z-10 pb-16 pt-16 md:pb-20 md:pt-24">
+          <div className="grid gap-10 lg:grid-cols-[1.25fr_1fr] lg:items-end lg:gap-16">
             <div className="min-w-0">
               <Reveal>
                 <Kicker tone="gold">EAGLE 2.0 · नई सोच, नई उड़ान | Nayi Soch, Nayi Udaan</Kicker>
               </Reveal>
               <Reveal delay={80}>
-                <h1 className="mt-7 font-display text-[clamp(42px,5.4vw,80px)] font-medium leading-[0.98] tracking-[-0.045em] text-[var(--fg)]">
+                <h1 className="mt-7 font-display text-[clamp(44px,6.2vw,96px)] font-medium leading-[0.96] tracking-[-0.045em] text-[var(--fg)]">
                   EAGLE 2.0
                   <span className="block">A New Era of</span>
-                  <em className="block font-serif font-normal italic tracking-[-0.02em] text-brand-500">
-                    Professional Community.
-                  </em>
+                  <em className="block font-serif font-normal italic tracking-[-0.02em] text-brand-500">Professional Community.</em>
                 </h1>
               </Reveal>
-              <Reveal delay={160}>
-                <p className="mt-7 max-w-[56ch] text-[clamp(17px,1.35vw,19px)] leading-relaxed text-[var(--fg-soft)]">
-                  A Pan-India professional community bringing together Chartered Accountants, CA students and allied professionals to learn, connect, grow, transform, thrive and contribute.
-                </p>
-                <p className="mt-4 max-w-[58ch] text-[15.5px] leading-relaxed text-[var(--muted)]">
-                  EAGLE 2.0 is built on a simple belief: the profession grows stronger when its people grow together. Through knowledge sharing, meaningful connections, professional initiatives and collaborative opportunities, we aim to help build a stronger, more connected and future-ready CA community.
-                </p>
-                <p className="mt-5 font-serif text-[19px] italic text-gold">Join the movement. Shape the future. Grow together.</p>
-              </Reveal>
-              <Reveal delay={240} className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-4">
+            </div>
+            <Reveal delay={160} className="min-w-0 lg:pb-3">
+              <p className="max-w-[52ch] text-[clamp(17px,1.35vw,19px)] leading-relaxed text-[var(--fg-soft)]">
+                A Pan-India professional community bringing together Chartered Accountants, CA students and allied professionals to learn, connect, grow, transform, thrive and contribute.
+              </p>
+              <p className="mt-4 max-w-[54ch] text-[15.5px] leading-relaxed text-[var(--muted)]">
+                EAGLE 2.0 is built on a simple belief: the profession grows stronger when its people grow together. Through knowledge sharing, meaningful connections, professional initiatives and collaborative opportunities, we aim to help build a stronger, more connected and future-ready CA community.
+              </p>
+              <p className="mt-5 font-serif text-[19px] italic text-gold">Join the movement. Shape the future. Grow together.</p>
+              <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-4">
                 <Link
                   href="/join"
                   className="inline-flex h-12 items-center gap-2 rounded-full bg-brand-500 px-6 text-[15px] font-semibold text-white transition hover:bg-brand-600"
@@ -254,47 +251,33 @@ export default async function HomePage() {
                 >
                   Discover Our Wings <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
                 </Link>
-              </Reveal>
-            </div>
-
-            {/* E Group emblem (static 3D look) + launch countdown + next event */}
-            <Reveal delay={200} className="relative min-w-0">
-              <div className="relative mx-auto w-full max-w-[480px]">
-                <div aria-hidden className="absolute left-1/2 top-[18%] -z-10 aspect-square w-[78%] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(var(--gold-rgb)/0.14),transparent)]" />
-                <figure className="emblem-3d mx-auto w-[min(440px,90%)]">
-                  <Image
-                    src="/brand/egroup-logo.png"
-                    alt="E Group emblem"
-                    width={640}
-                    height={331}
-                    priority
-                    className="emblem-3d__img h-auto w-full"
-                  />
-                </figure>
-                <div className="mt-12 rounded-[24px] border border-mist/[0.09] bg-[var(--card)] p-6 shadow-[0_1px_2px_rgb(var(--mist-rgb)/0.04),0_24px_48px_-36px_rgb(var(--mist-rgb)/0.4)]">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--muted)]">Launching 1 January 2027</p>
-                    <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-500">Pan-India</span>
-                  </div>
-                  <Countdown to={`${ORG_POSITIONING.launchDate}T00:00:00+05:30`} className="mt-4" />
-                  {nextRegisterable && (
-                    <Link
-                      href={`/events/${nextRegisterable.slug}`}
-                      className="group mt-5 flex items-center justify-between gap-4 border-t border-mist/[0.08] pt-5"
-                    >
-                      <span className="min-w-0">
-                        <span className="block font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--muted)]">Next up</span>
-                        <span className="mt-1 block truncate font-display text-[17px] font-medium text-[var(--fg)] group-hover:text-brand-500">
-                          {nextRegisterable.title}
-                        </span>
-                      </span>
-                      <ArrowUpRight className="h-5 w-5 shrink-0 text-brand-500" aria-hidden />
-                    </Link>
-                  )}
-                </div>
               </div>
             </Reveal>
           </div>
+
+          {/* Launch strip: date, live countdown and the next event, on one quiet line */}
+          <Reveal delay={240}>
+            <div className="mt-16 grid gap-6 border-t border-mist/[0.1] pt-8 md:mt-20 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-12">
+              <div>
+                <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-500">Launching · Pan-India</p>
+                <p className="mt-2 font-display text-[19px] font-medium tracking-[-0.02em] text-[var(--fg)]">1 January 2027</p>
+              </div>
+              <Countdown variant="inline" to={`${ORG_POSITIONING.launchDate}T00:00:00+05:30`} className="md:justify-center" />
+              {nextRegisterable && (
+                <Link href={`/events/${nextRegisterable.slug}`} className="group flex items-center gap-4 md:justify-end">
+                  <span className="min-w-0">
+                    <span className="block font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--muted)]">Next up</span>
+                    <span className="mt-2 block truncate font-display text-[17px] font-medium text-[var(--fg)] group-hover:text-brand-500">
+                      {nextRegisterable.title}
+                    </span>
+                  </span>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-mist/[0.16] text-brand-500 transition group-hover:border-brand-500">
+                    <ArrowUpRight className="h-4 w-4" aria-hidden />
+                  </span>
+                </Link>
+              )}
+            </div>
+          </Reveal>
         </Container>
       </Spotlight>
 

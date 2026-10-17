@@ -132,7 +132,7 @@ export function SiteHeader({
             : 'border-b border-transparent bg-transparent'
         )}
       >
-        <div className="mx-auto flex h-[76px] max-w-[1536px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-[76px] max-w-[1400px] items-center justify-between gap-3 px-5 md:px-8">
           <div className="shrink-0">
             <Logo siteName={siteName} />
           </div>

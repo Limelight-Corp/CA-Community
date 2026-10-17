@@ -166,10 +166,14 @@ export default async function AboutPage() {
         eyebrow="About EAGLE 2.0 · नई सोच, नई उड़ान"
         title="A Community for the"
         accent="Next Generation of the Profession"
+        accentTone="hero"
         lead="EAGLE 2.0 is envisioned as a Pan-India professional community for Chartered Accountants, young professionals, CA students and allied professionals. It aims to create a space where knowledge is shared, relationships are strengthened, ideas are explored and opportunities for professional growth are encouraged."
         ghost="EAGLE"
+        contentWidth="max-w-6xl xl:max-w-7xl"
+        leadWidth="max-w-4xl xl:max-w-5xl"
+        className="pb-10 pt-10 md:pb-16 md:pt-14"
       >
-        <div className="flex max-w-[46ch] flex-col gap-3 text-[15.5px] leading-relaxed text-[var(--muted)]">
+        <div className="flex max-w-4xl xl:max-w-5xl flex-col gap-3 text-[15.5px] leading-relaxed text-[var(--muted)]">
           <p>
             The initiative is built around a simple principle: a stronger profession begins with a more connected professional community.
           </p>
@@ -180,7 +184,7 @@ export default async function AboutPage() {
             Through our professional wings, events, knowledge initiatives and community-led activities, EAGLE 2.0 aims to encourage participation across professional backgrounds, industries and cities.
           </p>
         </div>
-        <div className="flex flex-wrap gap-3 pt-4">
+        <div className="flex flex-wrap gap-3 pt-3">
           <PillLink href="/join" variant="gold">
             Join the Community
           </PillLink>
@@ -359,10 +363,10 @@ export default async function AboutPage() {
       </Section>
 
       {/* ---------------------------------------------------------------- Vision & Mission (Step 3 & 4 in Docs Order) */}
-      <Section>
+      <Section className="py-12 md:py-16">
         <Container size="wide">
           <SectionHeading eyebrow="Vision & Mission" title="Why we" accent="exist." size="lg" />
-          <div className="mt-12 grid gap-4 md:mt-14 md:gap-5 lg:grid-cols-12">
+          <div className="mt-10 grid gap-4 md:mt-12 md:gap-5 lg:grid-cols-12">
             <Reveal className="lg:col-span-7">
               <FxCard
                 max={4}
@@ -405,32 +409,36 @@ export default async function AboutPage() {
       </Section>
 
       {/* ---------------------------------------------------------------- Our Objectives (Step 5 in Docs Order) */}
-      <Section labelledBy="objectives-heading">
+      <Section labelledBy="objectives-heading" className="py-10 md:py-14">
         <Container size="wide">
-          <div className="flex max-w-4xl flex-col gap-5">
+          <div className="flex max-w-5xl xl:max-w-6xl flex-col gap-4">
             <Kicker tone="gold">Our Objectives</Kicker>
             <h2
               id="objectives-heading"
-              className="max-w-[42ch] font-display text-[clamp(36px,5vw,76px)] font-medium leading-[1] tracking-[-0.045em] text-[var(--fg)]"
+              className="max-w-4xl font-display text-[clamp(34px,4.5vw,68px)] font-medium leading-[1.02] tracking-[-0.04em] text-[var(--fg)]"
             >
               Guiding principles for <AccentText tone="gold">collective impact.</AccentText>
             </h2>
-            <p className="max-w-[44ch] text-[16px] leading-relaxed text-[var(--muted)]">
+            <p className="max-w-3xl text-[16px] leading-relaxed text-[var(--muted)]">
               Eight core objectives that define EAGLE 2.0&apos;s direction, shaping every initiative, event and community interaction across India.
             </p>
           </div>
 
-          {/* 8 Community Objectives from Blueprint Section 3 - extra numbers removed */}
-          <ol className="mt-12 grid gap-4 sm:grid-cols-2 md:mt-14 lg:grid-cols-4">
+          {/* 8 Community Objectives from Blueprint Section 3 - top-aligned and compact */}
+          <ol className="mt-8 grid gap-4 sm:grid-cols-2 md:mt-10 lg:grid-cols-4">
             {ORG_OBJECTIVES.map((obj, i) => (
               <Reveal as="li" key={obj} delay={(i % 4) * 70} className="flex h-full">
-                <FxCard className="flex h-full flex-col justify-between rounded-[26px] border border-mist/[0.1] bg-[var(--card)] p-6 shadow-[0_1px_2px_rgb(var(--mist-rgb)/0.04)]">
-                  <span className="flex items-center">
-                    <span className="font-mono text-[13px] font-semibold tracking-[0.14em] text-gold">
+                <FxCard className="flex h-full w-full flex-col justify-start rounded-[22px] border border-mist/[0.1] bg-[var(--card)] p-5 shadow-[0_1px_2px_rgb(var(--mist-rgb)/0.04)] transition-all duration-300 hover:border-gold/40 hover:shadow-[0_12px_28px_-10px_rgb(var(--black-rgb)/0.4)]">
+                  <div className="flex items-center justify-between border-b border-mist/[0.08] pb-2.5">
+                    <span className="flex items-center gap-1.5 font-mono text-[12px] font-semibold tracking-[0.14em] text-gold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_6px_rgba(var(--gold-rgb),0.5)]" aria-hidden />
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                  </span>
-                  <p className="mt-5 text-[15px] font-medium leading-relaxed text-[var(--fg)]">
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                      Objective
+                    </span>
+                  </div>
+                  <p className="mt-3.5 text-[14px] font-medium leading-relaxed text-[var(--fg)]">
                     {obj}
                   </p>
                 </FxCard>

@@ -45,12 +45,15 @@ export default async function ResourcesPage() {
     <>
       <PageHero
         eyebrow={RESOURCES_PAGE_CONTENT.hero.eyebrow}
-        eyebrowTone="blue"
+        eyebrowTone="gold"
         title="Knowledge That"
         accent="Moves You Forward."
-        className="pb-10 md:pb-14"
+        accentTone="hero"
+        contentWidth="max-w-6xl xl:max-w-7xl"
+        leadWidth="max-w-4xl xl:max-w-5xl"
+        className="pb-10 pt-10 md:pb-14 md:pt-14"
         lead={
-          <div className="space-y-3 text-pretty">
+          <div className="space-y-3 text-[15.5px] leading-relaxed text-[var(--muted)]">
             {RESOURCES_PAGE_CONTENT.hero.paragraphs.map((p, idx) => (
               <p key={idx}>{p}</p>
             ))}

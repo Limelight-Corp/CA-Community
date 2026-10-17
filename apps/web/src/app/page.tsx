@@ -10,7 +10,6 @@ import {
   CalendarDays,
   Heart,
   HeartHandshake,
-  Quote,
   TrendingUp,
   Users,
 } from 'lucide-react';
@@ -30,7 +29,7 @@ import {
   ORG_VISION,
   WHY_JOIN,
 } from '@ascend/shared';
-import { AccentText, Avatar, Container, Kicker, SectionHeading, cn } from '@ascend/ui';
+import { AccentText, Container, Kicker, SectionHeading } from '@ascend/ui';
 import { CountUp, Countdown, Reveal } from '../components/ui-client';
 import { getItems, getSettings } from '../lib/community-store';
 import { safeUrl } from '../lib/content';
@@ -45,6 +44,7 @@ import {
 } from '../components/home/Interactive';
 import { WingsOrbit } from '../components/home/WingsOrbit';
 import { JourneyScroller } from '../components/home/JourneyScroller';
+import { TestimonialsSlider } from '../components/home/TestimonialsSlider';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -531,7 +531,7 @@ export default async function HomePage() {
               size="lg"
             />
           </Reveal>
-          <div className="mt-12 grid grid-cols-2 auto-rows-[minmax(170px,auto)] gap-3 md:mt-16 md:auto-rows-[minmax(210px,auto)] md:grid-cols-4 md:gap-4">
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 auto-rows-auto md:auto-rows-[minmax(210px,auto)] gap-4 md:mt-16">
             {WHY_JOIN.slice(0, 5).map((w, i) => {
               const Icon = WHY_ICONS[w.key as keyof typeof WHY_ICONS] || Users;
               const hero = i === 0;
@@ -539,10 +539,10 @@ export default async function HomePage() {
                 <Reveal
                   key={w.key}
                   delay={i * 70}
-                  className={hero ? 'col-span-2 md:row-span-2' : ''}
+                  className={hero ? 'col-span-1 sm:col-span-2 md:row-span-2' : 'col-span-1'}
                 >
                   <FxCard
-                    className={`flex h-full flex-col overflow-hidden rounded-[24px] border p-5 md:rounded-[28px] md:p-7 ${hero ? 'border-transparent bg-grad-primary' : 'border-mist/[0.08] bg-grad-surface'}`}
+                    className={`flex h-full flex-col overflow-hidden rounded-[24px] border p-6 sm:p-7 md:rounded-[28px] ${hero ? 'border-transparent bg-grad-primary' : 'border-mist/[0.08] bg-grad-surface'}`}
                   >
                     {hero && (
                       <div
@@ -551,23 +551,23 @@ export default async function HomePage() {
                       />
                     )}
                     <span
-                      className={`fx-icon relative grid place-items-center rounded-2xl ${hero ? 'h-14 w-14 bg-white/15 text-white md:h-16 md:w-16' : 'h-10 w-10 bg-brand-500/15 text-brand-200 md:h-12 md:w-12'}`}
+                      className={`fx-icon relative grid place-items-center rounded-2xl ${hero ? 'h-14 w-14 bg-white/15 text-white md:h-16 md:w-16' : 'h-11 w-11 bg-brand-500/15 text-brand-200 md:h-12 md:w-12'}`}
                     >
                       <Icon className={hero ? 'h-8 w-8' : 'h-6 w-6'} aria-hidden />
                     </span>
                     <h3
-                      className={`relative font-display font-medium tracking-[-0.03em] ${hero ? 'mt-auto pt-16 text-[clamp(40px,5vw,72px)] leading-[0.92] text-white md:pt-24' : 'mt-auto pt-6 text-[19px] leading-tight text-[var(--fg)] md:pt-8 md:text-[26px]'}`}
+                      className={`relative font-display font-medium tracking-[-0.03em] ${hero ? 'mt-auto pt-8 text-[clamp(32px,6vw,72px)] leading-[0.94] text-white sm:pt-16 md:pt-24' : 'mt-auto pt-6 text-[20px] sm:text-[22px] leading-tight text-[var(--fg)] md:pt-8 md:text-[26px]'}`}
                     >
                       {w.title}
                     </h3>
                     <p
-                      className={`relative mt-3 max-w-[44ch] leading-relaxed ${hero ? 'text-[16px] text-white/80 md:text-[17px]' : 'text-[12.5px] text-[var(--muted)] md:text-[15px]'}`}
+                      className={`relative mt-3 max-w-[44ch] leading-relaxed ${hero ? 'text-[15px] sm:text-[16px] text-white/85 md:text-[17px]' : 'text-[13.5px] sm:text-[14px] text-[var(--muted)] md:text-[15px]'}`}
                     >
                       {w.text}
                     </p>
                     <span
                       aria-hidden
-                      className={`fx-ghost absolute -bottom-6 -right-2 font-display font-semibold leading-none tracking-[-0.06em] opacity-70 ${hero ? 'text-[160px] text-white/10 md:text-[220px]' : 'text-[90px] text-mist/[0.05] md:text-[140px]'}`}
+                      className={`fx-ghost absolute -bottom-6 -right-2 font-display font-semibold leading-none tracking-[-0.06em] opacity-70 ${hero ? 'text-[140px] text-white/10 sm:text-[160px] md:text-[220px]' : 'text-[90px] text-mist/[0.05] md:text-[140px]'}`}
                     >
                       0{i + 1}
                     </span>
@@ -576,17 +576,17 @@ export default async function HomePage() {
               );
             })}
             {WHY_JOIN[5] && (
-              <Reveal delay={350} className="col-span-2 md:col-span-2">
-                <FxCard className="flex h-full flex-col justify-between overflow-hidden rounded-[24px] border border-mist/[0.08] bg-grad-surface p-5 md:rounded-[28px] md:p-7">
-                  <span className="fx-icon relative grid h-10 w-10 place-items-center rounded-2xl bg-brand-500/15 text-brand-200 md:h-12 md:w-12">
+              <Reveal delay={350} className="col-span-1 sm:col-span-2 md:col-span-2">
+                <FxCard className="flex h-full flex-col justify-between overflow-hidden rounded-[24px] border border-mist/[0.08] bg-grad-surface p-6 sm:p-7 md:rounded-[28px]">
+                  <span className="fx-icon relative grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/15 text-brand-200 md:h-12 md:w-12">
                     <TrendingUp className="h-6 w-6" aria-hidden />
                   </span>
                   <div className="relative mt-6">
                     <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold">06</span>
-                    <h3 className="mt-1 font-display text-[19px] font-medium leading-tight text-[var(--fg)] md:text-[24px]">
+                    <h3 className="mt-1 font-display text-[20px] sm:text-[22px] font-medium leading-tight text-[var(--fg)] md:text-[24px]">
                       {WHY_JOIN[5].title}
                     </h3>
-                    <p className="mt-2 text-[13px] leading-relaxed text-[var(--muted)] md:text-[14.5px]">
+                    <p className="mt-2 text-[13.5px] sm:text-[14px] leading-relaxed text-[var(--muted)] md:text-[14.5px]">
                       {WHY_JOIN[5].text}
                     </p>
                   </div>
@@ -594,17 +594,17 @@ export default async function HomePage() {
               </Reveal>
             )}
             {WHY_JOIN[6] && (
-              <Reveal delay={400} className="col-span-2 md:col-span-2">
-                <FxCard className="flex h-full flex-col justify-between overflow-hidden rounded-[24px] border border-mist/[0.08] bg-grad-surface p-5 md:rounded-[28px] md:p-7">
-                  <span className="fx-icon relative grid h-10 w-10 place-items-center rounded-2xl bg-brand-500/15 text-brand-200 md:h-12 md:w-12">
+              <Reveal delay={400} className="col-span-1 sm:col-span-2 md:col-span-2">
+                <FxCard className="flex h-full flex-col justify-between overflow-hidden rounded-[24px] border border-mist/[0.08] bg-grad-surface p-6 sm:p-7 md:rounded-[28px]">
+                  <span className="fx-icon relative grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/15 text-brand-200 md:h-12 md:w-12">
                     <Heart className="h-6 w-6" aria-hidden />
                   </span>
                   <div className="relative mt-6">
                     <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold">07</span>
-                    <h3 className="mt-1 font-display text-[19px] font-medium leading-tight text-[var(--fg)] md:text-[24px]">
+                    <h3 className="mt-1 font-display text-[20px] sm:text-[22px] font-medium leading-tight text-[var(--fg)] md:text-[24px]">
                       {WHY_JOIN[6].title}
                     </h3>
-                    <p className="mt-2 text-[13px] leading-relaxed text-[var(--muted)] md:text-[14.5px]">
+                    <p className="mt-2 text-[13.5px] sm:text-[14px] leading-relaxed text-[var(--muted)] md:text-[14.5px]">
                       {WHY_JOIN[6].text}
                     </p>
                   </div>
@@ -829,45 +829,7 @@ export default async function HomePage() {
             />
           </Reveal>
           {testimonials.length > 0 ? (
-            <ul
-              aria-label="Member testimonials"
-              className={cn(
-                'mt-12 grid gap-6',
-                testimonials.length === 1
-                  ? 'max-w-[640px]'
-                  : testimonials.length === 2
-                    ? 'md:grid-cols-2'
-                    : 'md:grid-cols-2 lg:grid-cols-3'
-              )}
-            >
-              {testimonials.map((t, i) => (
-                <Reveal as="li" key={t.id} delay={i * 80} className="flex h-full">
-                  <figure className="glass-panel flex w-full flex-col justify-between rounded-[28px] border border-mist/[0.08] p-7 transition duration-300 hover:border-gold/30">
-                    <div>
-                      <Quote className="h-8 w-8 text-gold" aria-hidden />
-                      {/* Member Message */}
-                      <blockquote className="mt-4 text-[16px] leading-relaxed text-[var(--fg)]">
-                        “{t.quote}”
-                      </blockquote>
-                    </div>
-                    {/* Member Name, Profile & Avatar */}
-                    <figcaption className="mt-6 flex items-center gap-3.5 border-t border-mist/[0.08] pt-5">
-                      <Avatar name={t.name} src={t.photoUrl} size={46} className="ring-2 ring-gold/30" />
-                      <div className="min-w-0 flex-1">
-                        <span className="block font-display text-[16px] font-semibold text-[var(--fg)]">
-                          {t.name}
-                        </span>
-                        {t.designation && (
-                          <span className="block text-[13px] leading-snug text-[var(--muted)]">
-                            {t.designation}
-                          </span>
-                        )}
-                      </div>
-                    </figcaption>
-                  </figure>
-                </Reveal>
-              ))}
-            </ul>
+            <TestimonialsSlider testimonials={testimonials} />
           ) : (
             /* Blueprint Section 2.11 Note: Until testimonials are available, feature community objectives */
             <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

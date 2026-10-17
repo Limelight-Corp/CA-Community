@@ -51,25 +51,25 @@ export function ResourceCategoryCards() {
             key={cat.id}
             type="button"
             onClick={() => handleSelectCategory(cat.title)}
-            className="shine group flex flex-col justify-between text-left rounded-[24px] border border-mist/[0.1] bg-grad-surface p-6 transition duration-300 hover:-translate-y-1 hover:border-brand-300/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+            className="shine group flex h-full flex-col justify-between text-left rounded-[22px] border border-mist/[0.1] bg-grad-surface p-5 transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-[0_12px_28px_-10px_rgb(var(--black-rgb)/0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-500/10 text-brand-300 transition group-hover:bg-brand-500/20 group-hover:text-gold">
+            <div className="w-full">
+              <div className="flex items-center justify-between border-b border-mist/[0.08] pb-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500/10 text-brand-300 transition group-hover:bg-brand-500/20 group-hover:text-gold">
                   <Icon className="h-5 w-5" aria-hidden />
                 </span>
-                <span className="font-mono text-[11.5px] font-medium tracking-[0.1em] text-[var(--muted)]">
+                <span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-gold">
                   {String(idx + 1).padStart(2, '0')}
                 </span>
               </div>
-              <h3 className="mt-5 font-display text-[19px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-gold">
+              <h3 className="mt-4 font-display text-[18px] sm:text-[19px] font-medium leading-snug tracking-[-0.02em] text-[var(--fg)] group-hover:text-gold">
                 {cat.title}
               </h3>
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-[var(--muted)]">
+              <p className="mt-2 text-[13.5px] leading-relaxed text-[var(--muted)]">
                 {cat.description}
               </p>
             </div>
-            <div className="mt-6 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-brand-300">
+            <div className="mt-5 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-gold transition-colors">
               <span>Explore resources</span>
               <ArrowUpRight
                 className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

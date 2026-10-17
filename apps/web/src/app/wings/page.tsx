@@ -56,16 +56,16 @@ export default async function WingsIndexPage() {
       {/* ---------------------------------------------------------------- Wings Grid */}
       <Section className="pt-10 md:pt-14">
         <Container size="wide">
-          <ul className="grid gap-6 sm:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {wings.map((w, i) => (
-              <Reveal as="li" key={w.slug} delay={(i % 2) * 90} className="h-full">
+              <Reveal as="li" key={w.slug} delay={(i % 3) * 80} className="h-full">
                 <FxCard
                   as="article"
-                  max={5}
-                  className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-mist/[0.1] bg-grad-surface transition-all duration-300 hover:border-gold/40"
+                  max={4}
+                  className="group relative flex h-full flex-col overflow-hidden rounded-[24px] border border-mist/[0.1] bg-grad-surface transition-all duration-300 hover:border-gold/40 hover:shadow-[0_16px_36px_-12px_rgb(var(--black-rgb)/0.5)] sm:rounded-[28px]"
                 >
                   {/* Visual Header */}
-                  <div className="grain relative h-[120px] overflow-hidden bg-brand-950">
+                  <div className="grain relative h-[100px] overflow-hidden bg-brand-950 sm:h-[110px]">
                     <div
                       aria-hidden
                       className="mesh-drift"
@@ -76,65 +76,60 @@ export default async function WingsIndexPage() {
                     />
                     <span
                       aria-hidden
-                      className="fx-ghost text-outline pointer-events-none absolute -bottom-8 right-4 select-none font-display text-[120px] font-semibold leading-none tracking-[-0.06em] opacity-60"
+                      className="fx-ghost text-outline pointer-events-none absolute -bottom-8 right-4 select-none font-display text-[100px] font-semibold leading-none tracking-[-0.06em] opacity-50 sm:text-[115px]"
                     >
                       {String(w.number).padStart(2, '0')}
                     </span>
-                    <span className="absolute left-6 top-5 font-mono text-[11.5px] uppercase tracking-[0.14em] text-white/80">
-                      Wing {String(w.number).padStart(2, '0')}
-                    </span>
+                    <div className="absolute left-5 top-4 flex items-center gap-2">
+                      <span className="rounded-full border border-white/15 bg-black/30 px-2.5 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/90 backdrop-blur-md">
+                        Wing {String(w.number).padStart(2, '0')}
+                      </span>
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: w.color, boxShadow: `0 0 8px ${w.color}` }}
+                        aria-hidden
+                      />
+                    </div>
                   </div>
 
                   {/* Card Body */}
-                  <div className="flex flex-1 flex-col gap-4 p-6 md:p-8">
-                    <div>
-                      <h2 className="font-display text-[26px] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)] transition-colors group-hover:text-gold-soft">
-                        <Link
-                          href={`/wings/${w.slug}`}
-                          className="after:absolute after:inset-0 after:content-[''] focus:outline-none focus-visible:underline"
-                        >
-                          {String(w.number).padStart(2, '0')}. {w.name}
-                        </Link>
-                      </h2>
-                      <p className="mt-1.5 font-display text-[15px] font-medium text-gold">
-                        {w.tagline}
+                  <div className="flex flex-1 flex-col justify-between gap-4 p-5 sm:p-6">
+                    <div className="space-y-2">
+                      <div>
+                        <h2 className="font-display text-[20px] font-medium leading-tight tracking-[-0.03em] text-[var(--fg)] transition-colors group-hover:text-gold-soft sm:text-[22px]">
+                          <Link
+                            href={`/wings/${w.slug}`}
+                            className="after:absolute after:inset-0 after:content-[''] focus:outline-none focus-visible:underline"
+                          >
+                            {String(w.number).padStart(2, '0')}. {w.name}
+                          </Link>
+                        </h2>
+                        <p className="mt-1 font-display text-[13.5px] font-medium text-gold sm:text-[14px]">
+                          {w.tagline}
+                        </p>
+                      </div>
+
+                      <p className="text-[13px] leading-relaxed text-[var(--muted)] sm:text-[13.5px]">
+                        {w.description}
                       </p>
                     </div>
 
-                    <p className="text-[14.5px] leading-relaxed text-[var(--muted)]">
-                      {w.description}
-                    </p>
+                    <div className="mt-auto space-y-3.5 pt-2">
+                      <div className="rounded-2xl border border-mist/[0.1] bg-bg/50 p-3.5 backdrop-blur sm:p-4">
+                        <span className="block font-mono text-[10.5px] uppercase tracking-[0.14em] text-gold sm:text-[11px]">
+                          Proposed activities
+                        </span>
+                        <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--fg)] sm:text-[13px]">
+                          {w.proposedActivities}
+                        </p>
+                      </div>
 
-                    <div className="mt-auto rounded-2xl border border-mist/[0.1] bg-bg/50 p-4 backdrop-blur">
-                      <span className="block font-mono text-[11px] uppercase tracking-[0.14em] text-gold">
-                        Proposed activities
-                      </span>
-                      <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--fg)]">
-                        {w.proposedActivities}
-                      </p>
-                    </div>
-
-                    {/* ---------------------------------------------------------------- Preserved - Tags and Events Count (Not in Word Doc Section 4)
-                    <ul className="flex flex-wrap gap-1.5" aria-label="Focus areas">
-                      {w.focus.slice(0, 5).map((f) => (
-                        <li key={f} className="rounded-full border border-mist/[0.12] px-2.5 py-0.5 text-[12px] text-[var(--fg-soft)]">
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-auto flex items-center justify-between border-t border-[var(--line)] pt-4">
-                      <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--muted)]">
-                        <CalendarDays className="h-4 w-4 text-brand-200" aria-hidden />
-                        {w.upcoming > 0 ? `${w.upcoming} upcoming ${w.upcoming === 1 ? 'event' : 'events'}` : 'Events coming soon'}
-                      </span>
-                    </div>
-                    ---------------------------------------------------------------- */}
-
-                    <div className="flex items-center justify-between border-t border-[var(--line)] pt-4 text-[13px] font-medium text-[var(--muted)] group-hover:text-[var(--fg)]">
-                      <span>Explore wing overview</span>
-                      <span className="grid h-8 w-8 place-items-center rounded-full bg-mist/[0.08] transition-all duration-300 group-hover:rotate-45 group-hover:bg-grad-primary group-hover:text-white">
-                        <ArrowUpRight className="h-4 w-4" aria-hidden />
-                      </span>
+                      <div className="flex items-center justify-between border-t border-[var(--line)] pt-3 text-[13px] font-medium text-[var(--muted)] group-hover:text-[var(--fg)]">
+                        <span>Explore wing overview</span>
+                        <span className="grid h-8 w-8 place-items-center rounded-full bg-mist/[0.08] transition-all duration-300 group-hover:rotate-45 group-hover:bg-grad-primary group-hover:text-white">
+                          <ArrowUpRight className="h-4 w-4" aria-hidden />
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </FxCard>

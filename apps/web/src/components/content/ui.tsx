@@ -18,9 +18,23 @@ export interface PageHeroProps {
   ghost?: string;
   children?: React.ReactNode;
   className?: string;
+  contentWidth?: string;
+  leadWidth?: string;
 }
 
-export function PageHero({ eyebrow, eyebrowTone = 'gold', title, accent, accentTone = 'gold', lead, ghost, children, className }: PageHeroProps) {
+export function PageHero({
+  eyebrow,
+  eyebrowTone = 'gold',
+  title,
+  accent,
+  accentTone = 'gold',
+  lead,
+  ghost,
+  children,
+  className,
+  contentWidth = 'max-w-5xl xl:max-w-6xl',
+  leadWidth = 'max-w-3xl xl:max-w-4xl',
+}: PageHeroProps) {
   return (
     <section className={cn('grain relative overflow-hidden border-b border-[var(--line)] pb-16 pt-14 md:pb-24 md:pt-24', className)}>
       <div className="aurora" aria-hidden>
@@ -36,7 +50,7 @@ export function PageHero({ eyebrow, eyebrowTone = 'gold', title, accent, accentT
         </span>
       )}
       <Container size="wide" className="relative z-10">
-        <div className="flex max-w-4xl flex-col gap-6">
+        <div className={cn('flex flex-col gap-6', contentWidth)}>
           <Kicker tone={eyebrowTone}>{eyebrow}</Kicker>
           <h1 className="font-display text-[clamp(38px,5.4vw,84px)] font-medium leading-[0.98] tracking-[-0.045em] text-[var(--fg)]">
             {title}
@@ -48,11 +62,11 @@ export function PageHero({ eyebrow, eyebrowTone = 'gold', title, accent, accentT
             )}
           </h1>
           {lead && (
-            <div className="max-w-[46ch] text-[clamp(16px,1.35vw,19px)] leading-relaxed text-[var(--muted)]">
+            <div className={cn('text-[clamp(16px,1.35vw,19px)] leading-relaxed text-[var(--muted)]', leadWidth)}>
               {typeof lead === 'string' ? <p>{lead}</p> : lead}
             </div>
           )}
-          {children && <div className="max-w-[46ch] flex flex-col gap-4">{children}</div>}
+          {children && <div className={cn('flex flex-col gap-4', leadWidth)}>{children}</div>}
         </div>
       </Container>
     </section>

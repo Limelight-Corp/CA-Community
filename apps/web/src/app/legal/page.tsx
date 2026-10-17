@@ -14,23 +14,49 @@ export const metadata: Metadata = {
 export default async function LegalIndexPage() {
   const docs = await legalDocs();
   return (
-    <section className="py-16 md:py-24">
-      <Container size="wide" className="flex flex-col gap-10">
-        <div className="flex flex-col gap-6">
-          <Kicker>Legal</Kicker>
-          <h1 className="font-display text-[clamp(44px,8vw,112px)] font-medium leading-[0.92] tracking-[-0.055em] text-[var(--fg)]">The fine print.</h1>
+    <section className="py-10 sm:py-16 md:py-24">
+      <Container size="wide" className="w-full min-w-0 max-w-full flex flex-col gap-8 sm:gap-12">
+        <div className="flex flex-col gap-4 sm:gap-6">
+          <Kicker>Legal & Compliance</Kicker>
+          <h1 className="font-display text-[clamp(34px,6.5vw,96px)] font-medium leading-[0.98] tracking-[-0.045em] text-[var(--fg)]">
+            The fine print.
+          </h1>
+          <p className="max-w-[62ch] text-[15px] sm:text-[16.5px] leading-relaxed text-[var(--muted)]">
+            Official terms, member guidelines, event policies and governance standards designed to protect our members and ensure transparent community operations.
+          </p>
           {docs.some((d) => !d.edited) && (
-            <p className="max-w-[56ch] text-[17px] text-[var(--muted)]">Draft policies — the exact legal wording is to be reviewed by the organisation’s legal/professional advisor.</p>
+            <p className="rounded-xl border border-warn/30 bg-warn/10 px-4 py-2.5 text-[13px] sm:text-[14px] leading-relaxed text-[var(--fg)] max-w-2xl">
+              <strong>Note:</strong> Draft policies — the exact legal wording is subject to periodic review by the organisation’s legal and professional advisors.
+            </p>
           )}
         </div>
+
         <ul className="border-t border-[var(--line)]">
           {docs.map((d, i) => (
             <li key={d.slug}>
-              <Link href={`/legal/${d.slug}`} className="group grid gap-2 border-b border-[var(--line)] py-6 md:grid-cols-[4rem_1fr_1.4fr_auto] md:items-center md:gap-8">
-                <span className="font-mono text-[12px] text-gold">{String(i + 1).padStart(2, '0')}</span>
-                <span className="font-display text-[clamp(24px,3vw,36px)] font-medium tracking-[-0.035em] text-[var(--fg)] transition-transform duration-300 group-hover:translate-x-2">{d.title}</span>
-                <span className="text-[14.5px] text-[var(--muted)]">{d.summary}</span>
-                <ArrowUpRight className="hidden h-6 w-6 text-[var(--muted)] transition-transform duration-300 group-hover:rotate-45 group-hover:text-gold md:block" aria-hidden />
+              <Link
+                href={`/legal/${d.slug}`}
+                className="group flex flex-col gap-2.5 border-b border-[var(--line)] py-5 transition-colors sm:grid sm:grid-cols-[3rem_1.3fr_1.6fr_auto] sm:items-center sm:gap-6 sm:py-6 hover:bg-gold/[0.02]"
+              >
+                <span className="font-mono text-[12px] font-semibold text-gold">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div className="flex items-center justify-between sm:block">
+                  <span className="font-display text-[20px] font-medium tracking-[-0.03em] text-[var(--fg)] transition-transform duration-300 group-hover:translate-x-1 sm:text-[22px] md:text-[28px]">
+                    {d.title}
+                  </span>
+                  <ArrowUpRight
+                    className="h-5 w-5 shrink-0 text-gold transition-transform duration-300 group-hover:rotate-45 sm:hidden"
+                    aria-hidden
+                  />
+                </div>
+                <span className="text-[13.5px] leading-relaxed text-[var(--muted)] sm:text-[14.5px]">
+                  {d.summary}
+                </span>
+                <ArrowUpRight
+                  className="hidden h-5 w-5 shrink-0 text-[var(--muted)] transition-transform duration-300 group-hover:rotate-45 group-hover:text-gold sm:block"
+                  aria-hidden
+                />
               </Link>
             </li>
           ))}
